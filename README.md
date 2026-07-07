@@ -6,11 +6,11 @@ Epitome TRC is a comprehensive full-stack web application built for educational 
 
 ## 👥 Team Members
 
-- **Project Lead**: [Your Name]
-- **Frontend Developer**: [Member Name]
-- **Backend Developer**: [Member Name]
-- **Database Administrator**: [Member Name]
-- **DevOps Engineer**: [Member Name]
+- **Team Member 1**: Leela Prasad Reddy
+- **Team Member 2**: Harshul Purohit
+- **Team Member 3**: Lalitha Sreya
+- **Team Member 4**: Sri Nitya
+- **Team Member 5**: Thriveni Reddy
 
 *Update this section with actual team member names and roles*
 
