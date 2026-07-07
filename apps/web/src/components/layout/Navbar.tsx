@@ -1,143 +1,259 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Menu, X, ArrowRight, ShieldCheck } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Menu, X, ArrowRight, ShieldCheck, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import MobileMenu from "@/components/layout/MobileMenu";
+
+type DesktopNavItem = {
+  name: string;
+  href: string;
+  children?: { name: string; href: string }[];
+};
+
+const desktopNavItems: DesktopNavItem[] = [
+  { name: "Home", href: "/" },
+  {
+    name: "Services",
+    href: "/services",
+    children: [
+      { name: "Recruitment", href: "/services#recruitment" },
+      { name: "Staffing", href: "/services#staffing" },
+      { name: "Consulting", href: "/consulting" },
+      { name: "Corporate Training", href: "/training" },
+      { name: "Technology Solutions", href: "/services#it-services" },
+    ],
+  },
+  { name: "Training", href: "/training" },
+  { name: "Consulting", href: "/consulting" },
+  {
+    name: "Courses",
+    href: "/courses",
+    children: [
+      { name: "Technical Courses", href: "/courses#technical" },
+      { name: "Soft Skills", href: "/courses#soft-skills" },
+      { name: "Certifications", href: "/certifications" },
+      { name: "Workshops", href: "/courses#workshops" },
+    ],
+  },
+  {
+    name: "Career",
+    href: "/careers",
+    children: [
+      { name: "Jobs", href: "/jobs" },
+      { name: "Internships", href: "/internships" },
+      { name: "Placement Assistance", href: "/careers#placement" },
+      { name: "Resume Building", href: "/careers#resume" },
+    ],
+  },
+  { name: "About", href: "/about" },
+  { name: "Blog", href: "/blog" },
+  { name: "Contact", href: "/contact" },
+];
+
+const mobileNavItems = [
+  { name: "Home", href: "/" },
+  {
+    name: "Services",
+    href: "/services",
+    children: [
+      { name: "Recruitment", href: "/services#recruitment" },
+      { name: "Staffing", href: "/services#staffing" },
+      { name: "Consulting", href: "/consulting" },
+      { name: "Corporate Training", href: "/training" },
+      { name: "Technology Solutions", href: "/services#it-services" },
+    ],
+  },
+  { name: "Training", href: "/training" },
+  { name: "Consulting", href: "/consulting" },
+  {
+    name: "Courses",
+    href: "/courses",
+    children: [
+      { name: "Technical Courses", href: "/courses#technical" },
+      { name: "Soft Skills", href: "/courses#soft-skills" },
+      { name: "Certifications", href: "/certifications" },
+      { name: "Workshops", href: "/courses#workshops" },
+    ],
+  },
+  { name: "Jobs", href: "/jobs" },
+  { name: "Internships", href: "/internships" },
+  {
+    name: "Career",
+    href: "/careers",
+    children: [
+      { name: "Jobs", href: "/jobs" },
+      { name: "Internships", href: "/internships" },
+      { name: "Placement Assistance", href: "/careers#placement" },
+      { name: "Resume Building", href: "/careers#resume" },
+    ],
+  },
+  { name: "About", href: "/about" },
+  { name: "Blog", href: "/blog" },
+  { name: "Contact", href: "/contact" },
+];
+
+function NavDropdown({
+  item,
+  pathname,
+}: {
+  item: DesktopNavItem;
+  pathname: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const isActive =
+    pathname === item.href ||
+    item.children?.some((c) => pathname === c.href.split("#")[0]);
+
+  return (
+    <div ref={ref} className="relative" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "flex items-center gap-1 py-2 text-sm font-medium transition-colors",
+          isActive ? "text-orange-500" : "text-slate-600 hover:text-[#0b172a]",
+        )}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+      >
+        {item.name}
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-0 top-full z-50 mt-1 min-w-[220px] rounded-xl border border-slate-100 bg-white py-2 shadow-lg"
+          >
+            {item.children?.map((child) => (
+              <Link
+                key={child.name}
+                href={child.href}
+                onClick={() => setIsOpen(false)}
+                className="block px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#0b172a]"
+              >
+                {child.name}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navItems = [
-    { name: "Services", href: "#services" },
-    { name: "About Us", href: "#about" },
-    { name: "Solutions", href: "#solutions" },
-    { name: "Blog", href: "#blog" },
-    { name: "Contact", href: "#contact" },
-  ];
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/80 backdrop-blur-md shadow-md border-b border-slate-200/50 py-3"
-          : "bg-transparent py-5"
-      }`}
+      className={cn(
+        "fixed left-0 right-0 top-0 z-50 transition-all duration-300",
+        isScrolled || !isHome
+          ? "border-b border-slate-200/50 bg-white/90 py-3 shadow-md backdrop-blur-md"
+          : "bg-transparent py-5",
+      )}
+      aria-label="Main navigation"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-12">
-          {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="p-1.5 bg-[#0b172a] rounded-lg">
-                <ShieldCheck className="h-6 w-6 text-orange-500" />
-              </span>
-              <span className="font-display font-bold text-2xl text-[#0b172a] tracking-tight">
-                Epitome<span className="text-orange-500">TRC</span>
-              </span>
-            </Link>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-12 items-center justify-between">
+          <Link href="/" className="flex shrink-0 items-center space-x-2">
+            <span className="rounded-lg bg-[#0b172a] p-1.5">
+              <ShieldCheck className="h-6 w-6 text-orange-500" />
+            </span>
+            <span className="font-display text-xl font-bold tracking-tight text-[#0b172a] sm:text-2xl">
+              Epitome<span className="text-orange-500">TRC</span>
+            </span>
+          </Link>
+
+          <div className="hidden items-center gap-5 xl:flex">
+            {desktopNavItems.map((item) =>
+              item.children ? (
+                <NavDropdown key={item.name} item={item} pathname={pathname} />
+              ) : (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "relative py-2 text-sm font-medium transition-colors group",
+                    pathname === item.href
+                      ? "text-orange-500"
+                      : "text-slate-600 hover:text-[#0b172a]",
+                  )}
+                >
+                  {item.name}
+                  <span
+                    className={cn(
+                      "absolute bottom-0 left-0 h-0.5 w-full origin-left bg-orange-500 transition-transform",
+                      pathname === item.href ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
+                    )}
+                  />
+                </Link>
+              ),
+            )}
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-slate-600 hover:text-[#0b172a] font-medium text-sm transition-colors duration-200 relative group py-2"
-              >
-                {item.name}
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-              </Link>
-            ))}
-          </div>
-
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden items-center space-x-3 md:flex xl:space-x-4">
             <Link
-              href="#contact"
-              className="text-slate-700 hover:text-[#0b172a] font-medium text-sm transition-colors px-3 py-2"
+              href="/contact"
+              className="px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:text-[#0b172a]"
             >
               Login
             </Link>
             <Link
-              href="#contact"
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg shadow-sm hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+              href="/contact"
+              className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
             >
               Register Now
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Link>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-[#0b172a] hover:bg-slate-100 focus:outline-none"
-              aria-expanded="false"
-            >
-              <span className="sr-only">Open main menu</span>
-              {isOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-[#0b172a] focus:outline-none md:xl:hidden"
+            aria-expanded={isOpen}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile menu panel */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="md:hidden bg-white border-b border-slate-200 shadow-lg overflow-hidden"
-          >
-            <div className="px-4 pt-2 pb-6 space-y-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-[#0b172a] hover:bg-slate-50 transition-colors"
-                >
-                  {item.name}
-                </Link>
-              ))}
-              <div className="pt-4 border-t border-slate-100 flex flex-col space-y-3 px-3">
-                <Link
-                  href="#contact"
-                  onClick={() => setIsOpen(false)}
-                  className="text-center font-medium text-slate-700 hover:text-[#0b172a] py-2"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="#contact"
-                  onClick={() => setIsOpen(false)}
-                  className="inline-flex items-center justify-center px-4 py-2.5 text-base font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors shadow-sm"
-                >
-                  Register Now
-                  <ArrowRight className="ml-1.5 h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <MobileMenu isOpen={isOpen} onClose={() => setIsOpen(false)} navItems={mobileNavItems} />
     </nav>
   );
 }
