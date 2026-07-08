@@ -1,4 +1,4 @@
-# Epitome TRC - Full Stack College Project
+# Epitome TRC - Full Stack Internship Project
 
 ## 📋 Project Description
 
