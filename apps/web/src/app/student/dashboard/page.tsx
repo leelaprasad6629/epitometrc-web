@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Clock, Award, Users, ArrowRight, Calendar, ExternalLink, Video } from "lucide-react";
 import Image from "next/image";
@@ -7,31 +8,38 @@ import Link from "next/link";
 import Button from "@/components/common/Button";
 
 export default function StudentDashboard() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/student/dashboard")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) {
+          setData(payload);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
   const stats = [
-    { label: "Active Courses", value: "04", icon: BookOpen, color: "text-blue-600 bg-blue-50 border-blue-100" },
-    { label: "Pending Assignments", value: "03", icon: Clock, color: "text-amber-600 bg-amber-50 border-amber-100" },
-    { label: "Certifications", value: "12", icon: Award, color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
-    { label: "Mentor Sessions", value: "08", icon: Users, color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
+    { label: "Active Courses", value: data?.stats?.activeCourses !== undefined ? String(data.stats.activeCourses).padStart(2, '0') : "00", icon: BookOpen, color: "text-blue-600 bg-blue-50 border-blue-100" },
+    { label: "Pending Assignments", value: data?.stats?.pendingAssignments !== undefined ? String(data.stats.pendingAssignments).padStart(2, '0') : "00", icon: Clock, color: "text-amber-600 bg-amber-50 border-amber-100" },
+    { label: "Certifications", value: data?.stats?.certifications !== undefined ? String(data.stats.certifications).padStart(2, '0') : "00", icon: Award, color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
+    { label: "Mentor Sessions", value: data?.stats?.mentorSessions !== undefined ? String(data.stats.mentorSessions).padStart(2, '0') : "00", icon: Users, color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
   ];
 
-  const recommendedPrograms = [
-    {
-      id: 1,
-      title: "Strategic Business Analyst",
-      location: "EpitomeTRC HQ • Remote Friendly",
-      duration: "3 Modules • Professional Level",
-      tags: ["Fintech", "Strategy"],
-      image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=250&fit=crop",
-    },
-    {
-      id: 2,
-      title: "Advanced Execution & Strategy",
-      location: "Virtual Classroom",
-      duration: "6 Modules • Professional Level",
-      tags: ["Management", "120 Hours"],
-      image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop",
-    },
-  ];
+  const recommendedPrograms = data?.recommended?.length > 0
+    ? data.recommended.map((r: any) => ({
+        id: r.id,
+        title: r.title,
+        location: r.location,
+        duration: r.duration,
+        tags: ["Strategy", "Enterprise"],
+        image: r.image,
+      }))
+    : [];
 
   const deadlines = [
     { title: "Market Research Draft", due: "Due Today, 11:59 PM", status: "URGENT" },
@@ -67,7 +75,7 @@ export default function StudentDashboard() {
       <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-1">
           <h1 className="font-display text-2xl font-bold text-[#0b172a] sm:text-3xl">
-            Welcome back, Alex.
+            Welcome back, {data?.userName || "Alex"}.
           </h1>
           <p className="text-slate-500 text-sm font-medium font-sans">
             Your progress this week is looking excellent. You have 2 assignments due soon.

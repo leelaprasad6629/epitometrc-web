@@ -19,7 +19,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -30,17 +30,42 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      // Route based on role
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, role }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Registration failed");
+      }
+
+      // Auto login after successful registration
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const loginData = await loginRes.json();
+
+      if (!loginRes.ok) {
+        throw new Error(loginData.error || "Auto-login failed");
+      }
+
       if (role === "Student") {
         router.push("/student/dashboard");
-      } else if (role === "Employer") {
-        router.push("/employee/dashboard");
       } else {
-        router.push("/employee/dashboard"); // Organization acts as employer/employee portal
+        router.push("/employee/dashboard");
       }
-    }, 800);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

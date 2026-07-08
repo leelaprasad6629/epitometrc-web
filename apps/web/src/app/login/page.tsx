@@ -16,26 +16,37 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // Mock Login Logic based on email role trigger or default
-    setTimeout(() => {
-      setLoading(false);
-      const emailLower = email.toLowerCase();
-      if (emailLower.includes("student")) {
-        router.push("/student/dashboard");
-      } else if (emailLower.includes("admin")) {
-        router.push("/admin/dashboard");
-      } else if (emailLower.includes("employee") || emailLower.includes("recruiter") || emailLower.includes("employer")) {
-        router.push("/employee/dashboard");
-      } else {
-        // Default to student if unspecified
-        router.push("/student/dashboard");
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
       }
-    }, 800);
+
+      const role = data.user.role;
+      if (role === "Student") {
+        router.push("/student/dashboard");
+      } else if (role === "Admin") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/employee/dashboard");
+      }
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
