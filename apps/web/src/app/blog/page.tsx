@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { FileText, Calendar, Clock, ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Button from "@/components/common/Button";
@@ -18,6 +19,7 @@ export default function BlogPage() {
       readTime: "8 min read",
       excerpt: "Deep dive into architectural blueprints, performance optimizations, and layout systems in modern enterprise React apps.",
       image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=250&fit=crop",
+      slug: "scaling-nextjs-microfrontends",
     },
   ];
 
@@ -60,16 +62,18 @@ export default function BlogPage() {
                         <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{post.date}</span>
                         <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{post.readTime}</span>
                       </div>
-                      <h3 className="font-display text-base font-bold text-[#0b172a] leading-snug group-hover:text-orange-500 transition-colors">
-                        {post.title}
-                      </h3>
+                      <Link href={`/blog/${post.slug}`}>
+                        <h3 className="font-display text-base font-bold text-[#0b172a] leading-snug group-hover:text-orange-500 transition-colors">
+                          {post.title}
+                        </h3>
+                      </Link>
                       <p className="text-slate-500 text-xs font-sans leading-relaxed">
                         {post.excerpt}
                       </p>
                     </div>
                   </div>
                   <div className="p-5 pt-0">
-                    <Button href="/blog" variant="outline" size="sm" className="w-full h-9 rounded-xl text-xs font-bold">
+                    <Button href={`/blog/${post.slug}`} variant="outline" size="sm" className="w-full h-9 rounded-xl text-xs font-bold">
                       Read Article <ArrowRight className="ml-1 h-3.5 w-3.5" />
                     </Button>
                   </div>

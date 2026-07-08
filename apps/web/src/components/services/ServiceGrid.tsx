@@ -28,7 +28,7 @@ const services = [
     description:
       "End-to-end talent acquisition solutions connecting elite professionals with organizations that value excellence and innovation.",
     image: "/images/executive_trust.jpg",
-    href: "/services#recruitment",
+    href: "/recruitment",
     icon: Briefcase,
   },
   {
@@ -37,7 +37,7 @@ const services = [
     description:
       "Robust infrastructure and digital solutions including cloud management, cybersecurity, and enterprise support for modern businesses.",
     image: "/images/cloud_infra_insight.jpg",
-    href: "/services#it-services",
+    href: "/it-services",
     icon: Server,
   },
   {
@@ -46,7 +46,7 @@ const services = [
     description:
       "Bridging academia and industry through campus recruitment, skill development programs, and research partnerships worldwide.",
     image: "/images/scaling_operations_insight.jpg",
-    href: "/services#college",
+    href: "/college-collaboration",
     icon: MapPin,
   },
   {
@@ -64,7 +64,7 @@ const services = [
     description:
       "Custom software development, mobile applications, and cloud systems built with agile methodologies and modern technology stacks.",
     image: "/images/cloud_infra_insight.jpg",
-    href: "/services#development",
+    href: "/it-development",
     icon: Code2,
   },
 ];
