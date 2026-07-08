@@ -131,6 +131,7 @@ function NavDropdown({
         )}
         aria-expanded={isOpen}
         aria-haspopup="true"
+        suppressHydrationWarning
       >
         {item.name}
         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
