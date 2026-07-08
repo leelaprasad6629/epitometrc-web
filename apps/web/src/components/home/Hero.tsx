@@ -58,14 +58,14 @@ export default function Hero() {
               className="flex flex-col sm:flex-row gap-4 sm:items-center"
             >
               <Link
-                href="#contact"
+                href="/contact"
                 className="inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-white bg-orange-500 rounded-xl shadow-lg shadow-orange-500/20 hover:bg-orange-600 hover:shadow-orange-600/30 transition-all duration-200"
               >
                 Keep in Touch
                 <ArrowUpRight className="ml-2 h-5 w-5" />
               </Link>
               <Link
-                href="#about"
+                href="/about"
                 className="inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-[#0b172a] shadow-sm transition-all duration-200"
               >
                 <Play className="mr-2 h-4 w-4 fill-slate-700 text-slate-700" />
