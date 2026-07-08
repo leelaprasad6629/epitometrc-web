@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/next"; // Note: Use Link from "next/link" in real build
-import LinkNext from "next/link";
+import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Calendar, Clock } from "lucide-react";
@@ -138,13 +137,13 @@ export default function Courses() {
                 Industry-leading analyses, guides, and engineering reflections authored by our top consulting architects.
               </p>
             </div>
-            <LinkNext
+            <Link
               href="#blog"
               className="inline-flex items-center text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors group self-start md:self-auto"
             >
               Read all posts
               <ArrowUpRight className="ml-1.5 h-4 w-4 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </LinkNext>
+            </Link>
           </div>
 
           {/* Cards Grid */}
@@ -191,7 +190,7 @@ export default function Courses() {
 
                     {/* Title */}
                     <h3 className="font-display font-bold text-lg sm:text-xl text-[#0b172a] mb-3 leading-snug group-hover:text-orange-500 transition-colors duration-200">
-                      <LinkNext href="#blog">{insight.title}</LinkNext>
+                      <Link href="#blog">{insight.title}</Link>
                     </h3>
 
                     {/* Excerpt */}
@@ -202,13 +201,13 @@ export default function Courses() {
 
                   {/* Read More link */}
                   <div className="border-t border-slate-100 pt-4 mt-auto">
-                    <LinkNext
+                    <Link
                       href="#blog"
                       className="inline-flex items-center text-xs font-bold text-[#0b172a] group-hover:text-orange-500 transition-colors uppercase tracking-wider font-sans"
                     >
                       Read full article
-                      <ArrowUpRight className="ml-1 h-3.5 w-3.5 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </LinkNext>
+                      <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </Link>
                   </div>
                 </div>
               </motion.article>

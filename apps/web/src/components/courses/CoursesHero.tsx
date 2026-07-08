@@ -1,7 +1,6 @@
 "use client";
 
 import PageBanner from "@/components/common/PageBanner";
-import Button from "@/components/common/Button";
 
 export default function CoursesHero() {
   return (

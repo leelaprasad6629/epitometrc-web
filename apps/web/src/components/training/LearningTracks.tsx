@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Users } from "lucide-react";
+import { ArrowRight, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import Container from "@/components/common/Container";
 import SectionTitle from "@/components/common/SectionTitle";
-import Button from "@/components/common/Button";
 
 const tracks = [
   {
