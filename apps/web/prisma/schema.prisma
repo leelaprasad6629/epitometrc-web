@@ -8,15 +8,16 @@ generator client {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  name         String
-  email        String        @unique
-  passwordHash String
-  role         String        @default("Student") // Student, Employee, Admin
-  status       String        @default("Active")
-  createdAt    DateTime      @default(now())
-  enrollments  Enrollment[]
-  applications Application[]
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  contactNumber String?
+  passwordHash  String
+  role          String        @default("Student") // Student, Employee, Admin
+  status        String        @default("Active")
+  createdAt     DateTime      @default(now())
+  enrollments   Enrollment[]
+  applications  Application[]
 }
 
 model Course {
