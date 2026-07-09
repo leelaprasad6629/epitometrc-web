@@ -1,36 +1,51 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Briefcase, Users, FileText, CheckCircle2, TrendingUp, ArrowUpRight, Plus, MapPin, Search } from "lucide-react";
 import Image from "next/image";
 import Button from "@/components/common/Button";
 
 export default function EmployeeDashboard() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/employee/dashboard")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) {
+          setData(payload);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
   const stats = [
-    { label: "Active Openings", value: "24", change: "+4%", status: "up", color: "text-blue-600 bg-blue-50" },
-    { label: "Total Applicants", value: "1,842", change: "+12%", status: "up", color: "text-indigo-600 bg-indigo-50" },
-    { label: "Ongoing Projects", value: "08", change: "On Track", status: "stable", color: "text-emerald-600 bg-emerald-50" },
-    { label: "New AI Matches", value: "42", change: "High Priority", status: "urgent", color: "text-orange-600 bg-orange-50" },
+    { label: "Active Openings", value: data?.stats?.activeOpenings || "00", change: "+4%", status: "up", color: "text-blue-600 bg-blue-50" },
+    { label: "Total Applicants", value: data?.stats?.totalApplicants || "00", change: "+12%", status: "up", color: "text-indigo-600 bg-indigo-50" },
+    { label: "Ongoing Projects", value: data?.stats?.ongoingProjects || "00", change: "On Track", status: "stable", color: "text-emerald-600 bg-emerald-50" },
+    { label: "New AI Matches", value: data?.stats?.newMatches || "00", change: "High Priority", status: "urgent", color: "text-orange-600 bg-orange-50" },
   ];
 
-  const pipelinePhases = [
-    { name: "Applied", count: 840, height: "h-40" },
-    { name: "Interviews", count: 480, height: "h-28" },
-    { name: "Offered", count: 120, height: "h-14" },
-    { name: "Hired", count: 64, height: "h-8" },
+  const pipelinePhases = data?.pipeline || [
+    { name: "Applied", count: 0, height: "h-40" },
+    { name: "Interviews", count: 0, height: "h-28" },
+    { name: "Offered", count: 0, height: "h-14" },
+    { name: "Hired", count: 0, height: "h-8" },
   ];
 
-  const activities = [
-    { text: "New application for Senior Cloud Architect", time: "2 hours ago", author: "Sarah Collins" },
-    { text: "Milestone 2 Approved: Core Banking Modernization", time: "5 hours ago", author: "Epitome PMO" },
-    { text: "Interview scheduled: Candidate ID #8283", time: "Yesterday, 3:30 PM", author: "Recruitment Lead" },
-  ];
+  const activities = data?.activities || [];
+  const deliverables = data?.deliverables || [];
 
-  const deliverables = [
-    { name: "Cloud Infrastructure Migration", status: "IN PROGRESS", statusColor: "text-blue-600 bg-blue-50 border-blue-100", due: "Due Oct 24" },
-    { name: "Cybersecurity Audit Q4", status: "AWAITING FEEDBACK", statusColor: "text-amber-600 bg-amber-50 border-amber-100", due: "Due Nov 12" },
-    { name: "AI Talent Upskilling", status: "PLANNING", statusColor: "text-slate-500 bg-slate-50 border-slate-200", due: "Due Dec 01" },
-  ];
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -46,7 +61,7 @@ export default function EmployeeDashboard() {
             Strategic Overview
           </h1>
           <p className="text-slate-500 text-sm font-medium">
-            Welcome back, GlobalTech. Here is your recruitment and project performance for Q4.
+            Welcome back, {data?.userName || "Advisor"}. Here is your recruitment and project performance for Q4.
           </p>
         </div>
         <div className="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100 shrink-0">
@@ -96,7 +111,7 @@ export default function EmployeeDashboard() {
           </div>
 
           <div className="flex items-end justify-between h-56 px-4 pt-4 font-sans">
-            {pipelinePhases.map((phase) => (
+            {pipelinePhases.map((phase: any) => (
               <div key={phase.name} className="flex flex-col items-center gap-3 w-1/4">
                 <span className="text-xs font-bold text-[#0b172a]">{phase.count}</span>
                 <div className={`w-full max-w-[50px] ${phase.height} bg-gradient-to-t from-orange-500 to-orange-400 rounded-t-lg transition-all shadow-md shadow-orange-500/10 hover:opacity-90`}></div>
@@ -112,7 +127,7 @@ export default function EmployeeDashboard() {
             Recent Activity
           </h2>
           <div className="space-y-4 divide-y divide-slate-100 pt-1">
-            {activities.map((act, idx) => (
+            {activities.map((act: any, idx: number) => (
               <div key={idx} className="space-y-1.5 first:pt-0 pt-3.5">
                 <p className="text-xs font-bold text-slate-800 leading-snug">{act.text}</p>
                 <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold font-sans">
@@ -137,7 +152,7 @@ export default function EmployeeDashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {deliverables.map((item, idx) => (
+          {deliverables.map((item: any, idx: number) => (
             <div key={idx} className="rounded-xl border border-slate-100 p-4 space-y-3 flex flex-col justify-between">
               <div className="space-y-1.5">
                 <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${item.statusColor}`}>
