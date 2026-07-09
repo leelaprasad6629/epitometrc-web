@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ShieldCheck, Mail, Lock, User, Check, ShieldAlert } from "lucide-react";
+import { ArrowRight, ShieldCheck, Mail, Lock, User, Check, ShieldAlert, Phone } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 
@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [role, setRole] = useState<UserRole>("Student");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
   const [password, setPassword] = useState("");
   const [agree, setAgree] = useState(false);
   const [error, setError] = useState("");
@@ -28,13 +29,34 @@ export default function RegisterPage() {
       return;
     }
 
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    // Contact number validation (at least 10 digits)
+    const phoneRegex = /^[0-9+() -]{10,15}$/;
+    if (!phoneRegex.test(contactNumber)) {
+      setError("Please enter a valid contact number (10-15 digits).");
+      return;
+    }
+
+    // Strong password validation
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!strongPasswordRegex.test(password)) {
+      setError("Password must be at least 8 characters long, and contain at least one uppercase letter, one lowercase letter, one number, and one special character.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, role, contactNumber }),
       });
 
       const data = await res.json();
@@ -192,6 +214,23 @@ export default function RegisterPage() {
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
+                Contact Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  type="tel"
+                  required
+                  placeholder="+91 XXXXX XXXXX"
+                  value={contactNumber}
+                  onChange={(e) => setContactNumber(e.target.value)}
                   className="pl-10 h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
                 />
               </div>

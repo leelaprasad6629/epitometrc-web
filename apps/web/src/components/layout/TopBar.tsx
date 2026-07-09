@@ -56,7 +56,30 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
     admin: { name: "Sarah Jennings", email: "s.jennings@epitome.com", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces" },
   };
 
-  const currentUser = userProfiles[role] || userProfiles.student;
+  const [currentUser, setCurrentUser] = useState<any>(userProfiles[role] || userProfiles.student);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success && payload.user) {
+          setCurrentUser({
+            name: payload.user.name,
+            email: payload.user.email,
+            avatar: userProfiles[role]?.avatar || userProfiles.student.avatar,
+          });
+        }
+      })
+      .catch(() => {});
+  }, [role]);
+
+  const handleSignOut = async () => {
+    setProfileOpen(false);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    router.push("/login");
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
@@ -130,7 +153,7 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
                       !notif.read && "bg-slate-50/40"
                     )}
                   >
-                    <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", notif.read ? "bg-slate-300" : "bg-orange-500")}></span>
+                    <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", notif.read ? "bg-slate-300" : "bg-orange-505")}></span>
                     <div>
                       <p className="font-semibold text-slate-700">{notif.title}</p>
                       <span className="text-[10px] text-slate-400 mt-1 block">{notif.time}</span>
@@ -189,10 +212,7 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
               </div>
               <div className="border-t border-slate-100 pt-1.5">
                 <button
-                  onClick={() => {
-                    setProfileOpen(false);
-                    router.push("/login");
-                  }}
+                  onClick={handleSignOut}
                   className="flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
                 >
                   <LogOut className="h-4 w-4" />
