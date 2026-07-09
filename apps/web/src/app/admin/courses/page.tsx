@@ -1,15 +1,57 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Search, Plus, Trash2 } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 
 export default function AdminCoursesPage() {
-  const courses = [
-    { id: 1, title: "Strategic Business Analyst", category: "Strategy", enrollment: 124, status: "Published" },
-    { id: 2, title: "Advanced Execution & Strategy", category: "Management", enrollment: 56, status: "Published" },
-  ];
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  const loadCourses = (query = "") => {
+    fetch(`/api/admin/courses?search=${encodeURIComponent(query)}`)
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) {
+          setCourses(payload.courses);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadCourses(search);
+  }, [search]);
+
+  const handleDeleteCourse = async (courseId: string) => {
+    if (!confirm("Are you sure you want to delete this course? This will remove all associated user enrollments!")) return;
+
+    try {
+      const res = await fetch(`/api/admin/courses?courseId=${courseId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCourses((prev) => prev.filter((c) => c.id !== courseId));
+      } else {
+        alert(data.error || "Failed to delete course");
+      }
+    } catch {
+      alert("Failed to delete course due to a network error.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -39,6 +81,8 @@ export default function AdminCoursesPage() {
             type="text"
             placeholder="Search courses..."
             className="pl-10 h-10 border-0 focus:ring-0 w-full bg-transparent"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -56,23 +100,34 @@ export default function AdminCoursesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 font-semibold text-slate-600">
-              {courses.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 font-bold text-[#0b172a]">{c.title}</td>
-                  <td className="py-3 text-slate-400">{c.category}</td>
-                  <td className="py-3">{c.enrollment} enrolled</td>
-                  <td className="py-3">
-                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-600 border border-green-100 uppercase tracking-wider">
-                      {c.status}
-                    </span>
-                  </td>
-                  <td className="py-3 text-right">
-                    <button className="text-slate-400 hover:text-red-500 transition-colors">
-                      <Trash2 className="h-4.5 w-4.5" />
-                    </button>
+              {courses.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-400">
+                    No courses found matching search criteria.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                courses.map((c) => (
+                  <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-3 font-bold text-[#0b172a]">{c.title}</td>
+                    <td className="py-3 text-slate-400">{c.category}</td>
+                    <td className="py-3">{c.enrollment} enrolled</td>
+                    <td className="py-3">
+                      <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-600 border border-green-100 uppercase tracking-wider">
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="py-3 text-right">
+                      <button
+                        onClick={() => handleDeleteCourse(c.id)}
+                        className="text-slate-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="h-4.5 w-4.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

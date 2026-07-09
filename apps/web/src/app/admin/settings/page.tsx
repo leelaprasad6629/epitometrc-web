@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Settings, Save, ShieldCheck } from "lucide-react";
 import Button from "@/components/common/Button";
@@ -8,13 +8,55 @@ import { Input } from "@/components/ui/input";
 
 export default function AdminSettingsPage() {
   const [siteName, setSiteName] = useState("EpitomeTRC");
-  const [adminEmail, setAdminEmail] = useState("s.jennings@epitome.com");
+  const [adminEmail, setAdminEmail] = useState("");
   const [maintenance, setMaintenance] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) {
+          setSiteName(payload.settings.siteName);
+          setAdminEmail(payload.settings.adminEmail);
+          setMaintenance(payload.settings.maintenance);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Save settings
+    setSaving(true);
+
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteName, adminEmail, maintenance }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert("Configuration saved successfully!");
+      } else {
+        alert(data.error || "Failed to save settings");
+      }
+    } catch {
+      alert("Failed to save settings due to a network error.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -76,8 +118,8 @@ export default function AdminSettingsPage() {
         </label>
 
         <div className="pt-2">
-          <Button type="submit" variant="primary" size="sm" className="h-9 px-5 rounded-xl font-bold">
-            <Save className="mr-1.5 h-4 w-4" /> Save Configuration
+          <Button type="submit" variant="primary" size="sm" className="h-9 px-5 rounded-xl font-bold" disabled={saving}>
+            <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving..." : "Save Configuration"}
           </Button>
         </div>
       </form>

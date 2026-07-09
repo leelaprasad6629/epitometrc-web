@@ -1,16 +1,57 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Users, Search, Plus, Trash2, ShieldAlert } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 
 export default function AdminUsersPage() {
-  const users = [
-    { id: 1, name: "Alex Thompson", email: "alex.t@epitome.com", role: "Student", status: "Active" },
-    { id: 2, name: "Marcus Thorne", email: "m.thorne@epitome.com", role: "Employee", status: "Active" },
-    { id: 3, name: "Sarah Jennings", email: "s.jennings@epitome.com", role: "Admin", status: "Active" },
-  ];
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  const loadUsers = (query = "") => {
+    fetch(`/api/admin/users?search=${encodeURIComponent(query)}`)
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) {
+          setUsers(payload.users);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadUsers(search);
+  }, [search]);
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+
+    try {
+      const res = await fetch(`/api/admin/users?userId=${userId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setUsers((prev) => prev.filter((u) => u.id !== userId));
+      } else {
+        alert(data.error || "Failed to delete user");
+      }
+    } catch {
+      alert("Failed to delete user due to a network error.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -40,6 +81,8 @@ export default function AdminUsersPage() {
             type="text"
             placeholder="Search users, email patterns, roles..."
             className="pl-10 h-10 border-0 focus:ring-0 w-full bg-transparent"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -57,33 +100,44 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 font-semibold text-slate-600">
-              {users.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 font-bold text-[#0b172a]">{u.name}</td>
-                  <td className="py-3">{u.email}</td>
-                  <td className="py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${
-                      u.role === "Admin"
-                        ? "bg-purple-50 text-purple-600 border-purple-100"
-                        : u.role === "Employee"
-                        ? "bg-blue-50 text-blue-600 border-blue-100"
-                        : "bg-orange-50 text-orange-600 border-orange-100"
-                    }`}>
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="py-3">
-                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-600 border border-green-100 uppercase tracking-wider">
-                      {u.status}
-                    </span>
-                  </td>
-                  <td className="py-3 text-right">
-                    <button className="text-slate-400 hover:text-red-500 transition-colors">
-                      <Trash2 className="h-4.5 w-4.5" />
-                    </button>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-400">
+                    No users found matching search criteria.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                users.map((u) => (
+                  <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-3 font-bold text-[#0b172a]">{u.name}</td>
+                    <td className="py-3">{u.email}</td>
+                    <td className="py-3">
+                      <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${
+                        u.role === "Admin"
+                          ? "bg-purple-50 text-purple-600 border-purple-100"
+                          : u.role === "Employee" || u.role === "Employer" || u.role === "Organization"
+                          ? "bg-blue-50 text-blue-600 border-blue-100"
+                          : "bg-orange-50 text-orange-600 border-orange-100"
+                      }`}>
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="py-3">
+                      <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-600 border border-green-100 uppercase tracking-wider">
+                        {u.status}
+                      </span>
+                    </td>
+                    <td className="py-3 text-right">
+                      <button
+                        onClick={() => handleDeleteUser(u.id)}
+                        className="text-slate-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="h-4.5 w-4.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

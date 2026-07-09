@@ -1,15 +1,57 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Briefcase, Search, Plus, Trash2 } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 
 export default function AdminJobsPage() {
-  const jobs = [
-    { id: 1, title: "Senior Cloud Architect", location: "HQ • Hybrid", applicants: 42, status: "Active" },
-    { id: 2, title: "Frontend Engineer Apprentice", location: "Virtual Office", applicants: 15, status: "Active" },
-  ];
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  const loadJobs = (query = "") => {
+    fetch(`/api/admin/jobs?search=${encodeURIComponent(query)}`)
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) {
+          setJobs(payload.jobs);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadJobs(search);
+  }, [search]);
+
+  const handleDeleteJob = async (jobId: string) => {
+    if (!confirm("Are you sure you want to delete this job posting? This will remove all associated user applications!")) return;
+
+    try {
+      const res = await fetch(`/api/admin/jobs?jobId=${jobId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setJobs((prev) => prev.filter((j) => j.id !== jobId));
+      } else {
+        alert(data.error || "Failed to delete job");
+      }
+    } catch {
+      alert("Failed to delete job due to a network error.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -39,6 +81,8 @@ export default function AdminJobsPage() {
             type="text"
             placeholder="Search jobs..."
             className="pl-10 h-10 border-0 focus:ring-0 w-full bg-transparent"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -56,23 +100,34 @@ export default function AdminJobsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 font-semibold text-slate-600">
-              {jobs.map((j) => (
-                <tr key={j.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 font-bold text-[#0b172a]">{j.title}</td>
-                  <td className="py-3 text-slate-400">{j.location}</td>
-                  <td className="py-3">{j.applicants} applications</td>
-                  <td className="py-3">
-                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-600 border border-green-100 uppercase tracking-wider">
-                      {j.status}
-                    </span>
-                  </td>
-                  <td className="py-3 text-right">
-                    <button className="text-slate-400 hover:text-red-500 transition-colors">
-                      <Trash2 className="h-4.5 w-4.5" />
-                    </button>
+              {jobs.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-400">
+                    No job postings found matching search criteria.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                jobs.map((j) => (
+                  <tr key={j.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-3 font-bold text-[#0b172a]">{j.title}</td>
+                    <td className="py-3 text-slate-400">{j.location}</td>
+                    <td className="py-3">{j.applicants} applications</td>
+                    <td className="py-3">
+                      <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-600 border border-green-100 uppercase tracking-wider">
+                        {j.status}
+                      </span>
+                    </td>
+                    <td className="py-3 text-right">
+                      <button
+                        onClick={() => handleDeleteJob(j.id)}
+                        className="text-slate-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="h-4.5 w-4.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

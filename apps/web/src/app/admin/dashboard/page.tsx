@@ -1,27 +1,32 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Users, DollarSign, Award, CheckCircle2, TrendingUp, Download, Clock, Search, HelpCircle, ShieldCheck } from "lucide-react";
 import Button from "@/components/common/Button";
 
 export default function AdminDashboard() {
-  const stats = [
-    { label: "Total Users", value: "4,288", change: "+12%", status: "up", color: "text-blue-600 bg-blue-50" },
-    { label: "Total Revenue", value: "$248,500", change: "+8.4%", status: "up", color: "text-indigo-600 bg-indigo-50" },
-    { label: "Active Placements", value: "156", change: "-3%", status: "down", color: "text-rose-600 bg-rose-50" },
-    { label: "Course Completions", value: "892", change: "+24%", status: "up", color: "text-emerald-600 bg-emerald-50" },
-  ];
+  const [stats, setStats] = useState<any[]>([]);
+  const [recentEnquiries, setRecentEnquiries] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/dashboard")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) {
+          setStats(payload.stats);
+          setRecentEnquiries(payload.recentEnquiries);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const pendingTasks = [
     { title: "Review 5 new job postings", due: "Due Today, 5:00 PM" },
     { title: "Approve 12 internships", due: "Due in 2 days" },
     { title: "Verify Consultant Credentials", due: "Due in 3 days" },
-  ];
-
-  const recentEnquiries = [
-    { type: "Business Consulting", entity: "Nexus Global Corp", date: "Oct 24, 2026", status: "In Progress", color: "amber" },
-    { type: "Recruitment", entity: "Zenith Systems", date: "Oct 24, 2026", status: "Completed", color: "emerald" },
-    { type: "IT Development", entity: "Innovate Lab", date: "Oct 23, 2026", status: "Pending", color: "blue" },
   ];
 
   const verticalMix = [
@@ -30,6 +35,14 @@ export default function AdminDashboard() {
     { name: "IT Services", percentage: 11, color: "bg-emerald-500" },
     { name: "Training", percentage: 22, color: "bg-orange-500" },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

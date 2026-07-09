@@ -1,14 +1,44 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FileText, Search, Plus, Trash2 } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 
 export default function AdminBlogPage() {
-  const posts = [
-    { id: 1, title: "Scaling Next.js Micro-Frontends in 2026", category: "Technology", author: "Sarah Jenkins", status: "Published" },
-  ];
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    fetch("/api/admin/blog")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) {
+          setPosts(payload.posts);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleDeletePost = async (postId: number) => {
+    if (!confirm("Are you sure you want to delete this blog post?")) return;
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+  };
+
+  const filteredPosts = posts.filter((p) =>
+    p.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -38,6 +68,8 @@ export default function AdminBlogPage() {
             type="text"
             placeholder="Search posts..."
             className="pl-10 h-10 border-0 focus:ring-0 w-full bg-transparent"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -55,23 +87,34 @@ export default function AdminBlogPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 font-semibold text-slate-600">
-              {posts.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 font-bold text-[#0b172a]">{p.title}</td>
-                  <td className="py-3 text-slate-400">{p.category}</td>
-                  <td className="py-3">{p.author}</td>
-                  <td className="py-3">
-                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-600 border border-green-100 uppercase tracking-wider">
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="py-3 text-right">
-                    <button className="text-slate-400 hover:text-red-500 transition-colors">
-                      <Trash2 className="h-4.5 w-4.5" />
-                    </button>
+              {filteredPosts.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-400">
+                    No posts found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredPosts.map((p) => (
+                  <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-3 font-bold text-[#0b172a]">{p.title}</td>
+                    <td className="py-3 text-slate-400">{p.category}</td>
+                    <td className="py-3">{p.author}</td>
+                    <td className="py-3">
+                      <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-600 border border-green-100 uppercase tracking-wider">
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="py-3 text-right">
+                      <button
+                        onClick={() => handleDeletePost(p.id)}
+                        className="text-slate-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="h-4.5 w-4.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
