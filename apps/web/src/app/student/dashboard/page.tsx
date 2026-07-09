@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Clock, Award, Users, ArrowRight, Calendar, ExternalLink, Video } from "lucide-react";
+import { BookOpen, Clock, Award, Users, ArrowRight, Calendar, ExternalLink, Video, X, Mic, MicOff, VideoOff, PhoneOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/common/Button";
@@ -10,6 +10,15 @@ import Button from "@/components/common/Button";
 export default function StudentDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Calendar & Call modal state
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [showCallModal, setShowCallModal] = useState(false);
+  
+  // Call controls state
+  const [micActive, setMicActive] = useState(true);
+  const [cameraActive, setCameraActive] = useState(true);
+  const [callDuration, setCallDuration] = useState(0);
 
   useEffect(() => {
     fetch("/api/student/dashboard")
@@ -22,6 +31,24 @@ export default function StudentDashboard() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  // Call timer hook
+  useEffect(() => {
+    let timer: any;
+    if (showCallModal) {
+      setCallDuration(0);
+      timer = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [showCallModal]);
+
+  const formatCallTime = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remaining = secs % 60;
+    return `${mins.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`;
+  };
 
   const stats = [
     { label: "Active Courses", value: data?.stats?.activeCourses !== undefined ? String(data.stats.activeCourses).padStart(2, '0') : "00", icon: BookOpen, color: "text-blue-600 bg-blue-50 border-blue-100" },
@@ -206,7 +233,11 @@ export default function StudentDashboard() {
               ))}
             </div>
 
-            <Button variant="outline" className="w-full h-9 rounded-xl text-xs font-bold">
+            <Button
+              onClick={() => setShowCalendarModal(true)}
+              variant="outline"
+              className="w-full h-9 rounded-xl text-xs font-bold"
+            >
               <Calendar className="mr-1.5 h-3.5 w-3.5" />
               View Calendar
             </Button>
@@ -242,13 +273,214 @@ export default function StudentDashboard() {
               <Clock className="h-5 w-5 text-slate-400" />
             </div>
 
-            <Button variant="primary" className="w-full h-9 rounded-xl text-xs font-bold bg-[#0b172a] hover:bg-slate-800 shadow-none border-0">
+            <Button
+              onClick={() => setShowCallModal(true)}
+              variant="primary"
+              className="w-full h-9 rounded-xl text-xs font-bold bg-[#0b172a] hover:bg-slate-800 shadow-none border-0"
+            >
               <Video className="mr-1.5 h-3.5 w-3.5" />
               Join Meeting
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Calendar Modal */}
+      {showCalendarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a]/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider">
+                July 2026 Scheduler
+              </h3>
+              <button
+                onClick={() => setShowCalendarModal(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Mini Calendar grid */}
+            <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-700">
+              {/* Pad empty days for July 2026 starting on Wednesday */}
+              <span className="text-slate-200">28</span>
+              <span className="text-slate-200">29</span>
+              <span className="text-slate-200">30</span>
+              <span>1</span>
+              <span>2</span>
+              <span>3</span>
+              <span>4</span>
+              <span>5</span>
+              <span>6</span>
+              <span>7</span>
+              <span>8</span>
+              {/* July 9 (Today) */}
+              <span className="relative flex items-center justify-center h-7 w-7 mx-auto rounded-full bg-orange-500 text-white font-bold">9</span>
+              {/* July 10 (Mentor call) */}
+              <span className="relative flex items-center justify-center h-7 w-7 mx-auto rounded-full bg-blue-50 border border-blue-200 text-blue-600 font-bold group cursor-pointer" title="Mentor session scheduled">
+                10
+                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-blue-500"></span>
+              </span>
+              <span>11</span>
+              {/* July 12 (IT Application due) */}
+              <span className="relative flex items-center justify-center h-7 w-7 mx-auto rounded-full bg-red-50 border border-red-200 text-red-600 font-bold group cursor-pointer" title="Internship application due">
+                12
+                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-red-500"></span>
+              </span>
+              <span>13</span>
+              <span>14</span>
+              <span>15</span>
+              <span>16</span>
+              <span>17</span>
+              <span>18</span>
+              <span>19</span>
+              <span>20</span>
+              <span>21</span>
+              <span>22</span>
+              <span>23</span>
+              <span>24</span>
+              <span>25</span>
+              <span>26</span>
+              <span>27</span>
+              <span>28</span>
+              <span>29</span>
+              <span>30</span>
+              <span>31</span>
+            </div>
+
+            {/* Event agenda */}
+            <div className="space-y-2 border-t border-slate-100 pt-3 text-left">
+              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Scheduled Events</h4>
+              <div className="flex items-start gap-2.5 rounded-xl bg-blue-50/40 p-2.5 border border-blue-100/30">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 mt-1.5"></span>
+                <div className="text-xs">
+                  <p className="font-bold text-[#0b172a]">Mentor Session with Sarah Jenkins</p>
+                  <p className="text-[10px] text-slate-500 font-medium font-sans">Tomorrow, 10:00 AM - 10:45 AM</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5 rounded-xl bg-red-50/40 p-2.5 border border-red-100/30">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500 mt-1.5"></span>
+                <div className="text-xs">
+                  <p className="font-bold text-[#0b172a]">Internship Application Deadline</p>
+                  <p className="text-[10px] text-slate-500 font-medium font-sans">12 July, 11:59 PM (IT Development)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mock Call Modal */}
+      {showCallModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a] p-4 sm:p-6 animate-in fade-in duration-300">
+          <div className="relative w-full max-w-3xl h-[80vh] flex flex-col justify-between rounded-3xl bg-slate-900 overflow-hidden shadow-2xl border border-slate-800 text-white animate-in zoom-in-95 duration-300">
+            {/* Call Header */}
+            <div className="flex justify-between items-center p-5 bg-gradient-to-b from-black/40 to-transparent">
+              <div className="flex items-center gap-2">
+                <span className="rounded-lg bg-orange-500/20 px-2 py-0.5 text-[9px] font-bold text-orange-400 uppercase tracking-wider">
+                  Live Session
+                </span>
+                <span className="text-xs font-semibold text-slate-300">Mentor Call: Sarah Jenkins</span>
+              </div>
+              <div className="text-xs font-mono font-bold bg-black/30 px-3 py-1 rounded-full text-slate-200">
+                {formatCallTime(callDuration)}
+              </div>
+            </div>
+
+            {/* Mock Video Grid */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 px-6 py-2">
+              {/* Advisor Video Frame */}
+              <div className="relative rounded-2xl bg-slate-950 overflow-hidden flex items-center justify-center border border-slate-800">
+                <div className="absolute top-3 left-3 bg-black/40 px-2 py-0.5 rounded text-[10px] font-semibold text-slate-200 z-10">
+                  Sarah Jenkins
+                </div>
+                <div className="text-center space-y-3">
+                  <div className="relative h-20 w-20 mx-auto rounded-full overflow-hidden border-2 border-orange-500 animate-pulse">
+                    <Image
+                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=faces"
+                      alt="Sarah Jenkins"
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  </div>
+                  <p className="text-xs font-semibold text-slate-300">Sarah is speaking...</p>
+                </div>
+              </div>
+
+              {/* Student Video Frame */}
+              <div className="relative rounded-2xl bg-slate-950 overflow-hidden flex items-center justify-center border border-slate-800">
+                <div className="absolute top-3 left-3 bg-black/40 px-2 py-0.5 rounded text-[10px] font-semibold text-slate-200 z-10">
+                  Alex Thompson (You)
+                </div>
+                {cameraActive ? (
+                  <div className="text-center space-y-3">
+                    <div className="relative h-20 w-20 mx-auto rounded-full overflow-hidden border-2 border-slate-800">
+                      <Image
+                        src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&h=120&fit=crop&crop=faces"
+                        alt="Alex Thompson"
+                        fill
+                        className="object-cover"
+                        sizes="80px"
+                      />
+                    </div>
+                    <p className="text-xs font-semibold text-slate-400">Your camera is streaming</p>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-2">
+                    <VideoOff className="h-8 w-8 text-slate-600 mx-auto" />
+                    <p className="text-xs font-semibold text-slate-500">Camera is off</p>
+                  </div>
+                )}
+                {!micActive && (
+                  <div className="absolute top-3 right-3 bg-red-500/20 p-1 rounded-lg">
+                    <MicOff className="h-3.5 w-3.5 text-red-500" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Call Controls Footer */}
+            <div className="flex items-center justify-center gap-4 p-6 bg-gradient-to-t from-black/40 to-transparent">
+              <button
+                onClick={() => setMicActive(!micActive)}
+                className={`rounded-full p-3.5 transition-colors border ${
+                  micActive
+                    ? "bg-slate-800 hover:bg-slate-700 border-slate-700 text-white"
+                    : "bg-red-500 hover:bg-red-600 border-red-500 text-white"
+                }`}
+                title={micActive ? "Mute Microphone" : "Unmute Microphone"}
+              >
+                {micActive ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+              </button>
+
+              <button
+                onClick={() => setCameraActive(!cameraActive)}
+                className={`rounded-full p-3.5 transition-colors border ${
+                  cameraActive
+                    ? "bg-slate-800 hover:bg-slate-700 border-slate-700 text-white"
+                    : "bg-red-500 hover:bg-red-600 border-red-500 text-white"
+                }`}
+                title={cameraActive ? "Turn Camera Off" : "Turn Camera On"}
+              >
+                {cameraActive ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+              </button>
+
+              <button
+                onClick={() => setShowCallModal(false)}
+                className="rounded-full p-3.5 bg-red-600 hover:bg-red-700 border border-red-600 hover:scale-105 active:scale-95 transition-all text-white"
+                title="End Session"
+              >
+                <PhoneOff className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
