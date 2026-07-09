@@ -50,3 +50,58 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const token = req.cookies.get("token")?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const payload = verifyToken(token) as { id: string; role?: string } | null;
+    if (!payload) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { role: true },
+    });
+
+    if (!user || (user.role !== "Employee" && user.role !== "Admin" && user.role !== "Employer" && user.role !== "Organization")) {
+      return NextResponse.json({ error: "Access Forbidden" }, { status: 403 });
+    }
+
+    const { title } = await req.json();
+    if (!title) {
+      return NextResponse.json({ error: "Missing cohort title" }, { status: 400 });
+    }
+
+    const newCourse = await prisma.course.create({
+      data: {
+        title,
+        category: "Corporate Training",
+        description: "Corporate learning cohort program.",
+        duration: "8 Weeks",
+        modules: 6,
+        image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80",
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      batch: {
+        id: newCourse.id,
+        title: newCourse.title,
+        client: "New Corporate Client",
+        startDate: "15 Oct 2026",
+        endDate: "17 Dec 2026",
+        studentsCount: 0,
+        status: "In Progress",
+      },
+    });
+  } catch (error: any) {
+    console.error("Employee trainings POST error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

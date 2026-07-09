@@ -2,12 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Users, Calendar, Clock, Plus } from "lucide-react";
+import { BookOpen, Users, Calendar, Clock, Plus, X } from "lucide-react";
 import Button from "@/components/common/Button";
+import { Input } from "@/components/ui/input";
 
 export default function EmployeeTrainingsPage() {
   const [batches, setBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Create Cohort Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetch("/api/employee/trainings")
@@ -20,6 +26,32 @@ export default function EmployeeTrainingsPage() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  const handleCreateCohort = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    setCreating(true);
+    try {
+      const res = await fetch("/api/employee/trainings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setBatches((prev) => [data.batch, ...prev]);
+        setNewTitle("");
+        setShowCreateModal(false);
+      } else {
+        alert(data.error || "Failed to create cohort");
+      }
+    } catch {
+      alert("Failed to create cohort due to a network error.");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -45,7 +77,12 @@ export default function EmployeeTrainingsPage() {
             Manage your corporate learning cohorts, training materials, and schedules.
           </p>
         </div>
-        <Button href="/admin/courses" variant="primary" size="sm" className="h-9 px-4 rounded-xl font-bold shrink-0 self-start sm:self-auto">
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          variant="primary"
+          size="sm"
+          className="h-9 px-4 rounded-xl font-bold shrink-0 self-start sm:self-auto"
+        >
           <Plus className="mr-1 h-4 w-4" /> Create Cohort
         </Button>
       </div>
@@ -93,6 +130,59 @@ export default function EmployeeTrainingsPage() {
           ))
         )}
       </div>
+
+      {/* Create Cohort Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a]/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="font-display text-base font-bold text-[#0b172a]">
+                Create Corporate Cohort
+              </h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateCohort} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
+                  Cohort / Course Title
+                </label>
+                <Input
+                  type="text"
+                  required
+                  placeholder="e.g. Executive Strategy & Business Intelligence"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2 justify-end">
+                <Button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  variant="outline"
+                  className="h-10 rounded-xl px-4 font-bold text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={creating}
+                  className="h-10 rounded-xl px-5 font-bold text-xs shadow-md shadow-orange-500/15"
+                >
+                  {creating ? "Creating..." : "Create Cohort"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
