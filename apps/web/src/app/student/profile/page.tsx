@@ -13,6 +13,40 @@ export default function StudentProfilePage() {
   const [newSkill, setNewSkill] = useState("");
   const [bio, setBio] = useState("Dedicated junior frontend developer passionate about building clean, performant, and premium web interfaces. Ready to tackle next-generation strategy and technology challenges.");
 
+  // Resume states
+  const [resumeName, setResumeName] = useState("Alex_Thompson_Resume.pdf");
+  const [resumeSize, setResumeSize] = useState("2.4 MB");
+  const [resumeUploadTime, setResumeUploadTime] = useState("Uploaded on 30 Nov 2026");
+  const [uploading, setUploading] = useState(false);
+
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/media/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResumeName(data.fileName);
+        setResumeSize(data.fileSize);
+        setResumeUploadTime(`Uploaded today at ${new Date().toLocaleTimeString()}`);
+      } else {
+        alert(data.error || "Failed to upload file");
+      }
+    } catch {
+      alert("Failed to upload file due to a network error.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
@@ -166,12 +200,24 @@ export default function StudentProfilePage() {
             <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center space-y-3 bg-slate-50/20">
               <FileText className="mx-auto h-8 w-8 text-slate-400" />
               <div className="space-y-0.5">
-                <p className="text-xs font-bold text-slate-700">Alex_Thompson_Resume.pdf</p>
-                <p className="text-[10px] text-slate-400 font-medium font-sans">Uploaded on 30 Nov 2026 • 2.4 MB</p>
+                <p className="text-xs font-bold text-slate-700">{resumeName}</p>
+                <p className="text-[10px] text-slate-400 font-medium font-sans">{resumeUploadTime} • {resumeSize}</p>
               </div>
-              <button className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors mt-2">
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                id="resume-file-input"
+                style={{ display: "none" }}
+                onChange={handleResumeUpload}
+              />
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => document.getElementById("resume-file-input")?.click()}
+                className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors mt-2 disabled:text-slate-400"
+              >
                 <Upload className="h-3.5 w-3.5" />
-                Upload New
+                {uploading ? "Uploading..." : "Upload New"}
               </button>
             </div>
           </div>
