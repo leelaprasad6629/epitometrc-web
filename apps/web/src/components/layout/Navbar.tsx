@@ -20,11 +20,11 @@ const desktopNavItems: DesktopNavItem[] = [
     name: "Services",
     href: "/services",
     children: [
-      { name: "Recruitment", href: "/services#recruitment" },
+      { name: "Recruitment", href: "/recruitment" },
       { name: "Staffing", href: "/services#staffing" },
       { name: "Consulting", href: "/consulting" },
       { name: "Corporate Training", href: "/training" },
-      { name: "Technology Solutions", href: "/services#it-services" },
+      { name: "Technology Solutions", href: "/it-services" },
     ],
   },
   { name: "Training", href: "/training" },
@@ -60,11 +60,11 @@ const mobileNavItems = [
     name: "Services",
     href: "/services",
     children: [
-      { name: "Recruitment", href: "/services#recruitment" },
+      { name: "Recruitment", href: "/recruitment" },
       { name: "Staffing", href: "/services#staffing" },
       { name: "Consulting", href: "/consulting" },
       { name: "Corporate Training", href: "/training" },
-      { name: "Technology Solutions", href: "/services#it-services" },
+      { name: "Technology Solutions", href: "/it-services" },
     ],
   },
   { name: "Training", href: "/training" },
@@ -230,13 +230,13 @@ export default function Navbar() {
 
           <div className="hidden items-center space-x-3 md:flex xl:space-x-4">
             <Link
-              href="/contact"
+              href="/login"
               className="px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:text-[#0b172a]"
             >
               Login
             </Link>
             <Link
-              href="/contact"
+              href="/register"
               className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
             >
               Register Now
