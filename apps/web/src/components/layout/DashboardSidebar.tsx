@@ -90,6 +90,7 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
           </Link>
           {!collapsed && (
             <button
+              suppressHydrationWarning
               onClick={() => setCollapsed(true)}
               className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-600 hidden lg:block"
             >
@@ -126,6 +127,7 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
       <div className="border-t border-slate-100 p-3">
         {collapsed ? (
           <button
+            suppressHydrationWarning
             onClick={() => setCollapsed(false)}
             className="flex w-full items-center justify-center rounded-xl p-2.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
           >
@@ -133,6 +135,7 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
           </button>
         ) : (
           <button
+            suppressHydrationWarning
             onClick={() => router.push("/login")}
             className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600"
           >
