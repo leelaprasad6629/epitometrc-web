@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Clock, Award, Users, ArrowRight, Calendar, ExternalLink, Video, X, Mic, MicOff, VideoOff, PhoneOff } from "lucide-react";
 import Image from "next/image";
@@ -19,6 +19,8 @@ export default function StudentDashboard() {
   const [micActive, setMicActive] = useState(true);
   const [cameraActive, setCameraActive] = useState(true);
   const [callDuration, setCallDuration] = useState(0);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     fetch("/api/student/dashboard")
@@ -32,17 +34,61 @@ export default function StudentDashboard() {
       .catch(() => setLoading(false));
   }, []);
 
-  // Call timer hook
+  // Call timer and WebRTC camera stream hook
   useEffect(() => {
     let timer: any;
+    let streamInstance: MediaStream | null = null;
+
     if (showCallModal) {
       setCallDuration(0);
+      setMicActive(true);
+      setCameraActive(true);
+
       timer = setInterval(() => {
         setCallDuration((prev) => prev + 1);
       }, 1000);
+
+      // Access camera and microphone
+      navigator.mediaDevices
+        ?.getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          streamInstance = stream;
+          setMediaStream(stream);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        })
+        .catch((err) => {
+          console.warn("Media devices access failed:", err);
+        });
     }
-    return () => clearInterval(timer);
+
+    return () => {
+      clearInterval(timer);
+      if (streamInstance) {
+        streamInstance.getTracks().forEach((track) => track.stop());
+      }
+      setMediaStream(null);
+    };
   }, [showCallModal]);
+
+  // Sync microphone track enablement
+  useEffect(() => {
+    if (mediaStream) {
+      mediaStream.getAudioTracks().forEach((track) => {
+        track.enabled = micActive;
+      });
+    }
+  }, [micActive, mediaStream]);
+
+  // Sync camera track enablement
+  useEffect(() => {
+    if (mediaStream) {
+      mediaStream.getVideoTracks().forEach((track) => {
+        track.enabled = cameraActive;
+      });
+    }
+  }, [cameraActive, mediaStream]);
 
   const formatCallTime = (secs: number) => {
     const mins = Math.floor(secs / 60);
@@ -413,31 +459,30 @@ export default function StudentDashboard() {
               </div>
 
               {/* Student Video Frame */}
-              <div className="relative rounded-2xl bg-slate-950 overflow-hidden flex items-center justify-center border border-slate-800">
+              <div className="relative w-full h-full rounded-2xl bg-slate-950 overflow-hidden flex items-center justify-center border border-slate-800">
                 <div className="absolute top-3 left-3 bg-black/40 px-2 py-0.5 rounded text-[10px] font-semibold text-slate-200 z-10">
                   Alex Thompson (You)
                 </div>
-                {cameraActive ? (
-                  <div className="text-center space-y-3">
-                    <div className="relative h-20 w-20 mx-auto rounded-full overflow-hidden border-2 border-slate-800">
-                      <Image
-                        src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&h=120&fit=crop&crop=faces"
-                        alt="Alex Thompson"
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
-                    </div>
-                    <p className="text-xs font-semibold text-slate-400">Your camera is streaming</p>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-2">
+                
+                {/* Live Video element */}
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className={`w-full h-full object-cover absolute inset-0 ${cameraActive ? "block" : "hidden"}`}
+                />
+
+                {/* Camera off overlay placeholder */}
+                {!cameraActive && (
+                  <div className="text-center space-y-2 z-10">
                     <VideoOff className="h-8 w-8 text-slate-600 mx-auto" />
                     <p className="text-xs font-semibold text-slate-500">Camera is off</p>
                   </div>
                 )}
+
                 {!micActive && (
-                  <div className="absolute top-3 right-3 bg-red-500/20 p-1 rounded-lg">
+                  <div className="absolute top-3 right-3 bg-red-500/20 p-1.5 rounded-lg z-10">
                     <MicOff className="h-3.5 w-3.5 text-red-500" />
                   </div>
                 )}
