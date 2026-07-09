@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       select: { role: true },
     });
 
-    if (!user || (user.role !== "Employee" && user.role !== "Admin")) {
+    if (!user || (user.role !== "Employee" && user.role !== "Admin" && user.role !== "Employer" && user.role !== "Organization")) {
       return NextResponse.json({ error: "Access Forbidden" }, { status: 403 });
     }
 
@@ -80,7 +80,7 @@ export async function PATCH(req: NextRequest) {
       select: { role: true },
     });
 
-    if (!user || (user.role !== "Employee" && user.role !== "Admin")) {
+    if (!user || (user.role !== "Employee" && user.role !== "Admin" && user.role !== "Employer" && user.role !== "Organization")) {
       return NextResponse.json({ error: "Access Forbidden" }, { status: 403 });
     }
 
