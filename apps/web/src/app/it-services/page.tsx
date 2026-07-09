@@ -32,7 +32,7 @@ export default function ITServicesPage() {
                 <Button href="/contact" variant="primary" className="h-11 rounded-xl px-6 font-bold shadow-md shadow-orange-500/10">
                   Get Support
                 </Button>
-                <Button href="/consulting" variant="outline" className="h-11 rounded-xl px-6 font-bold bg-transparent text-white border-white/30 hover:bg-white/10 hover:border-white">
+                <Button href="/blog" variant="outline" className="h-11 rounded-xl px-6 font-bold bg-transparent text-white border-white/30 hover:bg-white/10 hover:border-white">
                   View Case Studies
                 </Button>
               </div>

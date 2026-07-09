@@ -23,7 +23,7 @@ export default function ServicesPage() {
           description="Partner with EpitomeTRC to design a customized roadmap that streamlines your operations and deploys scalable technology."
           buttons={[
             { label: "Submit An Inquiry", href: "/contact", variant: "primary" },
-            { label: "View Case Studies", href: "/consulting", variant: "ghost" },
+            { label: "View Case Studies", href: "/blog", variant: "ghost" },
           ]}
         />
       </main>

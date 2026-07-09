@@ -32,7 +32,7 @@ export default function ConsultingHero() {
               <Button href="/contact" variant="primary" icon={ArrowRight}>
                 Request Consultation
               </Button>
-              <Button href="/services" variant="ghost">
+              <Button href="/blog" variant="ghost">
                 View Case Studies
               </Button>
             </div>

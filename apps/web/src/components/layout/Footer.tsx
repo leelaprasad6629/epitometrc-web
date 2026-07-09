@@ -41,7 +41,7 @@ export default function Footer() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
             <Link
-              href="/consulting"
+              href="/blog"
               className="inline-flex items-center justify-center rounded-xl border border-white/40 bg-transparent px-6 py-3.5 text-center text-base font-bold text-white transition-all hover:border-white hover:bg-white/10"
             >
               View Case Studies
