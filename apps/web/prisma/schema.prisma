@@ -1,0 +1,73 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  contactNumber String?
+  passwordHash  String
+  role          String        @default("Student") // Student, Employee, Admin
+  status        String        @default("Active")
+  createdAt     DateTime      @default(now())
+  enrollments   Enrollment[]
+  applications  Application[]
+}
+
+model Course {
+  id          String       @id @default(uuid())
+  title       String
+  category    String
+  description String
+  duration    String
+  modules     Int
+  image       String
+  enrollments Enrollment[]
+}
+
+model Enrollment {
+  id          String   @id @default(uuid())
+  userId      String
+  courseId    String
+  progress    Int      @default(0)
+  completedAt DateTime?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Job {
+  id           String        @id @default(uuid())
+  title        String
+  category     String
+  location     String
+  type         String
+  description  String
+  status       String        @default("Active")
+  applications Application[]
+}
+
+model Application {
+  id        String   @id @default(uuid())
+  userId    String
+  jobId     String
+  status    String   @default("Reviewing") // Reviewing, Interviewing, Approved, Rejected
+  appliedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+model Enquiry {
+  id         String   @id @default(uuid())
+  name       String
+  email      String
+  subject    String
+  message    String
+  status     String   @default("Pending") // Pending, In Progress, Completed
+  receivedAt DateTime @default(now())
+}
