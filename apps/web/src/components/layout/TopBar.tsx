@@ -49,14 +49,18 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
     { id: 3, title: "Profile review completed by Marcus Thorne", time: "1 day ago", read: true },
   ];
 
-  // Mock User profiles based on role
-  const userProfiles = {
-    student: { name: "Alex Thompson", email: "alex.t@epitome.com", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces" },
-    employee: { name: "Marcus Thorne", email: "m.thorne@epitome.com", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=faces" },
-    admin: { name: "Sarah Jennings", email: "s.jennings@epitome.com", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces" },
+  // Default avatar per role (fallback if user doesn't have one)
+  const defaultAvatars = {
+    student: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces",
+    employee: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=faces",
+    admin: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces",
   };
 
-  const [currentUser, setCurrentUser] = useState<any>(userProfiles[role] || userProfiles.student);
+  const [currentUser, setCurrentUser] = useState<any>({
+    name: "Loading...",
+    email: "",
+    avatar: defaultAvatars[role],
+  });
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -66,11 +70,13 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
           setCurrentUser({
             name: payload.user.name,
             email: payload.user.email,
-            avatar: userProfiles[role]?.avatar || userProfiles.student.avatar,
+            avatar: defaultAvatars[role],
           });
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // If auth fails, keep default state
+      });
   }, [role]);
 
   const handleSignOut = async () => {
