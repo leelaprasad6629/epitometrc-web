@@ -126,12 +126,12 @@ export default function Hero() {
 
       // Smooth mouse tracking interpolation
       const mouse = mouseRef.current;
-      mouse.x += (mouse.targetX - mouse.x) * 0.08;
-      mouse.y += (mouse.targetY - mouse.y) * 0.08;
+      mouse.x += (mouse.targetX - mouse.x) * 0.15;
+      mouse.y += (mouse.targetY - mouse.y) * 0.15;
 
-      // Base rotations
-      angleX += 0.003;
-      angleY += 0.004;
+      // Base rotations (faster velocity)
+      angleX += 0.007;
+      angleY += 0.009;
 
       // Slower inner rotation factor
       const innerAngleX = -angleX * 0.7;

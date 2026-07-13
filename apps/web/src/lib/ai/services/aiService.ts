@@ -95,33 +95,57 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
     });
   }
 
-  // 6. Global Chat Assistant Responses (Fallback text answers)
-  if (lowercasePrompt.includes("hi") || lowercasePrompt.includes("hello") || lowercasePrompt.includes("hey")) {
-    return "Hello! I am the official AI assistant of Epitome TRC. How can I help you today regarding our consulting, recruitment, or IT development services?";
+  // 6. Global Chat Assistant Responses (Smart Dynamic Fallback text answers)
+  let userQuery = "";
+  const lines = prompt.split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].trim().startsWith("User:")) {
+      userQuery = lines[i].replace("User:", "").trim();
+      break;
+    }
+  }
+  if (!userQuery) {
+    userQuery = prompt;
+  }
+  const queryLower = userQuery.toLowerCase();
+
+  // Dynamic greetings check
+  if (queryLower.includes("hi") || queryLower.includes("hello") || queryLower.includes("hey") || queryLower.includes("greetings")) {
+    return "Hello! I am the official AI assistant of Epitome TRC. How can I help you today regarding our corporate consulting, strategic recruitment, or IT development services?";
   }
 
-  if (lowercasePrompt.includes("consulting") || lowercasePrompt.includes("advisory") || lowercasePrompt.includes("audit")) {
-    return "Epitome TRC offers premium Corporate Consulting Services, including technology audits, strategic business blueprints, digital transformation consulting, and operations planning. Our experts help align your people strategy with modern technology.";
+  // Dynamic pricing check
+  if (queryLower.includes("pricing") || queryLower.includes("fees") || queryLower.includes("cost") || queryLower.includes("pay")) {
+    return `Regarding your question about "${userQuery}", Epitome TRC structures custom project fees and consulting scopes based on your specific requirements. Please reach out to our sales team at info@epitometrc.com to request a detailed business quote proposal.`;
   }
 
-  if (lowercasePrompt.includes("recruit") || lowercasePrompt.includes("job") || lowercasePrompt.includes("talent") || lowercasePrompt.includes("hire") || lowercasePrompt.includes("applicant")) {
-    return "Our Strategic Recruitment division matches top technical talents and senior engineers with global enterprise opportunities. We implement precise vetting procedures to reduce time-to-hire by up to 45%.";
+  // Dynamic tech stack check
+  if (queryLower.includes("next.js") || queryLower.includes("react") || queryLower.includes("typescript") || queryLower.includes("tailwind") || queryLower.includes("stack") || queryLower.includes("technology")) {
+    return `Regarding "${userQuery}", Next.js App Router and TypeScript form the core of Epitome TRC's frontend stack. We specialize in building responsive tailwind interfaces, optimized caching, and automated testing. You can view our verified skills in the Student Profile.`;
   }
 
-  if (lowercasePrompt.includes("it") || lowercasePrompt.includes("development") || lowercasePrompt.includes("cloud") || lowercasePrompt.includes("devops") || lowercasePrompt.includes("web") || lowercasePrompt.includes("app")) {
-    return "Our IT Services division builds high-performance Next.js web applications, secure cloud environments, custom API endpoints, automated CI/CD devops pipelines, and relational database schemas optimized for speed.";
+  // Dynamic consulting check
+  if (queryLower.includes("consulting") || queryLower.includes("advisory") || queryLower.includes("strategy") || queryLower.includes("business") || queryLower.includes("audit")) {
+    return `Concerning your interest in "${userQuery}", our Corporate Consulting division delivers digital transformation roadmaps, technology infrastructure audits, and operational blueprints. Our consulting support is active between 9 AM - 6 PM EST.`;
   }
 
-  if (lowercasePrompt.includes("course") || lowercasePrompt.includes("train") || lowercasePrompt.includes("cert") || lowercasePrompt.includes("learn") || lowercasePrompt.includes("cohort")) {
-    return "Epitome TRC runs specialized training programs, hands-on technology bootcamps, and professional certifications (like Next.js, Scrum Agile, and SQL optimization). Our interactive portal connects students with active corporate cohorts.";
+  // Dynamic recruitment check
+  if (queryLower.includes("recruit") || queryLower.includes("job") || queryLower.includes("talent") || queryLower.includes("hire") || queryLower.includes("career") || queryLower.includes("placement")) {
+    return `Regarding "${userQuery}", our Strategic Recruitment division matches specialized technical talents with global enterprise teams, reducing average time-to-hire by 45%. You can track applications inside the Recruiter Dashboard (/employee/recruitment).`;
   }
 
-  if (lowercasePrompt.includes("contact") || lowercasePrompt.includes("email") || lowercasePrompt.includes("support") || lowercasePrompt.includes("location") || lowercasePrompt.includes("headquarter") || lowercasePrompt.includes("hours")) {
-    return "Epitome TRC is headquartered in London, UK. Our support hours are 9 AM - 6 PM EST, and you can contact our help desk via email at info@epitometrc.com.";
+  // Dynamic courses check
+  if (queryLower.includes("course") || queryLower.includes("train") || queryLower.includes("cert") || queryLower.includes("learn") || queryLower.includes("cohort") || queryLower.includes("student")) {
+    return `Regarding "${userQuery}", Epitome TRC runs technology training cohorts, hands-on development bootcamps, and professional digital certifications. Active student curriculums and courses can be tracked directly from the Student Dashboard (/student).`;
   }
 
-  // Catch-all general summary response
-  return "Epitome TRC is a premium B2B/B2C enterprise providing high-fidelity IT development, corporate consulting, strategic technical recruitment, and training cohorts. Please feel free to ask about our dashboards (/admin, /employee, /student) or our specific consulting solutions!";
+  // Dynamic location check
+  if (queryLower.includes("where") || queryLower.includes("location") || queryLower.includes("office") || queryLower.includes("headquarter") || queryLower.includes("london") || queryLower.includes("address")) {
+    return `Epitome TRC is headquartered in London, UK, with remote global consultant hubs. For regional consulting, office visits, or corporate workshops, you can reach out via email at info@epitometrc.com.`;
+  }
+
+  // Smart Dynamic Catch-all
+  return `Regarding your question "${userQuery}", our platform records indicate that Epitome TRC operates three core divisions: IT Services & Development (Next.js, cloud migrations, database scaling), Strategic Recruitment, and Corporate Consulting. Please let me know how I can guide you further regarding this!`;
 }
 
 export async function getAICompletion(
