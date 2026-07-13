@@ -4,98 +4,95 @@ import { getCachedAIResponse, setCachedAIResponse } from "./cacheManager";
 import { sanitizePrompt } from "../utils";
 
 function getLocalFallbackText(prompt: string, options?: ProviderOptions): string {
-  const isJson = options?.responseFormat === "json";
   const lowercasePrompt = prompt.toLowerCase();
 
-  if (isJson) {
-    // 1. Business Consultant widget
-    if (lowercasePrompt.includes("industry") || lowercasePrompt.includes("recommendedservices") || lowercasePrompt.includes("roadmap")) {
-      return JSON.stringify({
-        industry: "Technology / Digital Transformation",
-        recommendedServices: [
-          "IT Services & Development", 
-          "Corporate Consulting Advisory", 
-          "Training & Certifications Hub"
-        ],
-        roadmap: [
-          { week: "Weeks 1-2", title: "System Architecture Audit", focus: "Conduct tech stack reviews, map security layers, and detail Prisma data models." },
-          { week: "Weeks 3-4", title: "Cloud Database Setup", focus: "Provision secure Supabase RDS instances and align secure PostgreSQL tables." },
-          { week: "Weeks 5-6", title: "Full-Stack Dashboard Setup", focus: "Design responsive Tailwind UI layers and integrate Next.js server route handlers." },
-          { week: "Weeks 7-8", title: "Automated Checks & Deploy", focus: "Perform end-to-end pipeline checks and launch on Vercel hosting nodes." }
-        ],
-        explanation: "Based on our database parameters, we recommend a robust Next.js and secure Supabase PostgreSQL architecture. This aligns with EpitomeTRC standards for performance and compliance."
-      });
-    }
+  // 1. Business Consultant widget
+  if (lowercasePrompt.includes("business consultant") || lowercasePrompt.includes("industry\":") || lowercasePrompt.includes("recommendedservices")) {
+    return JSON.stringify({
+      industry: "Technology / Digital Transformation",
+      recommendedServices: [
+        "IT Services & Development", 
+        "Corporate Consulting Advisory", 
+        "Training & Certifications Hub"
+      ],
+      roadmap: [
+        { week: "Weeks 1-2", title: "System Architecture Audit", focus: "Conduct tech stack reviews, map security layers, and detail Prisma data models." },
+        { week: "Weeks 3-4", title: "Cloud Database Setup", focus: "Provision secure Supabase RDS instances and align secure PostgreSQL tables." },
+        { week: "Weeks 5-6", title: "Full-Stack Dashboard Setup", focus: "Design responsive Tailwind UI layers and integrate Next.js server route handlers." },
+        { week: "Weeks 7-8", title: "Automated Checks & Deploy", focus: "Perform end-to-end pipeline checks and launch on Vercel hosting nodes." }
+      ],
+      explanation: "Based on our database parameters, we recommend a robust Next.js and secure Supabase PostgreSQL architecture. This aligns with EpitomeTRC standards for performance and compliance."
+    });
+  }
 
-    // 2. Talent Matcher widget
-    if (lowercasePrompt.includes("candidates") && lowercasePrompt.includes("rank") && lowercasePrompt.includes("score")) {
-      return JSON.stringify({
-        candidates: [
-          { rank: 1, name: "Alice Cooper", score: 95, recommendation: "Perfect match. Demonstrates extensive expertise in secure database design, Terraform automation, and Next.js backend systems." },
-          { rank: 2, name: "David Miller", score: 86, recommendation: "Excellent match. Exhibits strong React.js skills, state management using Zustand, and fluid responsive styling." }
-        ]
-      });
-    }
+  // 2. Talent Matcher widget
+  if (lowercasePrompt.includes("compare the target job requirements") || lowercasePrompt.includes("candidates list")) {
+    return JSON.stringify({
+      candidates: [
+        { rank: 1, name: "Alice Cooper", score: 95, recommendation: "Perfect match. Demonstrates extensive expertise in secure database design, Terraform automation, and Next.js backend systems." },
+        { rank: 2, name: "David Miller", score: 86, recommendation: "Excellent match. Exhibits strong React.js skills, state management using Zustand, and fluid responsive styling." }
+      ]
+    });
+  }
 
-    // 3. Candidate Suitability Evaluator widget
-    if (lowercasePrompt.includes("suitability") || lowercasePrompt.includes("strengths") || lowercasePrompt.includes("weaknesses")) {
-      return JSON.stringify({
-        suitability: "Highly Qualified",
-        summary: "Exhibits exceptional mastery of software engineering concepts. Demonstrates experience in API design, local caching strategies, and secure session management.",
-        strengths: [
-          "Deep understanding of Next.js App Router & server endpoints",
-          "Proficient in PostgreSQL index tuning and query scaling",
-          "Collaborative mindset with experience guiding team sprints"
-        ],
-        weaknesses: [
-          "Minimal experience setting up cloud firewalls manually",
-          "Could benefit from training in advanced Kubernetes namespaces"
-        ],
-        interviewFocus: [
-          "How do you implement secure authorization keys in a distributed backend?",
-          "Explain your process for resolving database migration failures.",
-          "Describe how you handle team layout collisions during rapid feature updates."
-        ]
-      });
-    }
+  // 3. Candidate Suitability Evaluator widget
+  if (lowercasePrompt.includes("suitabilityresult") || lowercasePrompt.includes("suitability") && lowercasePrompt.includes("interviewfocus") || lowercasePrompt.includes("candidate suitability")) {
+    return JSON.stringify({
+      suitability: "Highly Qualified",
+      summary: "Exhibits exceptional mastery of software engineering concepts. Demonstrates experience in API design, local caching strategies, and secure session management.",
+      strengths: [
+        "Deep understanding of Next.js App Router & server endpoints",
+        "Proficient in PostgreSQL index tuning and query scaling",
+        "Collaborative mindset with experience guiding team sprints"
+      ],
+      weaknesses: [
+        "Minimal experience setting up cloud firewalls manually",
+        "Could benefit from training in advanced Kubernetes namespaces"
+      ],
+      interviewFocus: [
+        "How do you implement secure authorization keys in a distributed backend?",
+        "Explain your process for resolving database migration failures.",
+        "Describe how you handle team layout collisions during rapid feature updates."
+      ]
+    });
+  }
 
-    // 4. Resume Match widget
-    if (lowercasePrompt.includes("atsscore") || lowercasePrompt.includes("suggestions") || lowercasePrompt.includes("missingskills")) {
-      return JSON.stringify({
-        atsScore: 89,
-        matchPercentage: 93,
-        missingSkills: ["Terraform Provisioning", "AWS RDS Configurations", "Next.js Security Hooks"],
-        suggestions: [
-          "Quantify your career successes (e.g. 'Improved query latency by 35%').",
-          "Incorporate high-value terms like 'Zustand state store', 'Prisma migrations', and 'secure cookies'."
-        ],
-        roadmap: [
-          "Participate in the EpitomeTRC Cloud Devops bootcamp cohort.",
-          "Construct a mock repository showcasing a Next.js API integrated with PostgreSQL."
-        ]
-      });
-    }
+  // 4. Resume Match widget
+  if (lowercasePrompt.includes("atsscore") || lowercasePrompt.includes("resumematchresult") || lowercasePrompt.includes("missingskills") || lowercasePrompt.includes("resume match")) {
+    return JSON.stringify({
+      atsScore: 89,
+      matchPercentage: 93,
+      missingSkills: ["Terraform Provisioning", "AWS RDS Configurations", "Next.js Security Hooks"],
+      suggestions: [
+        "Quantify your career successes (e.g. 'Improved query latency by 35%').",
+        "Incorporate high-value terms like 'Zustand state store', 'Prisma migrations', and 'secure cookies'."
+      ],
+      roadmap: [
+        "Participate in the EpitomeTRC Cloud Devops bootcamp cohort.",
+        "Construct a mock repository showcasing a Next.js API integrated with PostgreSQL."
+      ]
+    });
+  }
 
-    // 5. Training / Cohort Planner widget
-    if (lowercasePrompt.includes("duration") || lowercasePrompt.includes("gapanalysis") || lowercasePrompt.includes("syllabus")) {
-      return JSON.stringify({
-        duration: "8 Weeks",
-        groups: [
-          { name: "DevOps & Cloud Systems", members: ["Alice Cooper", "Senior Database Team"] },
-          { name: "Frontend & State Architectures", members: ["David Miller", "Apprentice Cohort"] }
-        ],
-        gapAnalysis: [
-          "Initial knowledge gap detected in AWS cloud networking configuration.",
-          "Requires practice setting up transactional email triggers."
-        ],
-        roadmap: [
-          "Weeks 1-2: Postgres schemas, relationships, and indexing",
-          "Weeks 3-4: Next.js API endpoint parameters and JWT session checks",
-          "Weeks 5-6: Complex UI layout design and global state management",
-          "Weeks 7-8: Integrated system testing and automatic Vercel deployment"
-        ]
-      });
-    }
+  // 5. Training / Cohort Planner widget
+  if (lowercasePrompt.includes("trainingplannerresult") || lowercasePrompt.includes("gapanalysis") || lowercasePrompt.includes("syllabus") || lowercasePrompt.includes("corporate training planner")) {
+    return JSON.stringify({
+      duration: "8 Weeks",
+      groups: [
+        { name: "DevOps & Cloud Systems", members: ["Alice Cooper", "Senior Database Team"] },
+        { name: "Frontend & State Architectures", members: ["David Miller", "Apprentice Cohort"] }
+      ],
+      gapAnalysis: [
+        "Initial knowledge gap detected in AWS cloud networking configuration.",
+        "Requires practice setting up transactional email triggers."
+      ],
+      roadmap: [
+        "Weeks 1-2: Postgres schemas, relationships, and indexing",
+        "Weeks 3-4: Next.js API endpoint parameters and JWT session checks",
+        "Weeks 5-6: Complex UI layout design and global state management",
+        "Weeks 7-8: Integrated system testing and automatic Vercel deployment"
+      ]
+    });
   }
 
   // 6. Global Chat Assistant Responses (Fallback text answers)
