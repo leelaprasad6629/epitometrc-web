@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 
 export default function Hero() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0, active: false });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -26,63 +27,193 @@ export default function Hero() {
     };
     window.addEventListener("resize", handleResize);
 
-    // Torus coordinates parameters
-    const R = 150; // Major radius
-    const r = 60;  // Minor radius
-    const numPoints = 800;
-    const points: { theta: number; phi: number; color: string }[] = [];
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current.targetX = e.clientX - rect.left;
+      mouseRef.current.targetY = e.clientY - rect.top;
+      mouseRef.current.active = true;
+    };
 
-    for (let i = 0; i < numPoints; i++) {
+    const handleMouseLeave = () => {
+      mouseRef.current.active = false;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("mouseleave", handleMouseLeave);
+
+    // Geometry parameters
+    const R_torus = 160;  // Torus Major radius
+    const r_torus = 55;   // Torus Minor radius
+    const R_sphere = 75;  // Inner sphere radius
+
+    // Create 3D points
+    const points: {
+      type: "torus" | "sphere" | "star";
+      x3d: number;
+      y3d: number;
+      z3d: number;
+      theta: number;
+      phi: number;
+      color: string;
+      sizeOffset: number;
+    }[] = [];
+
+    // 1. Torus points (Outer Shell) - 1500 points
+    for (let i = 0; i < 1500; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.random() * Math.PI * 2;
-      // Blue to orange gradient color map
-      const color = i % 2 === 0 ? "rgba(59, 130, 246, 0.45)" : "rgba(249, 115, 22, 0.45)";
-      points.push({ theta, phi, color });
+      const color = i % 2 === 0 ? "rgba(59, 130, 246, 0.48)" : "rgba(249, 115, 22, 0.48)";
+      
+      const x3d = (R_torus + r_torus * Math.cos(theta)) * Math.cos(phi);
+      const y3d = (R_torus + r_torus * Math.cos(theta)) * Math.sin(phi);
+      const z3d = r_torus * Math.sin(theta);
+
+      points.push({
+        type: "torus",
+        x3d,
+        y3d,
+        z3d,
+        theta,
+        phi,
+        color,
+        sizeOffset: Math.random() * Math.PI * 2,
+      });
+    }
+
+    // 2. Inner Sphere points (AI Core Core) - 800 points
+    for (let i = 0; i < 800; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
+      const color = i % 3 === 0 ? "rgba(239, 68, 68, 0.55)" : "rgba(245, 158, 11, 0.55)";
+      
+      const x3d = R_sphere * Math.sin(phi) * Math.cos(theta);
+      const y3d = R_sphere * Math.sin(phi) * Math.sin(theta);
+      const z3d = R_sphere * Math.cos(phi);
+
+      points.push({
+        type: "sphere",
+        x3d,
+        y3d,
+        z3d,
+        theta,
+        phi,
+        color,
+        sizeOffset: Math.random() * Math.PI * 2,
+      });
+    }
+
+    // 3. Constellation Background Stars - 300 points
+    for (let i = 0; i < 300; i++) {
+      points.push({
+        type: "star",
+        x3d: (Math.random() - 0.5) * width * 1.5,
+        y3d: (Math.random() - 0.5) * height * 1.5,
+        z3d: (Math.random() - 0.5) * 400,
+        theta: 0,
+        phi: 0,
+        color: "rgba(148, 163, 184, 0.25)",
+        sizeOffset: Math.random() * Math.PI * 2,
+      });
     }
 
     let angleX = 0;
     let angleY = 0;
+    let time = 0;
 
     const render = () => {
+      time += 0.015;
       ctx.clearRect(0, 0, width, height);
 
-      // Rotate torus
-      angleX += 0.003;
-      angleY += 0.005;
+      // Smooth mouse tracking interpolation
+      const mouse = mouseRef.current;
+      mouse.x += (mouse.targetX - mouse.x) * 0.08;
+      mouse.y += (mouse.targetY - mouse.y) * 0.08;
 
-      const cosX = Math.cos(angleX);
-      const sinX = Math.sin(angleX);
-      const cosY = Math.cos(angleY);
-      const sinY = Math.sin(angleY);
+      // Base rotations
+      angleX += 0.003;
+      angleY += 0.004;
+
+      // Slower inner rotation factor
+      const innerAngleX = -angleX * 0.7;
+      const innerAngleY = angleY * 1.2;
+
+      // Draw background grid pattern for high-tech HUD look
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.015)";
+      ctx.lineWidth = 1;
+      const gridSize = 60;
+      for (let x = 0; x < width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
 
       points.forEach((p) => {
-        // Calculate torus coordinates
-        const x = (R + r * Math.cos(p.theta)) * Math.cos(p.phi);
-        const y = (R + r * Math.cos(p.theta)) * Math.sin(p.phi);
-        const z = r * Math.sin(p.theta);
+        let rx = p.x3d;
+        let ry = p.y3d;
+        let rz = p.z3d;
 
-        // 3D Rotations
-        // X rotation
-        const y1 = y * cosX - z * sinX;
-        const z1 = y * sinX + z * cosX;
+        // Apply distinct rotation based on geometry category
+        if (p.type === "torus") {
+          // X rotation
+          const y1 = ry * Math.cos(angleX) - rz * Math.sin(angleX);
+          const z1 = ry * Math.sin(angleX) + rz * Math.cos(angleX);
+          // Y rotation
+          rx = rx * Math.cos(angleY) - z1 * Math.sin(angleY);
+          rz = rx * Math.sin(angleY) + z1 * Math.cos(angleY);
+          ry = y1;
+        } else if (p.type === "sphere") {
+          // X rotation
+          const y1 = ry * Math.cos(innerAngleX) - rz * Math.sin(innerAngleX);
+          const z1 = ry * Math.sin(innerAngleX) + rz * Math.cos(innerAngleX);
+          // Y rotation
+          rx = rx * Math.cos(innerAngleY) - z1 * Math.sin(innerAngleY);
+          rz = rx * Math.sin(innerAngleY) + z1 * Math.cos(innerAngleY);
+          ry = y1;
+        }
 
-        // Y rotation
-        const x2 = x * cosY - z1 * sinY;
-        const z2 = x * sinY + z1 * cosY;
+        // Perspective projections
+        const perspective = 500;
+        const scale = perspective / (perspective + rz);
+        let projX = width / 2 + rx * scale;
+        let projY = height / 2 - 35 + ry * scale;
 
-        // Perspective projection scale
-        const perspective = 400;
-        const scale = perspective / (perspective + z2);
-        
-        const projX = width / 2 + x2 * scale;
-        const projY = height / 2 - 30 + y1 * scale; // Centered slightly higher than middle
+        // Mouse gravity pull warp effect
+        if (mouse.active) {
+          const dx = mouse.x - projX;
+          const dy = mouse.y - projY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 220) {
+            const pull = (1 - dist / 220) * 15 * scale;
+            projX += (dx / dist) * pull;
+            projY += (dy / dist) * pull;
+          }
+        }
 
-        // Renders only visible coordinates within canvas boundary
         if (projX >= 0 && projX <= width && projY >= 0 && projY <= height) {
+          // Pulsing sizing logic
+          const pulse = 1.0 + 0.4 * Math.sin(time + p.sizeOffset);
+          const baseSize = p.type === "torus" ? 1.6 : p.type === "sphere" ? 1.3 : 0.8;
+          const size = baseSize * scale * pulse;
+
           ctx.beginPath();
-          ctx.arc(projX, projY, 1.8 * scale, 0, Math.PI * 2);
+          ctx.arc(projX, projY, size, 0, Math.PI * 2);
           ctx.fillStyle = p.color;
           ctx.fill();
+
+          // Connect stars with fine constellation lines if they are close
+          if (p.type === "star" && Math.random() < 0.0003) {
+            ctx.beginPath();
+            ctx.arc(projX, projY, size * 2, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(59, 130, 246, 0.08)";
+            ctx.stroke();
+          }
         }
       });
 
@@ -93,6 +224,8 @@ export default function Hero() {
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("mouseleave", handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
@@ -106,14 +239,19 @@ export default function Hero() {
 
   return (
     <section className="relative h-[85vh] md:h-screen w-full bg-[#f8fafd] flex flex-col justify-between overflow-hidden font-sans border-b border-slate-100">
-      {/* 3D Particle Canvas Background */}
+      {/* 3D Double Geometry Canvas HUD */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-90"
+        className="absolute inset-0 w-full h-full pointer-events-auto cursor-crosshair opacity-95 z-0"
       />
 
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-orange-100/20 rounded-full blur-3xl pointer-events-none" />
+      {/* Modern backdrop colors */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-100/40 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-orange-100/30 rounded-full blur-[120px] pointer-events-none z-0" />
+      
+      {/* HUD circular radar lines for tech appeal */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[215px] w-[340px] h-[340px] border border-slate-200/20 rounded-full pointer-events-none z-0 border-dashed" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[215px] w-[460px] h-[460px] border border-slate-200/10 rounded-full pointer-events-none z-0" />
 
       {/* Main Centered Content */}
       <div className="flex-1 flex flex-col justify-center items-center text-center px-4 relative z-10 space-y-6">
@@ -126,7 +264,7 @@ export default function Hero() {
           <span className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] block">
             EPITOMETRC PLATFORM
           </span>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-light text-slate-900 tracking-[0.25em] leading-tight select-none uppercase">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extralight text-slate-900 tracking-[0.25em] leading-tight select-none uppercase">
             IMPACTING INDIVIDUALS
           </h1>
         </motion.div>
@@ -144,13 +282,19 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="pt-4"
+          className="pt-4 flex flex-col sm:flex-row gap-4 items-center justify-center"
         >
           <Link
             href="/consulting"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0b172a] hover:text-orange-500 transition-colors uppercase tracking-wider"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#0b172a] hover:bg-orange-500 transition-colors uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-md"
           >
             Explore AI Solutions <ArrowUpRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white/60 hover:bg-white transition-all uppercase tracking-wider px-5 py-2.5 rounded-xl border border-slate-200/80 shadow-sm"
+          >
+            Access Dashboards
           </Link>
         </motion.div>
       </div>

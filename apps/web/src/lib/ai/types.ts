@@ -19,7 +19,7 @@ export interface AIResponse {
   success: boolean;
   text?: string;
   error?: string;
-  provider?: "gemini" | "groq";
+  provider?: "gemini" | "groq" | "local-fallback";
 }
 
 export interface BusinessConsultantResult {
