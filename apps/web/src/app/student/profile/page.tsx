@@ -9,6 +9,7 @@ import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 
 import AIResumeMatchWidget from "@/components/ai/AIResumeMatchWidget";
+import AIResumeBuilderWidget from "@/components/ai/AIResumeBuilderWidget";
 
 export default function StudentProfilePage() {
   const [skills, setSkills] = useState(["React.js", "TypeScript", "Tailwind CSS", "Next.js", "Zustand", "Framer Motion"]);
@@ -180,6 +181,9 @@ export default function StudentProfilePage() {
 
           {/* AI Resume Matcher */}
           <AIResumeMatchWidget />
+
+          {/* AI Resume Builder */}
+          <AIResumeBuilderWidget />
 
           {/* Social Profiles */}
           <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
