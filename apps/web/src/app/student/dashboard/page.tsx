@@ -10,6 +10,7 @@ import Button from "@/components/common/Button";
 export default function StudentDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Calendar & Call modal state
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -23,6 +24,17 @@ export default function StudentDashboard() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    // Fetch current user
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success && payload.user) {
+          setCurrentUser(payload.user);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch dashboard data
     fetch("/api/student/dashboard")
       .then((res) => res.json())
       .then((payload) => {
@@ -148,7 +160,7 @@ export default function StudentDashboard() {
       <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-1">
           <h1 className="font-display text-2xl font-bold text-[#0b172a] sm:text-3xl">
-            Welcome back, {data?.userName || "Alex"}.
+            Welcome back, {currentUser?.name || "Student"}.
           </h1>
           <p className="text-slate-500 text-sm font-medium font-sans">
             Your progress this week is looking excellent. You have 2 assignments due soon.
@@ -367,13 +379,13 @@ export default function StudentDashboard() {
               {/* July 9 (Today) */}
               <span className="relative flex items-center justify-center h-7 w-7 mx-auto rounded-full bg-orange-500 text-white font-bold">9</span>
               {/* July 10 (Mentor call) */}
-              <span className="relative flex items-center justify-center h-7 w-7 mx-auto rounded-full bg-blue-50 border border-blue-200 text-blue-600 font-bold group cursor-pointer" title="Mentor session scheduled">
+              <span className="relative flex items-center justify-center h-7 w-7 mx-auto rounded-full bg-blue-50 border border-blue-200 text-blue-600 font-bold group cursor-pointer" title="Mentor Session">
                 10
                 <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-blue-500"></span>
               </span>
               <span>11</span>
               {/* July 12 (IT Application due) */}
-              <span className="relative flex items-center justify-center h-7 w-7 mx-auto rounded-full bg-red-50 border border-red-200 text-red-600 font-bold group cursor-pointer" title="Internship application due">
+              <span className="relative flex items-center justify-center h-7 w-7 mx-auto rounded-full bg-red-50 border border-red-200 text-red-600 font-bold group cursor-pointer" title="Internship Application Due">
                 12
                 <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-red-500"></span>
               </span>
@@ -423,7 +435,7 @@ export default function StudentDashboard() {
       {/* Mock Call Modal */}
       {showCallModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a] p-4 sm:p-6 animate-in fade-in duration-300">
-          <div className="relative w-full max-w-3xl h-[80vh] flex flex-col justify-between rounded-3xl bg-slate-900 overflow-hidden shadow-2xl border border-slate-800 text-white animate-in zoom-in-95 duration-300">
+          <div className="relative w-full max-w-3xl h-[80vh] flex flex-col justify-between rounded-3xl bg-slate-900 overflow-hidden shadow-2xl border border-slate-800 text-white animate-in zoom-in-95 duration-200">
             {/* Call Header */}
             <div className="flex justify-between items-center p-5 bg-gradient-to-b from-black/40 to-transparent">
               <div className="flex items-center gap-2">
@@ -461,7 +473,7 @@ export default function StudentDashboard() {
               {/* Student Video Frame */}
               <div className="relative w-full h-full rounded-2xl bg-slate-950 overflow-hidden flex items-center justify-center border border-slate-800">
                 <div className="absolute top-3 left-3 bg-black/40 px-2 py-0.5 rounded text-[10px] font-semibold text-slate-200 z-10">
-                  Alex Thompson (You)
+                  {currentUser?.name || "Student"} (You)
                 </div>
                 
                 {/* Live Video element */}
