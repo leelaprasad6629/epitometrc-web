@@ -150,3 +150,65 @@ Respond strictly in JSON format. The response must match this structure exactly:
 }
   `.trim();
 }
+
+export function buildInterviewQuestionsPrompt(courseTitle: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+Generate 5 high-impact technical interview questions and sample answers specifically based on the course: "${courseTitle}".
+
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is ...?",
+      "answer": "A detailed sample answer guide..."
+    }
+  ]
+}
+  `.trim();
+}
+
+export function buildResumeBuilderPrompt(jobRole: string, rawExperience: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+You are a professional resume writer. Rewrite the raw experience bullets into polished, professional, and high-impact descriptions suitable for the job role: "${jobRole}".
+
+Raw Experience Notes:
+"${rawExperience}"
+
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "polishedBio": "A refined professional summary paragraph...",
+  "bullets": [
+    "Polished experience accomplishment bullet point 1...",
+    "Polished experience accomplishment bullet point 2..."
+  ]
+}
+  `.trim();
+}
+
+export function buildEmailGeneratorPrompt(candidateName: string, targetJob: string, emailTone: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+Generate a professional candidate outreach email.
+Candidate Name: ${candidateName}
+Target Job: ${targetJob}
+Email Tone/Type: ${emailTone} (e.g. "Invite for interview", "Offer pitch", "Follow-up")
+
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "subject": "Email Subject Line...",
+  "body": "Dear ${candidateName},\n\n[Polished professional email body matching the requested tone...]\n\nBest regards,\nEpitome Recruitment Team"
+}
+  `.trim();
+}

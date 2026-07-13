@@ -7,6 +7,7 @@ import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 
 import AITalentMatchWidget from "@/components/ai/AITalentMatchWidget";
+import AIEmailGeneratorWidget from "@/components/ai/AIEmailGeneratorWidget";
 
 export default function EmployeeRecruitmentPage() {
   const [applicants, setApplicants] = useState<any[]>([]);
@@ -158,6 +159,9 @@ export default function EmployeeRecruitmentPage() {
           )}
         </div>
       </div>
+
+      {/* AI Recruiter Email Generator */}
+      <AIEmailGeneratorWidget candidates={applicants} />
     </motion.div>
   );
 }

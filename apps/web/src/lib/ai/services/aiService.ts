@@ -95,6 +95,39 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
     });
   }
 
+  // 5b. AI Interview Prep Generator
+  if (lowercasePrompt.includes("interview questions and sample answers") || lowercasePrompt.includes("questions\":")) {
+    return JSON.stringify({
+      questions: [
+        { id: 1, question: "How do you handle database migration conflicts in an active environment?", answer: "We implement incremental schema updates using Prisma migration snapshots and check constraints to prevent table locks." },
+        { id: 2, question: "Explain the benefits of Next.js App Router for client routing.", answer: "It supports server components by default, reducing client JavaScript bundle sizes and allowing parallel layout rendering." },
+        { id: 3, question: "What is your approach to optimizing slow database queries?", answer: "We analyze query execution plans, design target indexes on search attributes, and implement TTL memory caches." },
+        { id: 4, question: "How does WebRTC coordinate connection channels?", answer: "It uses signaling paths to exchange SDP configurations and ICE candidates to map direct peer-to-peer tunnels." },
+        { id: 5, question: "How do you secure Next.js API route handlers?", answer: "We restrict execution to authenticated sessions using secure, HTTP-only JWT cookies and apply rate-limiting checks." }
+      ]
+    });
+  }
+
+  // 5c. AI Resume Builder
+  if (lowercasePrompt.includes("resume writer") || lowercasePrompt.includes("polishedbio")) {
+    return JSON.stringify({
+      polishedBio: "Highly motivated Software Engineer Apprentice with verified expertise designing low-latency full-stack layouts and secure web services. Proficient in Next.js App Router, TypeScript state containers, and secure Supabase PostgreSQL database configurations.",
+      bullets: [
+        "Architected a responsive data dashboard using Next.js and Tailwind CSS, reducing layout load latencies by 35%.",
+        "Configured secure, schema-bound database integrations using Prisma Client and PostgreSQL transactional triggers.",
+        "Implemented standard CI/CD workflow automation, reducing integration conflict rates during parallel team sprints."
+      ]
+    });
+  }
+
+  // 5d. AI Email Generator
+  if (lowercasePrompt.includes("outreach email") || lowercasePrompt.includes("subject\":") || lowercasePrompt.includes("email tone")) {
+    return JSON.stringify({
+      subject: "EpitomeTRC Career Opportunity - Technical Screen Schedule",
+      body: `Hello Candidate,\n\nI hope this message finds you well. Our team reviewed your professional portfolio and was highly impressed by your experience with React layouts and database integrations.\n\nWe would love to schedule a brief 15-minute technical introduction call to discuss the Senior Engineer role and how your skills align with our ongoing projects.\n\nPlease let us know your availability over the coming days.\n\nBest regards,\nEpitome Recruitment Team`
+    });
+  }
+
   // 6. Global Chat Assistant Responses (Smart Dynamic Fallback text answers)
   let userQuery = "";
   const lines = prompt.split("\n");
