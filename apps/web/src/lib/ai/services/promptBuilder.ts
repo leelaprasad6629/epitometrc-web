@@ -1,0 +1,152 @@
+import { Message, PageContext } from "../types";
+import { SYSTEM_PROMPT } from "../constants";
+import { EPITOME_KNOWLEDGE_BASE } from "./knowledgeBase";
+import { buildPageContextString } from "./contextBuilder";
+
+export function buildChatPrompt(messages: Message[], context: PageContext): string {
+  const contextStr = buildPageContextString(context);
+  const conversationHistory = messages
+    .map((m) => `${m.role === "user" ? "User" : "AI"}: ${m.content}`)
+    .join("\n");
+
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+${contextStr}
+
+Conversation History:
+${conversationHistory}
+
+AI Assistant:
+  `.trim();
+}
+
+export function buildBusinessConsultantPrompt(requirements: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+You are acting as an AI Business Consultant. Understand the client's business requirements, detect their industry sector, recommend Epitome's matching IT services, and suggest an implementation roadmap.
+
+Client Requirements:
+"${requirements}"
+
+Respond strictly with a JSON object. Do not include markdown code block formatting in your actual generation (or wrap it in standard \`\`\`json blocks). The JSON structure must match this layout exactly:
+{
+  "industry": "Detected Industry Sector",
+  "recommendedServices": ["Service A", "Service B"],
+  "roadmap": [
+    {"week": "Week 1-2", "title": "Phase 1 Title", "focus": "Details about phase 1"},
+    {"week": "Week 3-4", "title": "Phase 2 Title", "focus": "Details about phase 2"}
+  ],
+  "explanation": "Detailed explanation of recommendations and suggestion for a live consultation call."
+}
+  `.trim();
+}
+
+export function buildTalentMatchPrompt(jobRequirements: string, candidates: any[]): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+Compare the target job requirements below with the list of candidates.
+
+Job Requirements:
+"${jobRequirements}"
+
+Candidates List:
+${JSON.stringify(candidates)}
+
+Calculate matching scores, rank the candidates, list strengths, weaknesses, and a final recommendation.
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "candidates": [
+    {
+      "name": "Candidate Name",
+      "score": 85,
+      "rank": 1,
+      "strengths": ["Skill A", "Experience B"],
+      "weaknesses": ["Gap C"],
+      "recommendation": "Final recommendation summary"
+    }
+  ]
+}
+  `.trim();
+}
+
+export function buildCandidateSummaryPrompt(candidateData: any): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+Analyze the candidate profile details below and generate a summary, key strengths, weaknesses, suitability evaluation, and target focus areas for their interview.
+
+Candidate Data:
+${JSON.stringify(candidateData)}
+
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "summary": "Professional fit summary",
+  "strengths": ["Strength A", "Strength B"],
+  "weaknesses": ["Gap C"],
+  "suitability": "Final fit verdict",
+  "interviewFocus": ["Topic D", "Question E"]
+}
+  `.trim();
+}
+
+export function buildResumeMatchPrompt(resumeText: string, jobTitle: string, jobDescription: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+Compare the candidate's resume text with the selected job details to perform an ATS-style keyword check and generate a match score, missing skills list, strengths, resume rewrite suggestions, and a learning roadmap.
+
+Job Title: ${jobTitle}
+Job Description:
+"${jobDescription}"
+
+Candidate Resume Text:
+"${resumeText}"
+
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "matchPercentage": 75,
+  "atsScore": 68,
+  "missingSkills": ["TypeScript", "CI/CD"],
+  "strengths": ["Strong Next.js background", "UI styling"],
+  "suggestions": ["Add keywords for DevOps", "Highlight database optimizations"],
+  "roadmap": ["Step 1: Complete Postgres Certification", "Step 2: Practice Docker integration"]
+}
+  `.trim();
+}
+
+export function buildCohortPlannerPrompt(objectives: string, departments: string, skills: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+Create a corporate cohort syllabus plan matching the department training needs, target skills, and learning objectives below.
+
+Objectives: ${objectives}
+Departments: ${departments}
+Skills Required: ${skills}
+
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "groups": [
+    {"name": "Engineering Team A", "members": ["Developer 1", "Developer 2"]}
+  ],
+  "roadmap": ["Week 1: Foundations", "Week 2: Advanced integrations"],
+  "gapAnalysis": ["Lack of cloud experience", "Need basic API patterns"],
+  "duration": "8 Weeks"
+}
+  `.trim();
+}

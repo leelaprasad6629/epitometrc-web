@@ -5,6 +5,8 @@ import { Briefcase, User, Check, X, Search, FileText, Mail } from "lucide-react"
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 
+import AITalentMatchWidget from "@/components/ai/AITalentMatchWidget";
+
 export default function EmployeeRecruitmentPage() {
   const applicants = [
     {
@@ -48,17 +50,8 @@ export default function EmployeeRecruitmentPage() {
         </Button>
       </div>
 
-      {/* Filters Search Box */}
-      <div className="flex items-center gap-3 w-full max-w-md bg-white p-1 rounded-xl border border-slate-200">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            type="text"
-            placeholder="Search candidates, matching scores, jobs..."
-            className="pl-10 h-10 border-0 focus:ring-0 w-full bg-transparent"
-          />
-        </div>
-      </div>
+      {/* AI Recruitment Match Tools */}
+      <AITalentMatchWidget candidates={applicants} />
 
       {/* Applicants List */}
       <div className="space-y-4">

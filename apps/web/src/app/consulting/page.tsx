@@ -6,6 +6,7 @@ import ConsultingExpertise from "@/components/consulting/ConsultingExpertise";
 import ConsultingBenefits from "@/components/consulting/ConsultingBenefits";
 import ConsultingProcess from "@/components/consulting/ConsultingProcess";
 import CTA from "@/components/common/CTA";
+import AIConsultantWidget from "@/components/ai/AIConsultantWidget";
 
 export const metadata: Metadata = {
   title: "Business Consulting | Epitome TRC",
@@ -22,6 +23,7 @@ export default function ConsultingPage() {
         <ConsultingExpertise />
         <ConsultingBenefits />
         <ConsultingProcess />
+        <AIConsultantWidget />
         <CTA
           title="Ready to Accelerate Your Growth?"
           description="Connect with our experts to design a customized consulting engagement tailored to your strategic objectives."

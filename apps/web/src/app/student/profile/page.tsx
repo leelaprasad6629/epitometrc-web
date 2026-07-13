@@ -8,6 +8,8 @@ import Image from "next/image";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 
+import AIResumeMatchWidget from "@/components/ai/AIResumeMatchWidget";
+
 export default function StudentProfilePage() {
   const [skills, setSkills] = useState(["React.js", "TypeScript", "Tailwind CSS", "Next.js", "Zustand", "Framer Motion"]);
   const [newSkill, setNewSkill] = useState("");
@@ -175,6 +177,9 @@ export default function StudentProfilePage() {
               </button>
             </div>
           </div>
+
+          {/* AI Resume Matcher */}
+          <AIResumeMatchWidget />
 
           {/* Social Profiles */}
           <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
