@@ -371,20 +371,26 @@ export async function getAICompletion(
   // Create unique cache key based on prompt and options
   const cacheKey = `${prompt}_${options?.temperature ?? 0.2}_${options?.responseFormat ?? "text"}`;
   
-  const cachedResponse = getCachedAIResponse(cacheKey);
-  if (cachedResponse) {
-    console.log("Serving prompt from local cache.");
-    return {
-      success: true,
-      text: cachedResponse,
-      provider: "gemini", // Simulated fallback mapping info
-    };
+  const isCacheable = !rawPrompt.toLowerCase().includes("expert ai resume parser") && !rawPrompt.toLowerCase().includes("resume match");
+
+  if (isCacheable) {
+    const cachedResponse = getCachedAIResponse(cacheKey);
+    if (cachedResponse) {
+      console.log("Serving prompt from local cache.");
+      return {
+        success: true,
+        text: cachedResponse,
+        provider: "gemini", // Simulated fallback mapping info
+      };
+    }
   }
 
   const response = await callProviderWithFallback(prompt, options);
 
   if (response.success && response.text) {
-    setCachedAIResponse(cacheKey, response.text);
+    if (isCacheable) {
+      setCachedAIResponse(cacheKey, response.text);
+    }
     return response;
   }
 
