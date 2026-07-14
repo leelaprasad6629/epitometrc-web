@@ -5,6 +5,7 @@ import { BookOpen, Clock, Award, Users, ArrowRight, Calendar, ExternalLink, Vide
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/common/Button";
+import AIMockInterviewWidget from "@/components/ai/AIMockInterviewWidget";
 
 export default function StudentDashboard() {
   const stats = [
@@ -100,6 +101,9 @@ export default function StudentDashboard() {
           );
         })}
       </div>
+
+      {/* AI Mock Interview Simulator */}
+      <AIMockInterviewWidget />
 
       {/* Main Grid: Recommended Programs & Sidebar Widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
