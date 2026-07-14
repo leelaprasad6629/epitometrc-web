@@ -59,18 +59,67 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
 
   // 4. Resume Match widget
   if (lowercasePrompt.includes("atsscore") || lowercasePrompt.includes("resumematchresult") || lowercasePrompt.includes("missingskills") || lowercasePrompt.includes("resume match")) {
+    let atsScore = 80;
+    let matchPercentage = 85;
+    let missingSkills: string[] = [];
+    let suggestions: string[] = [];
+    let roadmap: string[] = [];
+
+    // Try extracting resume text
+    const resumeMatch = prompt.match(/Candidate Resume Text:\s*["']([\s\S]+?)["']/i);
+    const resumeText = resumeMatch ? resumeMatch[1].trim() : "";
+    
+    const jobMatch = prompt.match(/Job Title:\s*([^\n]+)/i);
+    const jobTitle = jobMatch ? jobMatch[1].trim() : "Software Engineer";
+
+    if (!resumeText || resumeText.length < 15) {
+      atsScore = 15;
+      matchPercentage = 10;
+      missingSkills = ["Relevant Skillset", "Professional Experience", "Technical Projects"];
+      suggestions = ["Please paste or type your resume details into the textbox to analyze compatibility."];
+      roadmap = ["Upload or paste a detailed resume profile."];
+    } else {
+      // Look for keywords in resume
+      const techStack = ["react", "next.js", "typescript", "tailwind", "postgresql", "supabase", "zustand", "prisma", "aws", "terraform", "docker", "kubernetes", "ci/cd", "node.js", "graphql"];
+      const foundSkills = techStack.filter(s => resumeText.toLowerCase().includes(s));
+      
+      // Missing skills logic based on target role
+      if (jobTitle.toLowerCase().includes("cloud") || jobTitle.toLowerCase().includes("senior") || jobTitle.toLowerCase().includes("devops")) {
+        const devopsSkills = ["aws", "terraform", "docker", "kubernetes", "ci/cd"];
+        missingSkills = devopsSkills.filter(s => !foundSkills.includes(s));
+      } else {
+        const frontendSkills = ["next.js", "typescript", "zustand", "prisma", "tailwind"];
+        missingSkills = frontendSkills.filter(s => !foundSkills.includes(s));
+      }
+
+      // Format capitalized missing skills
+      missingSkills = missingSkills.map(s => s.toUpperCase());
+      if (missingSkills.length === 0) {
+        missingSkills = ["Advanced Web Security", "System Telemetry Logging"];
+      }
+
+      // Score calculation
+      const matchedCount = foundSkills.length;
+      atsScore = Math.min(95, Math.max(30, 45 + matchedCount * 6));
+      matchPercentage = Math.min(98, Math.max(25, 50 + matchedCount * 5));
+
+      suggestions = [
+        `Add targeted metrics for ${foundSkills.slice(0, 3).join(", ")} to demonstrate quantifiable project impact.`,
+        `Include references to modern tools like ${missingSkills.slice(0, 2).join(" and ")} to pass automated keyword screens.`
+      ];
+
+      roadmap = [
+        `Enroll in the EpitomeTRC ${jobTitle} bootcamp track.`,
+        `Construct a sample repository showcasing your skills in ${foundSkills.join(", ")}.`
+      ];
+    }
+
     return JSON.stringify({
-      atsScore: 89,
-      matchPercentage: 93,
-      missingSkills: ["Terraform Provisioning", "AWS RDS Configurations", "Next.js Security Hooks"],
-      suggestions: [
-        "Quantify your career successes (e.g. 'Improved query latency by 35%').",
-        "Incorporate high-value terms like 'Zustand state store', 'Prisma migrations', and 'secure cookies'."
-      ],
-      roadmap: [
-        "Participate in the EpitomeTRC Cloud Devops bootcamp cohort.",
-        "Construct a mock repository showcasing a Next.js API integrated with PostgreSQL."
-      ]
+      atsScore,
+      matchPercentage,
+      missingSkills,
+      suggestions,
+      roadmap
     });
   }
 
@@ -97,61 +146,130 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
 
   // 5b. AI Interview Prep Generator
   if (lowercasePrompt.includes("interview questions and sample answers") || lowercasePrompt.includes("questions\":")) {
+    const courseMatch = prompt.match(/course:\s*["']?([^"'\n]+)/i);
+    const courseTitle = courseMatch ? courseMatch[1].trim() : "Software Development";
+
     return JSON.stringify({
       questions: [
-        { id: 1, question: "How do you handle database migration conflicts in an active environment?", answer: "We implement incremental schema updates using Prisma migration snapshots and check constraints to prevent table locks." },
-        { id: 2, question: "Explain the benefits of Next.js App Router for client routing.", answer: "It supports server components by default, reducing client JavaScript bundle sizes and allowing parallel layout rendering." },
-        { id: 3, question: "What is your approach to optimizing slow database queries?", answer: "We analyze query execution plans, design target indexes on search attributes, and implement TTL memory caches." },
-        { id: 4, question: "How does WebRTC coordinate connection channels?", answer: "It uses signaling paths to exchange SDP configurations and ICE candidates to map direct peer-to-peer tunnels." },
-        { id: 5, question: "How do you secure Next.js API route handlers?", answer: "We restrict execution to authenticated sessions using secure, HTTP-only JWT cookies and apply rate-limiting checks." }
+        { id: 1, question: `Explain the core concepts taught in the course: "${courseTitle}".`, answer: `This module covers system architectures, clean logic, and development standards associated with ${courseTitle}.` },
+        { id: 2, question: `How do you implement performance optimization strategies in "${courseTitle}" contexts?`, answer: "We leverage local memory caching, query indexing, and lazy component loading to minimize loading delays." },
+        { id: 3, question: `What is the primary technical challenge when scaling a "${courseTitle}" application?`, answer: "Managing database read-write synchronization and implementing authenticated session handlers." },
+        { id: 4, question: "How do you handle error states and fallbacks during API connection loss?", answer: "We build zero-connection fallbacks that read prompt attributes and compute local mock datasets." },
+        { id: 5, question: `What best practice would you recommend for team members collaborating on a "${courseTitle}" workspace?`, answer: "Establish unified code layout definitions, lint validation runs, and modular state containers." }
       ]
     });
   }
 
   // 5c. AI Resume Builder
   if (lowercasePrompt.includes("resume writer") || lowercasePrompt.includes("polishedbio")) {
+    const expMatch = prompt.match(/Raw Experience Notes:\s*["']([\s\S]+?)["']/i);
+    const rawExperience = expMatch ? expMatch[1].trim() : "";
+    
+    const roleMatch = prompt.match(/job role:\s*["']?([^"\n]+)/i);
+    const jobRole = roleMatch ? roleMatch[1].trim() : "Software Professional";
+
+    if (!rawExperience || rawExperience.length < 5) {
+      return JSON.stringify({
+        polishedBio: "Please describe your project experience in the textbox above to generate a refined professional summary biography.",
+        bullets: ["Provide descriptions to generate polished bullet points."]
+      });
+    }
+
+    const sentences = rawExperience.split(/[.,;]/).map(s => s.trim()).filter(s => s.length > 3);
+    const polishedBullets = sentences.map((s, idx) => {
+      if (idx === 0) return `Spearheaded execution of technical parameters: ${s}, improving average layout response performance.`;
+      if (idx === 1) return `Configured and managed database schema layers, specifically addressing ${s} for system data integrity.`;
+      return `Collaborated with cross-functional teams to integrate ${s} into production deployments.`;
+    });
+
+    if (polishedBullets.length === 0) {
+      polishedBullets.push(`Polished accomplishments targeting ${jobRole} roles.`);
+    }
+
     return JSON.stringify({
-      polishedBio: "Highly motivated Software Engineer Apprentice with verified expertise designing low-latency full-stack layouts and secure web services. Proficient in Next.js App Router, TypeScript state containers, and secure Supabase PostgreSQL database configurations.",
-      bullets: [
-        "Architected a responsive data dashboard using Next.js and Tailwind CSS, reducing layout load latencies by 35%.",
-        "Configured secure, schema-bound database integrations using Prisma Client and PostgreSQL transactional triggers.",
-        "Implemented standard CI/CD workflow automation, reducing integration conflict rates during parallel team sprints."
-      ]
+      polishedBio: `Highly motivated ${jobRole} with hands-on experience in full-stack architectures. Proven track record of refining project modules, implementing ${sentences[0] || 'software systems'}, and resolving integration blocks.`,
+      bullets: polishedBullets
     });
   }
 
   // 5d. AI Email Generator
   if (lowercasePrompt.includes("outreach email") || lowercasePrompt.includes("subject\":") || lowercasePrompt.includes("email tone")) {
+    const candidateMatch = prompt.match(/Candidate Name:\s*([^\n]+)/i);
+    const candidateName = candidateMatch ? candidateMatch[1].trim() : "Candidate";
+
+    const jobMatch = prompt.match(/Target Job:\s*([^\n]+)/i);
+    const targetJob = jobMatch ? jobMatch[1].trim() : "Software Engineer";
+
+    const toneMatch = prompt.match(/Email Tone\/Type:\s*([^\n]+)/i);
+    const emailTone = toneMatch ? toneMatch[1].trim() : "Invite";
+
     return JSON.stringify({
-      subject: "EpitomeTRC Career Opportunity - Technical Screen Schedule",
-      body: `Hello Candidate,\n\nI hope this message finds you well. Our team reviewed your professional portfolio and was highly impressed by your experience with React layouts and database integrations.\n\nWe would love to schedule a brief 15-minute technical introduction call to discuss the Senior Engineer role and how your skills align with our ongoing projects.\n\nPlease let us know your availability over the coming days.\n\nBest regards,\nEpitome Recruitment Team`
+      subject: `EpitomeTRC Career Opportunity - ${targetJob} Role Review`,
+      body: `Dear ${candidateName},\n\nI hope this message finds you well. Our hiring team reviewed your qualifications and is impressed by your professional experience in modern technologies. We believe your background matches the requirements for the ${targetJob} role.\n\nWe would love to coordinate a 15-minute introductory discussion regarding how this opening aligns with your career goals. This matches the requested tone: ${emailTone}.\n\nPlease share your availability over the coming days.\n\nBest regards,\nEpitome Recruitment Team`
     });
   }
 
   // 5e. AI Lead Qualification Assistant
   if (lowercasePrompt.includes("lead qualification") || lowercasePrompt.includes("leadscore\":")) {
+    const entityMatch = prompt.match(/Lead Name:\s*([^\n]+)/i);
+    const leadName = entityMatch ? entityMatch[1].trim() : "Prospective Client";
+
+    const reqMatch = prompt.match(/Requirements:\s*["']([\s\S]+?)["']/i);
+    const requirements = reqMatch ? reqMatch[1].trim() : "";
+
+    let leadScore = 75;
+    let verdict = "Warm Lead. Showing strong B2B interest.";
+
+    if (requirements.toLowerCase().includes("urgent") || requirements.toLowerCase().includes("budget")) {
+      leadScore = 95;
+      verdict = "Extremely Hot Lead. Mentions high budget/urgent timeline. Flagged for immediate sales priority contact.";
+    }
+
     return JSON.stringify({
-      leadScore: 92,
-      painPoints: ["Legacy local server crash issues", "Lack of internal full-stack React knowledge", "AWS database setup blocks"],
+      leadScore,
+      painPoints: ["Scaling database concurrency", `Resolving operational details for ${leadName}`, "Modernizing legacy structures"],
       recommendedServices: ["IT Services & Development", "Corporate Consulting Advisory"],
-      verdict: "Extremely Hot Lead. Active project budget matching standard corporate tiers. Flagged for immediate priority sales followup."
+      verdict
     });
   }
 
   // 5f. AI Mock Interview Simulator
   if (lowercasePrompt.includes("interview simulator") || lowercasePrompt.includes("nextquestion\":")) {
+    const ansMatch = prompt.match(/Latest Student Answer:\s*["']([\s\S]+?)["']/i);
+    const studentAnswer = ansMatch ? ansMatch[1].trim() : "";
+
+    const jobMatch = prompt.match(/role:\s*["']?([^"'\n]+)/i);
+    const jobTitle = jobMatch ? jobMatch[1].trim() : "Software Developer";
+
+    let score = 85;
+    let feedback = "Good explanation. You clearly articulated the core concepts. To improve further, elaborate on standard caching rules and JWT session parameters.";
+
+    if (!studentAnswer || studentAnswer.length < 10) {
+      score = 30;
+      feedback = "The submitted answer is too short. Please provide a detailed response to show your engineering skills and pass the screening threshold.";
+    } else if (studentAnswer.toLowerCase().includes("client") && studentAnswer.toLowerCase().includes("server")) {
+      score = 95;
+      feedback = "Excellent! You highlighted the key differences in server vs client components, hydration strategies, and render cycle optimization.";
+    }
+
     return JSON.stringify({
-      feedback: "Great initial answer. You correctly identified that client components render on the client side, but remember to mention that Next.js pre-renders client components into static HTML on the server first during initial page load for faster SEO hydration.",
-      score: 88,
-      nextQuestion: "Following up on your answer: how do you share state across these client components in Next.js? What state management libraries would you recommend?"
+      feedback,
+      score,
+      nextQuestion: `Following up on your answer for ${jobTitle}: how do you handle state sharing across multiple pages when server components are in use?`
     });
   }
 
   // 5g. AI Course Assistant
   if (lowercasePrompt.includes("course assistant tutor") || lowercasePrompt.includes("studentquestion") || lowercasePrompt.includes("explanation\":")) {
+    const qMatch = prompt.match(/Student Question:\s*["']([\s\S]+?)["']/i);
+    const questionText = qMatch ? qMatch[1].trim() : "Next.js Components";
+
+    const titleMatch = prompt.match(/course\s*["']?([^"'\n]+)/i);
+    const courseTitle = titleMatch ? titleMatch[1].trim() : "Software Engineering";
+
     return JSON.stringify({
-      explanation: "In Next.js App Router, all components inside the `src/app` directory are **Server Components by default**. This means they render on the server, and their rendering code never reaches the client browser, improving performance.\n\nTo convert a component into a **Client Component**, simply add the string `'use client';` at the very first line of the file (before any imports). Use Client Components only when you need interactive triggers like `onClick`, React hooks like `useState` or `useEffect`, or browser APIs like `window` or `document`.\n\nHere is a simple example:\n```typescript\n'use client';\n\nimport { useState } from 'react';\n\nexport default function ClickCounter() {\n  const [count, setCount] = useState(0);\n  return <button onClick={() => setCount(count + 1)}>Clicks: {count}</button>;\n}\n```",
-      suggestedTopic: "Next.js Hydration Errors and suppressHydrationWarning attributes."
+      explanation: `Here is a tutorial relative to your question: "${questionText}" in the context of "${courseTitle}".\n\nWhen building full-stack platforms, modular components are designed to encapsulate both styles and operations. Make sure to define clear interface props, validate incoming parameters, and write clean, responsive layouts using Tailwind.\n\nCode Example:\n\`\`\`typescript\ninterface Props {\n  title: string;\n}\n\nexport default function Module({ title }: Props) {\n  return <div className="p-4 border border-slate-100 rounded-xl bg-white">{title}</div>;\n}\n\`\`\n`,
+      suggestedTopic: `${courseTitle} Scaling and component state trees.`
     });
   }
 
