@@ -175,28 +175,41 @@ export default function AIResumeMatchWidget() {
     setError("");
     setCopiedFile(file);
 
-    try {
-      const res = await fetch("/api/ai/parse-resume", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileName: file.name,
-          fileContent: `Uploaded resume for ${file.name}. Extraction process triggered.`
-        }),
-      });
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const base64Data = event.target?.result?.toString().split(",")[1] || "";
+        const res = await fetch("/api/ai/parse-resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            fileMimeType: file.type || "application/pdf",
+            fileBase64: base64Data,
+            fileContent: `Uploaded resume for ${file.name}.`
+          }),
+        });
 
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setParsedData(data.result);
-        setActiveTab("analytics"); // Automatically switch to analytics to show visual graphs!
-      } else {
-        setError(data.error || "Failed to parse resume file.");
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setParsedData(data.result);
+          setActiveTab("analytics"); // Automatically switch to analytics to show visual graphs!
+        } else {
+          setError(data.error || "Failed to parse resume file.");
+        }
+      } catch {
+        setError("Resume parsing offline. Connection timed out.");
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      setError("Resume parsing offline. Connection timed out.");
-    } finally {
+    };
+
+    reader.onerror = () => {
+      setError("Failed to read the file payload.");
       setLoading(false);
-    }
+    };
+
+    reader.readAsDataURL(file);
   };
 
   // SVG Loader

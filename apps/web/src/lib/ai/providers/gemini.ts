@@ -14,6 +14,19 @@ export async function callGeminiProvider(
   }
 
   try {
+    const parts: any[] = [
+      { text: prompt }
+    ];
+
+    if (options?.fileBase64 && options?.fileMimeType) {
+      parts.push({
+        inlineData: {
+          mimeType: options.fileMimeType,
+          data: options.fileBase64
+        }
+      });
+    }
+
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
       method: "POST",
@@ -23,11 +36,7 @@ export async function callGeminiProvider(
       body: JSON.stringify({
         contents: [
           {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
+            parts,
           },
         ],
         generationConfig: {

@@ -13,6 +13,8 @@ export interface ProviderOptions {
   temperature?: number;
   maxTokens?: number;
   responseFormat?: "text" | "json";
+  fileBase64?: string;
+  fileMimeType?: string;
 }
 
 export interface AIResponse {
