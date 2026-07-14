@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/common/Button";
 import AIInterviewPrepWidget from "@/components/ai/AIInterviewPrepWidget";
+import AICourseAssistantWidget from "@/components/ai/AICourseAssistantWidget";
 
 export default function StudentCoursesPage() {
   const activeCourses = [
@@ -109,6 +110,9 @@ export default function StudentCoursesPage() {
 
       {/* AI Interview Prep Generator */}
       <AIInterviewPrepWidget courses={[...activeCourses, ...completedCourses]} />
+
+      {/* AI Course Tutor Assistant */}
+      <AICourseAssistantWidget courseTitle="Strategic Business Analyst" />
 
       {/* Completed Courses */}
       <div className="space-y-4 pt-4">

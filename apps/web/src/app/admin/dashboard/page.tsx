@@ -6,6 +6,7 @@ import { Users, DollarSign, Award, CheckCircle2, TrendingUp, Download, Clock, Se
 import Button from "@/components/common/Button";
 
 import AICohortPlannerWidget from "@/components/ai/AICohortPlannerWidget";
+import AILeadQualifyWidget from "@/components/ai/AILeadQualifyWidget";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any[]>([]);
@@ -97,6 +98,9 @@ export default function AdminDashboard() {
 
       {/* AI Cohort Planner */}
       <AICohortPlannerWidget />
+
+      {/* AI Lead Qualification Assistant */}
+      <AILeadQualifyWidget enquiries={recentEnquiries} />
 
       {/* Charts & Tasks Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

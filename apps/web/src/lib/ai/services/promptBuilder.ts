@@ -212,3 +212,68 @@ Respond strictly in JSON format. The response must match this structure exactly:
 }
   `.trim();
 }
+
+export function buildLeadQualifyPrompt(leadName: string, email: string, requirements: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+You are an AI Lead Qualification Assistant. Qualify this B2B consulting lead:
+Lead Name: ${leadName}
+Email: ${email}
+Requirements: "${requirements}"
+
+Calculate a qualification score from 1 to 100, identify key corporate pain points, and recommend matching Epitome service categories.
+
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "leadScore": 85,
+  "painPoints": ["Legacy database locks", "Slow deployment speed"],
+  "recommendedServices": ["IT Services & Development", "Corporate Consulting"],
+  "verdict": "Hot Lead. High budget potential."
+}
+  `.trim();
+}
+
+export function buildMockInterviewPrompt(jobTitle: string, chatHistory: any[], studentAnswer: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+You are an AI Interview Simulator. Grade the student's answer and formulate the next question for a mock interview for the role: "${jobTitle}".
+
+Chat History:
+${JSON.stringify(chatHistory)}
+
+Latest Student Answer:
+"${studentAnswer}"
+
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "feedback": "Constructive feedback on student's response...",
+  "score": 85, // Score for the student's answer (1-100)
+  "nextQuestion": "The next interview question to ask the candidate..."
+}
+  `.trim();
+}
+
+export function buildCourseAssistantPrompt(courseTitle: string, studentQuestion: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+You are an AI Course Assistant tutor. Answer this student query regarding the course "${courseTitle}":
+Student Question: "${studentQuestion}"
+
+Provide a clean, tutorial-like markdown answer.
+
+Respond strictly in JSON format. The response must match this structure exactly:
+{
+  "explanation": "Detailed tutorial explanation with code blocks if relevant...",
+  "suggestedTopic": "Topic for further reading..."
+}
+  `.trim();
+}

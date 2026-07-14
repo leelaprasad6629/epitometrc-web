@@ -128,6 +128,33 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
     });
   }
 
+  // 5e. AI Lead Qualification Assistant
+  if (lowercasePrompt.includes("lead qualification") || lowercasePrompt.includes("leadscore\":")) {
+    return JSON.stringify({
+      leadScore: 92,
+      painPoints: ["Legacy local server crash issues", "Lack of internal full-stack React knowledge", "AWS database setup blocks"],
+      recommendedServices: ["IT Services & Development", "Corporate Consulting Advisory"],
+      verdict: "Extremely Hot Lead. Active project budget matching standard corporate tiers. Flagged for immediate priority sales followup."
+    });
+  }
+
+  // 5f. AI Mock Interview Simulator
+  if (lowercasePrompt.includes("interview simulator") || lowercasePrompt.includes("nextquestion\":")) {
+    return JSON.stringify({
+      feedback: "Great initial answer. You correctly identified that client components render on the client side, but remember to mention that Next.js pre-renders client components into static HTML on the server first during initial page load for faster SEO hydration.",
+      score: 88,
+      nextQuestion: "Following up on your answer: how do you share state across these client components in Next.js? What state management libraries would you recommend?"
+    });
+  }
+
+  // 5g. AI Course Assistant
+  if (lowercasePrompt.includes("course assistant tutor") || lowercasePrompt.includes("studentquestion") || lowercasePrompt.includes("explanation\":")) {
+    return JSON.stringify({
+      explanation: "In Next.js App Router, all components inside the `src/app` directory are **Server Components by default**. This means they render on the server, and their rendering code never reaches the client browser, improving performance.\n\nTo convert a component into a **Client Component**, simply add the string `'use client';` at the very first line of the file (before any imports). Use Client Components only when you need interactive triggers like `onClick`, React hooks like `useState` or `useEffect`, or browser APIs like `window` or `document`.\n\nHere is a simple example:\n```typescript\n'use client';\n\nimport { useState } from 'react';\n\nexport default function ClickCounter() {\n  const [count, setCount] = useState(0);\n  return <button onClick={() => setCount(count + 1)}>Clicks: {count}</button>;\n}\n```",
+      suggestedTopic: "Next.js Hydration Errors and suppressHydrationWarning attributes."
+    });
+  }
+
   // 6. Global Chat Assistant Responses (Smart Dynamic Fallback text answers)
   let userQuery = "";
   const lines = prompt.split("\n");
