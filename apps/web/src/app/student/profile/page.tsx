@@ -114,6 +114,12 @@ export default function StudentProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* AI Resume Match & Professional Builder */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <AIResumeMatchWidget />
+            <AIResumeBuilderWidget />
+          </div>
         </div>
 
         {/* Right Column: Skills & Resume */}
@@ -179,11 +185,7 @@ export default function StudentProfilePage() {
             </div>
           </div>
 
-          {/* AI Resume Matcher */}
-          <AIResumeMatchWidget />
 
-          {/* AI Resume Builder */}
-          <AIResumeBuilderWidget />
 
           {/* Social Profiles */}
           <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
