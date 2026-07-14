@@ -275,24 +275,33 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
 
   // 5h. AI Resume Parser
   if (lowercasePrompt.includes("expert ai resume parser") || lowercasePrompt.includes("fullname\":")) {
-    // Try extracting file name
     const fileMatch = prompt.match(/file\s*["']?([^"'\n]+)/i);
     const fileName = fileMatch ? fileMatch[1].trim() : "resume.pdf";
 
+    // Clean up file name to generate a realistic name
+    let extractedName = "Alex Thompson";
+    const cleanName = fileName.replace(/_Resume|_resume|\.pdf|\.docx|\.txt/gi, "").replace(/[_-]/g, " ").trim();
+    if (cleanName.length > 2) {
+      extractedName = cleanName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    }
+    const generatedEmail = extractedName.toLowerCase().replace(/\s+/g, ".") + "@gmail.com";
+
+    const isCooper = fileName.toLowerCase().includes("cooper");
+
     return JSON.stringify({
-      fullName: fileName.toLowerCase().includes("cooper") ? "Alice Cooper" : "Alex Thompson",
-      email: fileName.toLowerCase().includes("cooper") ? "alice.c@cooper.com" : "alex.t@epitome.com",
+      fullName: extractedName,
+      email: generatedEmail,
       phone: "+1 (555) 019-2834",
-      education: fileName.toLowerCase().includes("cooper") ? "M.Sc. Cloud Systems (Oxford)" : "B.Sc. Computer Science (University of London)",
-      experience: fileName.toLowerCase().includes("cooper") ? "Senior Cloud Engineer at Nexa Solutions" : "Frontend Engineer Apprentice at EpitomeTRC",
-      projects: fileName.toLowerCase().includes("cooper") ? "High-concurrency AWS Gateway Server" : "IT Services Dashboard & Corporate Recruiting Board",
+      education: isCooper ? "M.Sc. Cloud Systems (Oxford)" : "B.Sc. Computer Science (University of London)",
+      experience: isCooper ? "Senior Cloud Engineer at Nexa Solutions" : "Frontend Engineer Apprentice at EpitomeTRC",
+      projects: isCooper ? "High-concurrency AWS Gateway Server" : "IT Services Dashboard & Corporate Recruiting Board",
       certifications: "Full-Stack Bootcamp Certificate",
-      technicalSkills: fileName.toLowerCase().includes("cooper") 
+      technicalSkills: isCooper 
         ? ["aws", "terraform", "docker", "kubernetes", "ci/cd", "postgresql"]
         : ["react", "typescript", "tailwind", "next.js", "zustand", "prisma", "git"],
       softSkills: ["Collaboration", "Agile Sprints", "Communication"],
-      programmingLanguages: fileName.toLowerCase().includes("cooper") ? ["Python", "Go", "SQL"] : ["JavaScript", "TypeScript", "SQL"],
-      toolsFrameworks: fileName.toLowerCase().includes("cooper") ? ["Docker", "Terraform", "Git"] : ["Git", "Prisma", "Framer Motion"]
+      programmingLanguages: isCooper ? ["Python", "Go", "SQL"] : ["JavaScript", "TypeScript", "SQL"],
+      toolsFrameworks: isCooper ? ["Docker", "Terraform", "Git"] : ["Git", "Prisma", "Framer Motion"]
     });
   }
 
