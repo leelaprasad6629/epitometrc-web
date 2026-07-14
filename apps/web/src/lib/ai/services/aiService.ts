@@ -275,7 +275,7 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
 
   // 5h. AI Resume Parser
   if (lowercasePrompt.includes("expert ai resume parser") || lowercasePrompt.includes("fullname\":")) {
-    const fileMatch = prompt.match(/file\s*["']?([^"'\n]+)/i);
+    const fileMatch = prompt.match(/uploaded file:\s*["']?([^"'\n]+)/i);
     const fileName = fileMatch ? fileMatch[1].trim() : "resume.pdf";
 
     // Clean up file name to generate a realistic name
