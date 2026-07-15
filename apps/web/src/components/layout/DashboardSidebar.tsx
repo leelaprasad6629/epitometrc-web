@@ -44,6 +44,7 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
       { name: "My Courses", href: "/student/courses", icon: BookOpen },
       { name: "My Applications", href: "/student/applications", icon: ClipboardList },
       { name: "Certificates", href: "/student/certificates", icon: Award },
+      { name: "AI Resume Coach", href: "/student/resume-builder", icon: FileText },
       { name: "Profile", href: "/student/profile", icon: User },
     ],
     employee: [

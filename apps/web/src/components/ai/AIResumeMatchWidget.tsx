@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, CheckCircle2, AlertTriangle, Lightbulb, FileText, Upload, User, Mail, Phone, BookOpen, Briefcase, Award, ArrowRight } from "lucide-react";
+import { Sparkles, CheckCircle2, AlertTriangle, Lightbulb, FileText, Upload, User, Mail, Phone, BookOpen, Briefcase, Trash2, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Button from "@/components/common/Button";
+import { useResumeStore, ParsedResume } from "@/lib/ai/store/resumeStore";
 
 // Role Skills Mapping Configuration
 const ROLE_SKILLS_MAP: Record<string, { mustHave: string[]; preferred: string[] }> = {
@@ -38,66 +38,58 @@ const ROLE_SKILLS_MAP: Record<string, { mustHave: string[]; preferred: string[] 
 };
 
 export default function AIResumeMatchWidget() {
-  const [selectedJob, setSelectedJob] = useState("Frontend Developer");
+  const {
+    fileName,
+    selectedJobRole,
+    parsedResumeDetails,
+    atsScore,
+    matchScore,
+    skillMatchPercentage,
+    completeness,
+    matchedSkills,
+    missingSkills,
+    recommendations,
+    setResumeData,
+    updateParsedDetails,
+    setSelectedJobRole,
+    updateAnalysis,
+    deleteResume
+  } = useResumeStore();
+
   const [activeTab, setActiveTab] = useState<"details" | "analytics">("details");
-  
-  // Parsed Resume State
-  const [parsedData, setParsedData] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [copiedFile, setCopiedFile] = useState<File | null>(null);
 
-  // Scores State
-  const [scores, setScores] = useState({
-    matchScore: 0,
-    atsScore: 0,
-    skillMatchPercentage: 0,
-    completeness: 0
-  });
-
-  // Analysis lists
-  const [matchedSkills, setMatchedSkills] = useState<string[]>([]);
-  const [missingSkills, setMissingSkills] = useState<string[]>([]);
-  const [strengths, setStrengths] = useState<string[]>([]);
-  const [improvements, setImprovements] = useState<string[]>([]);
-  const [recommendations, setRecommendations] = useState<string[]>([]);
-  const [learningTopics, setLearningTopics] = useState<string[]>([]);
-
-  // Calculate scores dynamically whenever data or job selection changes
+  // Calculate scores dynamically whenever parsedResumeDetails or selectedJobRole changes
   useEffect(() => {
-    if (!parsedData) {
-      setScores({ matchScore: 0, atsScore: 0, skillMatchPercentage: 0, completeness: 0 });
-      setMatchedSkills([]);
-      setMissingSkills([]);
-      setStrengths([]);
-      setImprovements([]);
-      setRecommendations([]);
-      setLearningTopics([]);
-      return;
-    }
+    if (!parsedResumeDetails) return;
 
-    // 1. Calculate profile fields completeness percentage
+    // 1. Calculate profile completeness percentage
     const fields = [
-      parsedData.fullName,
-      parsedData.email,
-      parsedData.phone,
-      parsedData.education,
-      parsedData.experience,
-      parsedData.projects,
-      parsedData.certifications,
-      parsedData.technicalSkills?.length > 0 ? "skills" : "",
-      parsedData.softSkills?.length > 0 ? "soft" : "",
-      parsedData.programmingLanguages?.length > 0 ? "languages" : "",
-      parsedData.toolsFrameworks?.length > 0 ? "tools" : ""
+      parsedResumeDetails.fullName,
+      parsedResumeDetails.email,
+      parsedResumeDetails.phone,
+      parsedResumeDetails.education,
+      parsedResumeDetails.experience,
+      parsedResumeDetails.projects,
+      parsedResumeDetails.certifications,
+      parsedResumeDetails.technicalSkills?.length > 0 ? "skills" : "",
+      parsedResumeDetails.softSkills?.length > 0 ? "soft" : "",
+      parsedResumeDetails.programmingLanguages?.length > 0 ? "languages" : "",
+      parsedResumeDetails.frameworks?.length > 0 ? "frameworks" : "",
+      parsedResumeDetails.databases?.length > 0 ? "databases" : "",
+      parsedResumeDetails.toolsTechnologies?.length > 0 ? "tools" : ""
     ].filter(Boolean);
-    const completeness = Math.round((fields.length / 11) * 100);
+    const completenessVal = Math.round((fields.length / 13) * 100);
 
-    // 2. Skill matching checks
-    const jobSkills = ROLE_SKILLS_MAP[selectedJob] || { mustHave: [], preferred: [] };
+    // 2. Skill matching calculations
+    const jobSkills = ROLE_SKILLS_MAP[selectedJobRole] || { mustHave: [], preferred: [] };
     const allUserSkills = [
-      ...(parsedData.technicalSkills || []),
-      ...(parsedData.programmingLanguages || []),
-      ...(parsedData.toolsFrameworks || [])
+      ...(parsedResumeDetails.technicalSkills || []),
+      ...(parsedResumeDetails.programmingLanguages || []),
+      ...(parsedResumeDetails.frameworks || []),
+      ...(parsedResumeDetails.databases || []),
+      ...(parsedResumeDetails.toolsTechnologies || [])
     ].map(s => s.toLowerCase());
 
     const matchedMustHave = jobSkills.mustHave.filter(s => allUserSkills.includes(s));
@@ -106,74 +98,80 @@ export default function AIResumeMatchWidget() {
     const totalRequired = jobSkills.mustHave.length + jobSkills.preferred.length;
     const totalMatchedCount = matchedMustHave.length + matchedPreferred.length;
 
-    const skillMatchPercentage = totalRequired > 0 
+    const skillMatchPercentageVal = totalRequired > 0 
       ? Math.round((totalMatchedCount / totalRequired) * 100) 
       : 0;
 
     // 3. Score weighting
     const mustHaveWeight = jobSkills.mustHave.length > 0 ? (matchedMustHave.length / jobSkills.mustHave.length) * 60 : 0;
     const preferredWeight = jobSkills.preferred.length > 0 ? (matchedPreferred.length / jobSkills.preferred.length) * 20 : 0;
-    const completenessWeight = (completeness / 100) * 20;
+    const completenessWeight = (completenessVal / 100) * 20;
 
-    const matchScore = Math.min(100, Math.round(mustHaveWeight + preferredWeight + completenessWeight));
-    const atsScore = Math.min(100, Math.round((matchedMustHave.length / Math.max(1, jobSkills.mustHave.length)) * 70 + (completeness / 100) * 30));
+    const matchScoreVal = Math.min(100, Math.round(mustHaveWeight + preferredWeight + completenessWeight));
+    const atsScoreVal = Math.min(100, Math.round((matchedMustHave.length / Math.max(1, jobSkills.mustHave.length)) * 70 + (completenessVal / 100) * 30));
 
-    setScores({
-      matchScore,
-      atsScore,
-      skillMatchPercentage,
-      completeness
-    });
-
-    // Formatting comparison badges lists
+    // Insights lists
     const matchedList = [...matchedMustHave, ...matchedPreferred].map(s => s.toUpperCase());
     const missingList = [...jobSkills.mustHave, ...jobSkills.preferred]
       .filter(s => !allUserSkills.includes(s))
       .map(s => s.toUpperCase());
 
-    setMatchedSkills(matchedList);
-    setMissingSkills(missingList);
-
-    // Dynamic advice updates
-    const strengthPoints = [
-      `Demonstrates clear familiarity with essential tools: ${matchedMustHave.slice(0, 3).join(", ").toUpperCase() || "development foundations"}.`,
-      completeness > 80 ? "Exhibits detailed profile structure across all metadata sections." : "Exhibits clean project context headings."
+    const strengthsList = [
+      `Strong alignment with target stack: ${matchedMustHave.slice(0, 3).join(", ").toUpperCase() || "foundations"}.`,
+      completenessVal > 80 ? "Exhibits highly detailed and structural resume sections." : "Contains clear project definitions."
     ];
-    setStrengths(strengthPoints);
 
-    const improvementPoints = [];
+    const improvementsList = [];
     if (missingList.length > 0) {
-      improvementPoints.push(`Acquire verified expertise in critical missing stacks: ${missingList.slice(0, 2).join(" and ")}.`);
+      improvementsList.push(`Add verified projects showcasing: ${missingList.slice(0, 2).join(" and ")}.`);
     }
-    if (completeness < 85) {
-      improvementPoints.push("Ensure contact details, languages, and certifications form fields are completely populated.");
+    if (completenessVal < 85) {
+      improvementsList.push("Provide more details in database and certifications fields to score higher.");
     }
-    if (improvementPoints.length === 0) {
-      improvementPoints.push("Expand on cloud container configs or testing workflows.");
+    if (improvementsList.length === 0) {
+      improvementsList.push("Document advanced cloud config metrics or automated linting checks.");
     }
-    setImprovements(improvementPoints);
 
-    setRecommendations([
-      `Tailor resume summary to explicitly include keywords like: ${jobSkills.mustHave.slice(0, 2).join(" and ").toUpperCase()}.`,
-      `Quantify accomplishments (e.g. 'Improved query load metrics by 35%').`
-    ]);
+    const recommendationsList = [
+      `Tailor resume profile summary to explicitly emphasize skills in ${jobSkills.mustHave.slice(0, 2).join(" & ").toUpperCase()}.`,
+      `Quantify professional accomplishments using clear metrics (e.g. 'reduced latency by 20%').`
+    ];
 
-    setLearningTopics(
-      missingList.length > 0 
-        ? missingList.slice(0, 3).map(s => `Master ${s} through official bootcamps.`) 
-        : ["Advance into Kubernetes containers.", "Learn AWS Serverless architectures."]
-    );
+    const certRecommendationsList = [
+      `Certified ${selectedJobRole} Professional`,
+      `Advanced Cloud Systems Architect Certificate`
+    ];
 
-  }, [parsedData, selectedJob]);
+    const projectRecommendationsList = [
+      `Scale a high-concurrency client-server wrapper using ${jobSkills.mustHave[0] || 'TypeScript'}.`,
+      `Deploy a secure database container with robust Prisma schema indexes.`
+    ];
 
-  // File Upload API Trigger
+    // Update global store values so all separate modules read the updated report card
+    updateAnalysis({
+      atsScore: atsScoreVal,
+      matchScore: matchScoreVal,
+      skillMatchPercentage: skillMatchPercentageVal,
+      completeness: completenessVal,
+      matchedSkills: matchedList,
+      missingSkills: missingList,
+      missingKeywords: missingList.slice(0, 3),
+      strengths: strengthsList,
+      improvements: improvementsList,
+      recommendations: recommendationsList,
+      certRecommendations: certRecommendationsList,
+      projectRecommendations: projectRecommendationsList
+    });
+
+  }, [parsedResumeDetails, selectedJobRole]);
+
+  // File parsing fetch trigger
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setLoading(true);
     setError("");
-    setCopiedFile(file);
 
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -192,8 +190,26 @@ export default function AIResumeMatchWidget() {
 
         const data = await res.json();
         if (res.ok && data.success) {
-          setParsedData(data.result);
-          setActiveTab("analytics"); // Automatically switch to analytics to show visual graphs!
+          // Destructure result and map fields
+          const result = data.result;
+          const mappedDetails: ParsedResume = {
+            fullName: result.fullName || "",
+            email: result.email || "",
+            phone: result.phone || "",
+            education: result.education || "",
+            experience: result.experience || "",
+            projects: result.projects || "",
+            certifications: result.certifications || "",
+            technicalSkills: result.technicalSkills || [],
+            softSkills: result.softSkills || [],
+            programmingLanguages: result.programmingLanguages || [],
+            frameworks: result.frameworks || result.toolsFrameworks || [],
+            databases: result.databases || [],
+            toolsTechnologies: result.toolsTechnologies || result.toolsFrameworks || []
+          };
+
+          setResumeData(file.name, base64Data, file.type || "application/pdf", mappedDetails);
+          setActiveTab("analytics"); // Switch tabs to show scorecards
         } else {
           setError(data.error || "Failed to parse resume file.");
         }
@@ -212,7 +228,7 @@ export default function AIResumeMatchWidget() {
     reader.readAsDataURL(file);
   };
 
-  // SVG Loader
+  // SVG Gauge Loader
   const CircularProgress = ({ value, label, colorClass }: { value: number; label: string; colorClass: string }) => {
     const radius = 22;
     const circumference = 2 * Math.PI * radius;
@@ -245,38 +261,59 @@ export default function AIResumeMatchWidget() {
         <div className="flex items-center gap-2">
           <Sparkles className="h-4.5 w-4.5 text-blue-500 animate-pulse" />
           <h2 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider">
-            AI Resume Parser & Match Analyzer
+            AI Resume Match Analyzer
           </h2>
         </div>
       </div>
 
-      <p className="text-slate-400 text-xs leading-relaxed text-left">
-        Upload your resume (PDF/DOCX). The AI will dynamically read full names, email details, and project content to calculate targeted ATS scores in real-time.
+      <p className="text-slate-400 text-xs leading-relaxed text-left font-medium">
+        This module manages your uploaded resume, parsing skills and evaluating compatibility against target career vacancies.
       </p>
 
-      {/* Upload Zone */}
-      <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-5 bg-slate-50/20 hover:bg-slate-50 hover:border-orange-400 cursor-pointer transition-all">
-        <Upload className="h-6.5 w-6.5 text-slate-400 mb-1.5 animate-bounce" />
-        {copiedFile ? (
-          <div className="text-center">
-            <p className="text-xs font-bold text-orange-600 flex items-center gap-1.5 justify-center">
-              <FileText className="h-4 w-4" /> {copiedFile.name}
-            </p>
-            <p className="text-[9px] text-slate-400 font-medium font-sans">Click or drag to replace resume</p>
+      {/* Upload Zone / Active Resume controls */}
+      {fileName ? (
+        <div className="rounded-xl border border-slate-100 p-4 bg-slate-50/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-left">
+          <div className="flex items-start gap-3">
+            <span className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-500 shrink-0">
+              <FileText className="h-5 w-5" />
+            </span>
+            <div className="space-y-0.5">
+              <h4 className="text-xs font-bold text-slate-800 line-clamp-1">{fileName}</h4>
+              <p className="text-[10px] text-slate-400 font-medium font-sans">Stored Resume Source of Truth</p>
+            </div>
           </div>
-        ) : (
+          <div className="flex gap-2 shrink-0">
+            {/* Replace Button */}
+            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer font-bold text-[10px] text-slate-600 transition-colors">
+              <RefreshCw className="h-3 w-3" />
+              Replace File
+              <input type="file" accept=".pdf,.docx,.txt" onChange={handleFileUpload} className="hidden" />
+            </label>
+            {/* Delete Button */}
+            <button
+              onClick={deleteResume}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[10px] transition-colors"
+            >
+              <Trash2 className="h-3 w-3" />
+              Delete Stored
+            </button>
+          </div>
+        </div>
+      ) : (
+        <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-6 bg-slate-50/20 hover:bg-slate-50 hover:border-orange-400 cursor-pointer transition-all">
+          <Upload className="h-6.5 w-6.5 text-slate-400 mb-1.5 animate-bounce" />
           <div className="text-center">
             <p className="text-xs font-bold text-slate-700">Click to upload your resume</p>
             <p className="text-[9px] text-slate-400 font-medium font-sans">Supports PDF, DOCX, or TXT</p>
           </div>
-        )}
-        <input
-          type="file"
-          accept=".pdf,.docx,.txt"
-          onChange={handleFileUpload}
-          className="hidden"
-        />
-      </label>
+          <input
+            type="file"
+            accept=".pdf,.docx,.txt"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </label>
+      )}
 
       {loading && (
         <p className="text-orange-500 font-semibold text-center animate-pulse">Reading file and parsing metadata details...</p>
@@ -286,9 +323,9 @@ export default function AIResumeMatchWidget() {
         <p className="text-red-500 text-[10px] font-semibold text-center">{error}</p>
       )}
 
-      {parsedData && (
+      {parsedResumeDetails && (
         <div className="space-y-4">
-          {/* Tab Navigation buttons - Beautiful tabs */}
+          {/* Tab Navigation */}
           <div className="flex rounded-xl bg-slate-50 p-1 border border-slate-100">
             <button
               onClick={() => setActiveTab("details")}
@@ -298,7 +335,7 @@ export default function AIResumeMatchWidget() {
                   : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              📋 Parsed Resume Details
+              📋 Parsed Details
             </button>
             <button
               onClick={() => setActiveTab("analytics")}
@@ -308,7 +345,7 @@ export default function AIResumeMatchWidget() {
                   : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              📊 ATS Match Analytics
+              📊 Job Match Report
             </button>
           </div>
 
@@ -328,8 +365,8 @@ export default function AIResumeMatchWidget() {
                   </label>
                   <input
                     type="text"
-                    value={parsedData.fullName}
-                    onChange={(e) => setParsedData({ ...parsedData, fullName: e.target.value })}
+                    value={parsedResumeDetails.fullName}
+                    onChange={(e) => updateParsedDetails({ fullName: e.target.value })}
                     className="w-full h-9 rounded-xl border border-slate-200 px-3 text-slate-600 focus:border-orange-500 outline-none text-xs"
                   />
                 </div>
@@ -342,8 +379,8 @@ export default function AIResumeMatchWidget() {
                     </label>
                     <input
                       type="email"
-                      value={parsedData.email}
-                      onChange={(e) => setParsedData({ ...parsedData, email: e.target.value })}
+                      value={parsedResumeDetails.email}
+                      onChange={(e) => updateParsedDetails({ email: e.target.value })}
                       className="w-full h-9 rounded-xl border border-slate-200 px-3 text-slate-600 focus:border-orange-500 outline-none text-xs"
                     />
                   </div>
@@ -353,8 +390,8 @@ export default function AIResumeMatchWidget() {
                     </label>
                     <input
                       type="text"
-                      value={parsedData.phone}
-                      onChange={(e) => setParsedData({ ...parsedData, phone: e.target.value })}
+                      value={parsedResumeDetails.phone}
+                      onChange={(e) => updateParsedDetails({ phone: e.target.value })}
                       className="w-full h-9 rounded-xl border border-slate-200 px-3 text-slate-600 focus:border-orange-500 outline-none text-xs"
                     />
                   </div>
@@ -367,8 +404,8 @@ export default function AIResumeMatchWidget() {
                   </label>
                   <input
                     type="text"
-                    value={parsedData.education}
-                    onChange={(e) => setParsedData({ ...parsedData, education: e.target.value })}
+                    value={parsedResumeDetails.education}
+                    onChange={(e) => updateParsedDetails({ education: e.target.value })}
                     className="w-full h-9 rounded-xl border border-slate-200 px-3 text-slate-600 focus:border-orange-500 outline-none text-xs"
                   />
                 </div>
@@ -379,22 +416,21 @@ export default function AIResumeMatchWidget() {
                     <Briefcase className="h-3.5 w-3.5" /> Professional Experience
                   </label>
                   <textarea
-                    value={parsedData.experience}
-                    onChange={(e) => setParsedData({ ...parsedData, experience: e.target.value })}
+                    value={parsedResumeDetails.experience}
+                    onChange={(e) => updateParsedDetails({ experience: e.target.value })}
                     className="w-full rounded-xl border border-slate-200 p-3 text-slate-600 h-16 resize-none outline-none focus:border-orange-500 text-xs"
                   />
                 </div>
 
-                {/* Skills tags field */}
+                {/* Technical Skills */}
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
                     Technical Skills (comma-separated)
                   </label>
                   <input
                     type="text"
-                    value={parsedData.technicalSkills?.join(", ") || ""}
-                    onChange={(e) => setParsedData({
-                      ...parsedData,
+                    value={parsedResumeDetails.technicalSkills?.join(", ") || ""}
+                    onChange={(e) => updateParsedDetails({
                       technicalSkills: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
                     })}
                     className="w-full h-9 rounded-xl border border-slate-200 px-3 text-slate-600 focus:border-orange-500 outline-none text-xs"
@@ -415,8 +451,8 @@ export default function AIResumeMatchWidget() {
                     Select Target Job Role
                   </label>
                   <select
-                    value={selectedJob}
-                    onChange={(e) => setSelectedJob(e.target.value)}
+                    value={selectedJobRole}
+                    onChange={(e) => setSelectedJobRole(e.target.value)}
                     className="w-full h-10 rounded-xl border border-slate-200 px-3 py-1.5 outline-none bg-white text-slate-600 font-semibold"
                   >
                     {Object.keys(ROLE_SKILLS_MAP).map((role) => (
@@ -427,21 +463,21 @@ export default function AIResumeMatchWidget() {
 
                 {/* SVG Score Rings */}
                 <div className="flex gap-3 justify-between items-center">
-                  <CircularProgress value={scores.atsScore} label="ATS Score" colorClass="stroke-red-500" />
-                  <CircularProgress value={scores.matchScore} label="Match Score" colorClass="stroke-orange-500" />
-                  <CircularProgress value={scores.skillMatchPercentage} label="Skills Match" colorClass="stroke-blue-500" />
+                  <CircularProgress value={atsScore} label="ATS Score" colorClass="stroke-red-500" />
+                  <CircularProgress value={matchScore} label="Match Score" colorClass="stroke-orange-500" />
+                  <CircularProgress value={skillMatchPercentage} label="Skills Match" colorClass="stroke-blue-500" />
                 </div>
 
                 {/* Profile Completeness bar */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between text-[9px] font-bold text-slate-600">
                     <span>Profile Completeness</span>
-                    <span>{scores.completeness}%</span>
+                    <span>{completeness}%</span>
                   </div>
                   <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-emerald-500 transition-all duration-500"
-                      style={{ width: `${scores.completeness}%` }}
+                      style={{ width: `${completeness}%` }}
                     />
                   </div>
                 </div>
