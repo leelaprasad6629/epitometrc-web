@@ -43,7 +43,6 @@ export default function StudentProfilePage() {
   const fullName = parsedResumeDetails?.fullName || "Alex Thompson";
   const email = parsedResumeDetails?.email || "alex.t@epitome.com";
   const phone = parsedResumeDetails?.phone || "+1 (555) 019-2834";
-  const education = parsedResumeDetails?.education || "B.Sc. Computer Science (University of London)";
 
   return (
     <motion.div
@@ -106,35 +105,6 @@ export default function StudentProfilePage() {
                 }}
                 className="w-full rounded-xl border border-slate-200 p-3.5 text-xs text-slate-600 font-sans leading-relaxed focus:border-orange-500 outline-none h-28 resize-none bg-slate-50/20"
               />
-            </div>
-          </div>
-
-          {/* Education & Certificates */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4">
-            <h2 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider">
-              Education & Background
-            </h2>
-
-            <div className="space-y-4">
-              <div className="flex gap-3.5 items-start">
-                <span className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-500 shrink-0">
-                  <BookOpen className="h-4.5 w-4.5" />
-                </span>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-slate-700">{education}</h4>
-                  <p className="text-[10px] text-slate-400 font-semibold font-sans">Graduated • verified academic credentials</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3.5 items-start">
-                <span className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-500 shrink-0">
-                  <Award className="h-4.5 w-4.5" />
-                </span>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-slate-700">Full-Stack Bootcamp Certificate</h4>
-                  <p className="text-[10px] text-slate-400 font-semibold font-sans">EpitomeTRC Academics • 2026</p>
-                </div>
-              </div>
             </div>
           </div>
 
