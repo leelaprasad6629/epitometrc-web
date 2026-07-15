@@ -4,14 +4,21 @@ import { create } from "zustand";
 
 export interface ParsedResume {
   fullName: string;
+  headline: string;
   email: string;
   phone: string;
   location: string;
+  profileImage: string | null; // base64 payload
   linkedin: string;
   github: string;
   portfolioWebsite: string;
+  personalWebsite: string;
+  leetcode: string;
+  hackerrank: string;
+  codechef: string;
+  codeforces: string;
   education: string;
-  experience: string;
+  experience: string; // Biography
   projects: string;
   certifications: string;
   technicalSkills: string[];
@@ -24,6 +31,7 @@ export interface ParsedResume {
   developerTools: string[];
   achievements: string;
   internships: string;
+  verifiedSkills: string[]; // Autocomplete verified list
 }
 
 export interface ResumeStore {
@@ -56,7 +64,7 @@ export interface ResumeStore {
     fileName: string,
     fileBase64: string,
     fileMimeType: string,
-    parsedResult: ParsedResume
+    parsedResult: Partial<ParsedResume>
   ) => void;
   updateParsedDetails: (details: Partial<ParsedResume>) => void;
   setSelectedJobRole: (role: string) => void;
@@ -80,12 +88,19 @@ export interface ResumeStore {
 
 const initialParsedResume: ParsedResume = {
   fullName: "",
+  headline: "",
   email: "",
   phone: "",
   location: "",
+  profileImage: null,
   linkedin: "",
   github: "",
   portfolioWebsite: "",
+  personalWebsite: "",
+  leetcode: "",
+  hackerrank: "",
+  codechef: "",
+  codeforces: "",
   education: "",
   experience: "",
   projects: "",
@@ -99,7 +114,8 @@ const initialParsedResume: ParsedResume = {
   cloudTechnologies: [],
   developerTools: [],
   achievements: "",
-  internships: ""
+  internships: "",
+  verifiedSkills: []
 };
 
 export const useResumeStore = create<ResumeStore>((set) => ({
@@ -126,20 +142,34 @@ export const useResumeStore = create<ResumeStore>((set) => ({
   projectRecommendations: [],
 
   setResumeData: (fileName, fileBase64, fileMimeType, parsedResult) =>
-    set({
-      fileName,
-      fileBase64,
-      fileMimeType,
-      parsedResumeDetails: { ...initialParsedResume, ...parsedResult },
-      verified: false, // Must be verified by student manually
-      uploadTimestamp: new Date().toISOString()
+    set((state) => {
+      const mergedDetails = {
+        ...initialParsedResume,
+        ...state.parsedResumeDetails,
+        ...parsedResult
+      };
+      
+      // Auto add newly parsed technical skills if they are not already in verifiedSkills
+      const parsedTech = parsedResult.technicalSkills || [];
+      const currentVerified = mergedDetails.verifiedSkills || [];
+      const updatedVerified = Array.from(new Set([...currentVerified, ...parsedTech]));
+      mergedDetails.verifiedSkills = updatedVerified;
+
+      return {
+        fileName,
+        fileBase64,
+        fileMimeType,
+        parsedResumeDetails: mergedDetails,
+        verified: false, // Force re-verification
+        uploadTimestamp: new Date().toISOString()
+      };
     }),
 
   updateParsedDetails: (details) =>
     set((state) => ({
       parsedResumeDetails: state.parsedResumeDetails
         ? { ...state.parsedResumeDetails, ...details }
-        : null
+        : { ...initialParsedResume, ...details }
     })),
 
   setSelectedJobRole: (role) => set({ selectedJobRole: role }),

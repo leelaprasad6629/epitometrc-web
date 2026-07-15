@@ -65,6 +65,7 @@ export default function AIResumeMatchWidget() {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
   const [verifiedSaved, setVerifiedSaved] = useState(false);
+  const [reviewingSkills, setReviewingSkills] = useState(false);
 
   // Trigger Programmatic Deterministic Matching Analysis
   const runProgrammaticAnalysis = async (currentDetails: ParsedResume, role: string) => {
@@ -261,6 +262,18 @@ export default function AIResumeMatchWidget() {
     );
   };
 
+  const verifiedSkillsList = parsedResumeDetails?.verifiedSkills || [];
+  const parsedSkillsList = parsedResumeDetails?.technicalSkills || [];
+  const missingSkillsInProfile = parsedSkillsList.filter(
+    s => !verifiedSkillsList.map(v => v.toLowerCase()).includes(s.toLowerCase())
+  );
+
+  const handleAddAllDetected = () => {
+    const updated = Array.from(new Set([...verifiedSkillsList, ...missingSkillsInProfile]));
+    updateParsedDetails({ verifiedSkills: updated });
+    setReviewingSkills(false);
+  };
+
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-5 font-sans text-xs">
       <div className="flex items-center justify-between border-b border-slate-50 pb-3">
@@ -320,6 +333,61 @@ export default function AIResumeMatchWidget() {
 
       {error && (
         <p className="text-red-500 text-[10px] font-semibold text-center">{error}</p>
+      )}
+
+      {parsedResumeDetails && missingSkillsInProfile.length > 0 && (
+        <div className="rounded-xl border border-blue-100 p-4 bg-blue-50/20 text-left space-y-3.5">
+          <div className="flex items-center gap-2 text-[#0b172a] font-bold text-xs">
+            <Sparkles className="h-4.5 w-4.5 text-blue-500 animate-pulse" />
+            AI Detected New Skills
+          </div>
+          <p className="text-slate-500 leading-normal">
+            We found {missingSkillsInProfile.length} additional skills in your resume.
+          </p>
+          
+          {reviewingSkills ? (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-1.5">
+                {missingSkillsInProfile.map(skill => (
+                  <span key={skill} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-[10px] font-bold text-slate-700">
+                    {skill}
+                    <button
+                      onClick={() => {
+                        const updated = [...verifiedSkillsList, skill];
+                        updateParsedDetails({ verifiedSkills: updated });
+                      }}
+                      className="text-emerald-600 hover:text-emerald-700 font-bold ml-1"
+                      title="Add skill"
+                    >
+                      ✓
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <button
+                onClick={() => setReviewingSkills(false)}
+                className="text-[10px] font-bold text-slate-400 hover:text-slate-655"
+              >
+                Close Review
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={handleAddAllDetected}
+                className="px-3.5 py-1.5 rounded-lg bg-[#0b172a] hover:bg-slate-800 text-white font-bold text-[10px]"
+              >
+                Add All
+              </button>
+              <button
+                onClick={() => setReviewingSkills(true)}
+                className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-bold text-[10px]"
+              >
+                Review
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {parsedResumeDetails && (
