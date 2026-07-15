@@ -109,6 +109,24 @@ function cleanText(text: string): string {
     .trim();
 }
 
+// Deterministically scans the first few lines of the resume to find the candidate's real name
+function extractNameDeterministically(text: string): string {
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  for (let i = 0; i < Math.min(5, lines.length); i++) {
+    const line = lines[i];
+    const words = line.split(/\s+/);
+    if (words.length >= 2 && words.length <= 4) {
+      const hasEmailOrPhone = /@|\+?\d{4,}/.test(line);
+      const containsForbidden = /resume|cv|curriculum|page|contact|email|phone|profile|summary|experience|education|projects/i.test(line);
+      const isAllCapitalized = words.every(w => /^[A-Z][a-zA-Z]*$/.test(w));
+      if (isAllCapitalized && !hasEmailOrPhone && !containsForbidden) {
+        return line;
+      }
+    }
+  }
+  return "";
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { fileName, fileBase64, fileMimeType } = await req.json();
@@ -142,14 +160,19 @@ export async function POST(req: NextRequest) {
     const phoneMatch = cleanedText.match(/\+?\d[\d\s.-]{8,15}\d/);
     const parsedPhone = phoneMatch ? phoneMatch[0].trim() : "";
 
-    const githubMatch = cleanedText.match(/github\.com\/[a-zA-Z0-9_-]+/i);
-    const parsedGithub = githubMatch ? `https://${githubMatch[0].trim()}` : "";
+    // Robust web links scanner - handles various schemes and subdomains
+    const githubRegex = /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9%_-]+)/i;
+    const githubMatch = cleanedText.match(githubRegex);
+    const parsedGithub = githubMatch ? `https://github.com/${githubMatch[1]}` : "";
 
-    const linkedinMatch = cleanedText.match(/linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
-    const parsedLinkedin = linkedinMatch ? `https://${linkedinMatch[0].trim()}` : "";
+    const linkedinRegex = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub)\/([a-zA-Z0-9%_-]+)/i;
+    const linkedinMatch = cleanedText.match(linkedinRegex);
+    const parsedLinkedin = linkedinMatch ? `https://www.linkedin.com/in/${linkedinMatch[1]}` : "";
 
-    const portfolioMatch = cleanedText.match(/(?:portfolio|website|website:)\s*(https?:\/\/[^\s]+)/i);
-    const parsedPortfolio = portfolioMatch ? portfolioMatch[1].trim() : "";
+    const urlRegex = /(https?:\/\/[^\s]+)/gi;
+    const allUrls = cleanedText.match(urlRegex) || [];
+    const portfolioUrl = allUrls.find(u => !u.includes("linkedin.com") && !u.includes("github.com")) || "";
+    const parsedPortfolio = portfolioUrl ? portfolioUrl.replace(/[.,;]$/, "") : "";
 
     const locationMatch = cleanedText.match(/(?:london|new york|san francisco|tokyo|toronto|berlin|paris|chicago|austin|seattle|vancouver)/i);
     const parsedLocation = locationMatch ? locationMatch[0].charAt(0).toUpperCase() + locationMatch[0].slice(1) : "";
@@ -284,10 +307,15 @@ ${cleanedText}
       console.warn("LLM parallel passes failed, using dynamic text fallback parser:", err);
     }
 
-    // Fallback names from clean filename if LLM failed
-    if (!fullName) {
-      const cleanFileName = fileName.replace(/_Resume|_resume|\.pdf|\.docx|\.txt/gi, "").replace(/[_-]/g, " ").trim();
-      fullName = cleanFileName.split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Alex Thompson";
+    // Fallback names from clean filename or deterministic scanner if LLM failed
+    if (!fullName || fullName.toLowerCase().includes("resume")) {
+      const deterministicName = extractNameDeterministically(cleanedText);
+      if (deterministicName) {
+        fullName = deterministicName;
+      } else {
+        const cleanFileName = fileName.replace(/_Resume|_resume|\.pdf|\.docx|\.txt/gi, "").replace(/[_-]/g, " ").trim();
+        fullName = cleanFileName.split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Alex Thompson";
+      }
     }
     if (!headline) {
       headline = "Apprentice Engineer";

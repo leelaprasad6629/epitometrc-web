@@ -58,8 +58,13 @@ export default function AIResumeMatchWidget() {
     setSelectedJobRole,
     setVerified,
     updateAnalysis,
-    deleteResume
+    deleteResume,
+    loadProfileFromServer
   } = useResumeStore();
+
+  useEffect(() => {
+    loadProfileFromServer();
+  }, [loadProfileFromServer]);
 
   const [activeTab, setActiveTab] = useState<"details" | "analytics">("details");
   const [loading, setLoading] = useState(false);

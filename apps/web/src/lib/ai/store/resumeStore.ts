@@ -42,7 +42,7 @@ export interface ResumeStore {
   parsedResumeDetails: ParsedResume | null;
   verified: boolean;
   uploadTimestamp: string | null;
-  confidenceScores: Record<string, number>; // Maps field name to percentage
+  confidenceScores: Record<string, number>;
   
   // Scoring parameters (Calculated programmatically)
   atsScore: number;
@@ -86,6 +86,7 @@ export interface ResumeStore {
     projectRecommendations: string[];
   }) => void;
   deleteResume: () => void;
+  loadProfileFromServer: () => Promise<void>;
 }
 
 const initialParsedResume: ParsedResume = {
@@ -120,7 +121,20 @@ const initialParsedResume: ParsedResume = {
   verifiedSkills: []
 };
 
-export const useResumeStore = create<ResumeStore>((set) => ({
+// Helper to save store state to backend API
+async function saveProfileToBackend(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
+  try {
+    await fetch("/api/student/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile, confidenceScores })
+    });
+  } catch (err) {
+    console.error("Failed to sync profile to server:", err);
+  }
+}
+
+export const useResumeStore = create<ResumeStore>((set, get) => ({
   fileName: null,
   fileBase64: null,
   fileMimeType: null,
@@ -152,36 +166,45 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         ...parsedResult
       };
       
-      // Auto add newly parsed technical skills if they are not already in verifiedSkills
       const parsedTech = parsedResult.technicalSkills || [];
       const currentVerified = mergedDetails.verifiedSkills || [];
       const updatedVerified = Array.from(new Set([...currentVerified, ...parsedTech]));
       mergedDetails.verifiedSkills = updatedVerified;
+
+      // Sync updated data to server
+      saveProfileToBackend(mergedDetails, confidenceScores);
 
       return {
         fileName,
         fileBase64,
         fileMimeType,
         parsedResumeDetails: mergedDetails,
-        verified: false, // Force manual re-verification
+        verified: false,
         uploadTimestamp: new Date().toISOString(),
         confidenceScores
       };
     }),
 
   updateParsedDetails: (details) =>
-    set((state) => ({
-      parsedResumeDetails: state.parsedResumeDetails
+    set((state) => {
+      const mergedDetails = state.parsedResumeDetails
         ? { ...state.parsedResumeDetails, ...details }
-        : { ...initialParsedResume, ...details }
-    })),
+        : { ...initialParsedResume, ...details };
+
+      // Sync updated data to server
+      saveProfileToBackend(mergedDetails, get().confidenceScores);
+
+      return { parsedResumeDetails: mergedDetails };
+    }),
 
   setSelectedJobRole: (role) => set({ selectedJobRole: role }),
   setVerified: (verified) => set({ verified }),
 
   updateAnalysis: (analysis) => set({ ...analysis }),
 
-  deleteResume: () =>
+  deleteResume: () => {
+    // Sync clear state to server
+    saveProfileToBackend(null, {});
     set({
       fileName: null,
       fileBase64: null,
@@ -202,5 +225,22 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       recommendations: [],
       certRecommendations: [],
       projectRecommendations: []
-    })
+    });
+  },
+
+  loadProfileFromServer: async () => {
+    try {
+      const res = await fetch("/api/student/profile");
+      const data = await res.json();
+      if (res.ok && data.success && data.profile) {
+        set({
+          parsedResumeDetails: data.profile,
+          confidenceScores: data.confidenceScores || {},
+          fileName: data.profile.fullName ? `${data.profile.fullName.replace(/\s+/g, "_")}_Profile` : null
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load server profile:", err);
+    }
+  }
 }));
