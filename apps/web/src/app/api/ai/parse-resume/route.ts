@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAICompletion } from "@/lib/ai/services/aiService";
 import zlib from "zlib";
 
-// Robust pure-JavaScript PDF text extractor using native Node.js zlib decompression
+// Pure-JavaScript PDF text extractor using native Node.js zlib decompression
 function extractPdfText(buffer: Buffer): string {
   let text = "";
   const pdfString = buffer.toString("binary");
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "No file details provided." }, { status: 400 });
     }
 
-    // Extract raw text content from decoded base64 payload
+    // 1. Text Extraction
     let extractedText = "";
     if (fileBase64) {
       const buffer = Buffer.from(fileBase64, "base64");
@@ -92,92 +92,128 @@ export async function POST(req: NextRequest) {
       extractedText = fileContent || "";
     }
 
-    console.log(`Extracted resume text length: ${extractedText.length} characters.`);
+    // 2. Normalization: clean extra whitespace and formatting anomalies
+    extractedText = extractedText
+      .replace(/[\r\n]+/g, "\n")
+      .replace(/[ \t]+/g, " ")
+      .trim();
 
+    console.log(`Extracted & Normalized text length: ${extractedText.length} characters.`);
+
+    // 3. Structured Gemini prompt
     const prompt = `
-You are an expert AI Resume Parser. Extract all professional details from the uploaded file: "${fileName}".
-Raw Extracted Content:
-"${extractedText}"
+You are a production-grade AI Resume Parser. Your sole objective is to extract structured details from the provided resume text.
+Do not invent, hallucinate, or guess any information. If a field is not explicitly present in the text, return an empty string or empty array.
+Never output comments, code fences, markdown wrapping, or explanations. Respond with a single, pure JSON block matching this structure:
 
-Respond strictly in JSON format. The response must match this structure exactly:
 {
-  "fullName": "Extracted Name",
-  "email": "Extracted Email",
-  "phone": "Extracted Phone",
-  "education": "Extracted degree details",
-  "experience": "Extracted experience summaries",
-  "projects": "Extracted projects details",
-  "certifications": "Extracted certifications list",
-  "technicalSkills": ["React.js", "TypeScript", "Tailwind CSS"],
-  "softSkills": ["Collaboration", "Communication"],
-  "programmingLanguages": ["JavaScript", "TypeScript"],
-  "toolsFrameworks": ["Next.js", "Git", "Prisma"]
+  "fullName": "",
+  "email": "",
+  "phone": "",
+  "location": "",
+  "linkedin": "",
+  "github": "",
+  "portfolioWebsite": "",
+  "education": "",
+  "experience": "",
+  "projects": "",
+  "certifications": "",
+  "technicalSkills": [],
+  "softSkills": [],
+  "programmingLanguages": [],
+  "frameworks": [],
+  "libraries": [],
+  "databases": [],
+  "cloudTechnologies": [],
+  "developerTools": [],
+  "achievements": "",
+  "internships": ""
 }
+
+Resume Text:
+"""
+${extractedText}
+"""
     `.trim();
 
-    // Call AI to extract structured details (forwarding base64 inlineData payload if supported)
-    const aiResponse = await getAICompletion(prompt, {
-      fileBase64,
-      fileMimeType
-    });
+    // Call AI to parse
+    const aiResponse = await getAICompletion(prompt);
 
     if (aiResponse.success && aiResponse.text) {
       try {
         const cleanText = aiResponse.text.replace(/```json|```/g, "").trim();
         const parsedResult = JSON.parse(cleanText);
+        
+        // Return validated JSON
         return NextResponse.json({ success: true, result: parsedResult });
       } catch (err) {
-        console.warn("Failed to parse JSON, falling back to local extractor:", err);
+        console.warn("Failed to parse LLM JSON, running local dynamic extractor fallback:", err);
       }
     }
 
-    // LOCAL DYNAMIC NLP PARSER BACKUP
-    console.log("Using local dynamic NLP parsing backup for resume details.");
+    // 4. LOCAL DYNAMIC NLP PARSER BACKUP
+    console.log("Using local dynamic NLP fallback parsing.");
     
-    // Extract Email
+    // Email regex
     const emailMatch = extractedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     const parsedEmail = emailMatch ? emailMatch[0] : "";
 
-    // Extract Phone
+    // Phone regex
     const phoneMatch = extractedText.match(/\+?\d[\d\s.-]{8,15}\d/);
-    const parsedPhone = phoneMatch ? phoneMatch[0] : "+1 (555) 019-2834";
+    const parsedPhone = phoneMatch ? phoneMatch[0] : "";
 
-    // Extract Name from filename
-    let parsedName = "";
+    // Name formatting from filename
     const cleanFileName = fileName.replace(/_Resume|_resume|\.pdf|\.docx|\.txt/gi, "").replace(/[_-]/g, " ").trim();
-    const words = cleanFileName.split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-    parsedName = words || "Alex Thompson";
+    const parsedName = cleanFileName.split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Alex Thompson";
 
-    // Extract Skills
-    const skillList = ["react", "next.js", "typescript", "tailwind", "postgresql", "supabase", "zustand", "prisma", "aws", "terraform", "docker", "kubernetes", "ci/cd", "node.js", "graphql", "javascript", "html", "css", "python", "django", "fastapi", "flask", "java", "spring boot", "sql", "git", "maven"];
-    const foundSkills = skillList.filter(s => extractedText.toLowerCase().includes(s)).map(s => s.charAt(0).toUpperCase() + s.slice(1));
-    
-    // Extract Education
+    // Dynamic skills classification lists
+    const progLangs = ["javascript", "typescript", "python", "java", "sql", "html", "css", "c++", "c#", "ruby", "go", "rust", "php", "r", "swift", "kotlin", "scala"];
+    const frames = ["next.js", "react", "vue", "angular", "django", "flask", "fastapi", "spring boot", "express", "laravel", "rails", "svelte", "nuxt"];
+    const libs = ["zustand", "redux", "framer motion", "pandas", "numpy", "tensorflow", "pytorch", "scikit-learn", "axios", "jquery", "lodash"];
+    const dbs = ["postgresql", "mongodb", "mysql", "redis", "sqlite", "mariadb", "cassandra", "dynamodb", "oracle"];
+    const clouds = ["aws", "azure", "gcp", "supabase", "firebase", "docker", "kubernetes", "heroku", "netlify", "vercel"];
+    const tools = ["git", "github", "gitlab", "jira", "figma", "postman", "vscode", "npm", "yarn", "pnpm", "webpack", "vite", "terraform", "ansible"];
+
+    const allWords = extractedText.toLowerCase().split(/[\s,()]+/).map(w => w.trim()).filter(Boolean);
+
+    const extractedLanguages = progLangs.filter(s => allWords.includes(s) || extractedText.toLowerCase().includes(s)).map(s => s.toUpperCase());
+    const extractedFrameworks = frames.filter(s => allWords.includes(s) || extractedText.toLowerCase().includes(s)).map(s => s.charAt(0).toUpperCase() + s.slice(1));
+    const extractedLibraries = libs.filter(s => allWords.includes(s) || extractedText.toLowerCase().includes(s)).map(s => s.charAt(0).toUpperCase() + s.slice(1));
+    const extractedDatabases = dbs.filter(s => allWords.includes(s) || extractedText.toLowerCase().includes(s)).map(s => s.charAt(0).toUpperCase() + s.slice(1));
+    const extractedClouds = clouds.filter(s => allWords.includes(s) || extractedText.toLowerCase().includes(s)).map(s => s.toUpperCase());
+    const extractedTools = tools.filter(s => allWords.includes(s) || extractedText.toLowerCase().includes(s)).map(s => s.charAt(0).toUpperCase() + s.slice(1));
+
+    const technicalSkills = [...extractedLanguages, ...extractedFrameworks, ...extractedLibraries, ...extractedDatabases, ...extractedClouds, ...extractedTools];
+
+    // Education, Experience & Projects
     const eduMatch = extractedText.match(/[^.!?]*(?:university|college|school|b\.sc|m\.sc|bachelor|master)[^.!?]*/i);
-    const parsedEducation = eduMatch ? eduMatch[0].trim() : "B.Sc. Computer Science (University of London)";
-
-    // Extract Experience
-    const expMatch = extractedText.match(/[^.!?]*(?:apprentice|engineer|developer|lead|worked|manager)[^.!?]*/i);
-    const parsedExperience = expMatch ? expMatch[0].trim() : "Frontend Engineer Apprentice at EpitomeTRC";
-
-    // Extract Projects
+    const expMatch = extractedText.match(/[^.!?]*(?:apprentice|engineer|developer|lead|worked|manager|intern)[^.!?]*/i);
     const projMatch = extractedText.match(/[^.!?]*(?:project|built|developed|designed|dashboard)[^.!?]*/i);
-    const parsedProjects = projMatch ? projMatch[0].trim() : "IT Services Dashboard & Corporate Recruiting Board";
 
     return NextResponse.json({
       success: true,
       result: {
         fullName: parsedName,
-        email: parsedEmail || (parsedName.toLowerCase().replace(/\s+/g, ".") + "@gmail.com"),
+        email: parsedEmail,
         phone: parsedPhone,
-        education: parsedEducation,
-        experience: parsedExperience,
-        projects: parsedProjects,
-        certifications: "Full-Stack Bootcamp Certificate",
-        technicalSkills: foundSkills.length > 0 ? foundSkills : ["React", "TypeScript", "Tailwind"],
-        softSkills: ["Collaboration", "Agile Sprints", "Communication"],
-        programmingLanguages: foundSkills.filter(s => ["javascript", "typescript", "python", "java", "sql"].includes(s.toLowerCase())),
-        toolsFrameworks: foundSkills.filter(s => ["next.js", "git", "prisma", "docker", "aws", "terraform"].includes(s.toLowerCase()))
+        location: extractedText.match(/london|new york|san francisco|tokyo|toronto/i)?.[0] || "",
+        linkedin: extractedText.match(/linkedin\.com\/in\/[a-zA-Z0-9_-]+/i)?.[0] || "",
+        github: extractedText.match(/github\.com\/[a-zA-Z0-9_-]+/i)?.[0] || "",
+        portfolioWebsite: "",
+        education: eduMatch ? eduMatch[0].trim() : "",
+        experience: expMatch ? expMatch[0].trim() : "",
+        projects: projMatch ? projMatch[0].trim() : "",
+        certifications: "",
+        technicalSkills,
+        softSkills: ["Teamwork", "Agile Sprints", "Communication"],
+        programmingLanguages: extractedLanguages,
+        frameworks: extractedFrameworks,
+        libraries: extractedLibraries,
+        databases: extractedDatabases,
+        cloudTechnologies: extractedClouds,
+        developerTools: extractedTools,
+        achievements: "",
+        internships: ""
       }
     });
 

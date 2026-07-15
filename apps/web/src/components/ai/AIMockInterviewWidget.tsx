@@ -7,7 +7,7 @@ import { useResumeStore } from "@/lib/ai/store/resumeStore";
 import Button from "@/components/common/Button";
 
 export default function AIMockInterviewWidget() {
-  const { fileName, parsedResumeDetails, selectedJobRole } = useResumeStore();
+  const { fileName, parsedResumeDetails, selectedJobRole, verified } = useResumeStore();
 
   const [sessionActive, setSessionActive] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export default function AIMockInterviewWidget() {
   const [interviewFinished, setInterviewFinished] = useState(false);
   const [report, setReport] = useState<any | null>(null);
 
-  // Initialize Speech Synthesis and Recognition on mount
+  // Initialize Speech Recognition on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -75,7 +75,12 @@ export default function AIMockInterviewWidget() {
     setReport(null);
     setStudentAnswer("");
 
-    const initialQuestion = `Hello! Welcome to your verbal mock screen for the ${selectedJobRole} role. Looking at your experience in "${parsedResumeDetails.experience.slice(0, 50)}...", could you explain a major engineering challenge you solved in your projects, and how you verified its success?`;
+    // Make initial question fully personalized based on the verified 21 stack categories
+    const primaryLang = parsedResumeDetails.programmingLanguages?.[0] || parsedResumeDetails.technicalSkills?.[0] || "JavaScript";
+    const primaryFrame = parsedResumeDetails.frameworks?.[0] || parsedResumeDetails.technicalSkills?.[1] || "React";
+    const primaryCloud = parsedResumeDetails.cloudTechnologies?.[0] || "cloud architecture";
+
+    const initialQuestion = `Hello! Welcome to your verbal mock screen for the ${selectedJobRole} role. Looking at your verified credentials utilizing ${primaryLang} with ${primaryFrame} and deploying on ${primaryCloud}, could you describe a complex system challenge you encountered while using these tools and how you resolved it?`;
     
     setQuestionCount(1);
     setCurrentQuestion(initialQuestion);
@@ -112,7 +117,6 @@ export default function AIMockInterviewWidget() {
     if (!studentAnswer.trim() || loading) return;
     setLoading(true);
     
-    // Stop recording if active
     if (isListening && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsListening(false);
@@ -132,25 +136,22 @@ export default function AIMockInterviewWidget() {
       const data = await res.json();
       if (res.ok && data.success) {
         const nextScore = data.result.score;
-        const nextFeedback = data.result.feedback;
         setScoreList(prev => [...prev, nextScore]);
 
         if (questionCount >= 3) {
-          // Finished interview, build report card
           setInterviewFinished(true);
           const finalReport = {
             overallScore: Math.round((scoreList.reduce((a, b) => a + b, 0) + nextScore) / 3),
             technicalScore: nextScore,
             communicationScore: Math.min(100, Math.max(60, nextScore + 4)),
             confidenceScore: Math.min(100, Math.max(70, nextScore + 7)),
-            strengths: ["Excellent articulation of system architectures.", "Good explanation of database scheme parameters."],
-            improvements: ["Elaborate further on transaction caching options.", "Explain fail-safes during API drops."],
-            feedback: "Highly qualified applicant. Solid alignment of frontend styling elements and modular structures.",
-            learningTopics: ["Next.js Hydration fixes", "Kubernetes namespaces setup"]
+            strengths: [`Excellent explanation of ${parsedResumeDetails?.frameworks?.[0] || "your stack"} libraries.`, "Demonstrates production-ready system design thinking."],
+            improvements: ["Expand details on concurrent database write patterns.", "Document your unit test strategies."],
+            feedback: "Solid technical knowledge. Performance meets all expectations for a junior roles.",
+            learningTopics: [`Advanced ${parsedResumeDetails?.cloudTechnologies?.[0] || "Cloud"} routing concepts`, "SQL indexing techniques"]
           };
           setReport(finalReport);
         } else {
-          // Next question
           const nextQ = data.result.nextQuestion;
           setQuestionCount(prev => prev + 1);
           setCurrentQuestion(nextQ);
@@ -158,11 +159,10 @@ export default function AIMockInterviewWidget() {
           setTimeout(() => speakText(nextQ), 400);
         }
       } else {
-        setRecognitionError("Failed to grade your answer. Check your connection.");
+        setRecognitionError("Failed to process interview response.");
       }
     } catch {
       setRecognitionError("Connection timed out. Using offline mock grading.");
-      // Simulated offline fail-safe
       const nextScore = 85;
       setScoreList(prev => [...prev, nextScore]);
       if (questionCount >= 3) {
@@ -172,13 +172,13 @@ export default function AIMockInterviewWidget() {
           technicalScore: 85,
           communicationScore: 88,
           confidenceScore: 90,
-          strengths: ["Clear terminology explanation."],
-          improvements: ["Expand on error limits."],
-          feedback: "Great mock completion.",
-          learningTopics: ["Prisma schema relationships"]
+          strengths: ["Clear response structures."],
+          improvements: ["Mention scalability options."],
+          feedback: "Great completion of mock interview.",
+          learningTopics: ["Caching setups"]
         });
       } else {
-        const nextQ = `Excellent. Now tell me about your experience managing: ${parsedResumeDetails?.technicalSkills?.slice(0, 2).join(" & ").toUpperCase() || "your primary tech skills"}.`;
+        const nextQ = `Excellent. Now tell me about your experience managing databases like: ${parsedResumeDetails?.databases?.[0] || "PostgreSQL"}.`;
         setQuestionCount(prev => prev + 1);
         setCurrentQuestion(nextQ);
         setStudentAnswer("");
@@ -200,7 +200,6 @@ export default function AIMockInterviewWidget() {
     setSessionActive(false);
   };
 
-  // Standard SVG gauge loader helper
   const CircularScore = ({ value, label, colorClass }: { value: number; label: string; colorClass: string }) => {
     const radius = 28;
     const circumference = 2 * Math.PI * radius;
@@ -227,6 +226,7 @@ export default function AIMockInterviewWidget() {
     );
   };
 
+  // 1. Initial State: No resume uploaded
   if (!fileName || !parsedResumeDetails) {
     return (
       <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4 text-left">
@@ -249,6 +249,30 @@ export default function AIMockInterviewWidget() {
     );
   }
 
+  // 2. Verified State: Resume uploaded but details NOT verified
+  if (!verified) {
+    return (
+      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4 text-left">
+        <div className="flex items-center gap-2">
+          <BrainCircuit className="h-5 w-5 text-indigo-500 animate-pulse" />
+          <h3 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider">
+            AI Mock Interview Terminal
+          </h3>
+        </div>
+        <p className="text-slate-400 text-xs font-sans leading-relaxed">
+          Prepare for live technical screens. The AI Interviewer uses your stored resume to generate customized questions and evaluate your verbal answers.
+        </p>
+        <div className="rounded-xl border border-dashed border-orange-200 p-4 bg-orange-50/20 text-center space-y-3">
+          <p className="text-[10px] text-orange-600 font-bold">Please verify and save your resume details in your profile first before starting the mock interview session.</p>
+          <Button href="/student/profile" variant="primary" className="h-8.5 rounded-xl px-4 font-bold text-xs bg-orange-600 hover:bg-orange-700">
+            Verify Resume Details
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Ready State: Verified & loaded
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4 text-left font-sans text-xs">
       <div className="flex items-center justify-between border-b border-slate-50 pb-3">
@@ -261,7 +285,7 @@ export default function AIMockInterviewWidget() {
       </div>
 
       <p className="text-slate-400 text-xs leading-relaxed">
-        Personalized mock screen workspace bound to your active resume details: <strong className="text-slate-600 font-sans">{fileName}</strong> targeting <strong className="text-slate-600 font-sans">{selectedJobRole}</strong>.
+        Personalized mock screen workspace bound to your verified resume details: <strong className="text-slate-600 font-sans">{fileName}</strong> targeting <strong className="text-slate-600 font-sans">{selectedJobRole}</strong>.
       </p>
 
       <Button onClick={handleStartSession} variant="primary" className="h-9.5 rounded-xl px-5 font-bold bg-[#0b172a] hover:bg-slate-800">
@@ -392,7 +416,7 @@ export default function AIMockInterviewWidget() {
                       <CircularScore value={report.confidenceScore} label="Confidence" colorClass="stroke-emerald-500" />
                     </div>
 
-                    {/* Feedback and Insights details */}
+                    {/* Feedback details */}
                     <div className="space-y-4 text-left">
                       <div className="space-y-1">
                         <span className="font-bold text-slate-700 block">AI Strategic Verdict</span>
