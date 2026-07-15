@@ -1,32 +1,72 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAICompletion } from "@/lib/ai/services/aiService";
+import zlib from "zlib";
 
-// Helper function to extract text blocks from raw PDF binary data
+// Robust pure-JavaScript PDF text extractor using native Node.js zlib decompression
 function extractPdfText(buffer: Buffer): string {
-  try {
-    const pdfString = buffer.toString("binary");
-    let text = "";
-    
-    // Matches text blocks enclosed in parentheses e.g. (text characters)
-    const regex = /\(([^)]+)\)/g;
-    let match;
-    while ((match = regex.exec(pdfString)) !== null) {
-      // Decode standard octal escape sequences inside PDF string
-      const clean = match[1]
+  let text = "";
+  const pdfString = buffer.toString("binary");
+  
+  // Regex to capture PDF stream segments
+  const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
+  let match;
+  
+  while ((match = streamRegex.exec(pdfString)) !== null) {
+    const rawStream = Buffer.from(match[1], "binary");
+    try {
+      // Decompress FlateDecode streams using native Node zlib unzipSync
+      const decompressed = zlib.unzipSync(rawStream);
+      const content = decompressed.toString("utf-8");
+      
+      // Parse plain parenthetical text tokens: (text)
+      const parenRegex = /\(([^)]+)\)/g;
+      let pMatch;
+      while ((pMatch = parenRegex.exec(content)) !== null) {
+        const clean = pMatch[1]
+          .replace(/\\([0-7]{3})/g, (m, oct) => String.fromCharCode(parseInt(oct, 8)))
+          .replace(/\\(.)/g, "$1");
+          
+        if (clean.length > 2 && !/^[A-Z]{6}\+/.test(clean)) {
+          text += clean + " ";
+        }
+      }
+      
+      // Parse hex encoded UTF-16 text chunks: <004d0075>
+      const hexRegex = /<([0-9a-fA-F]{4,})>/g;
+      let hMatch;
+      while ((hMatch = hexRegex.exec(content)) !== null) {
+        const hex = hMatch[1];
+        let decoded = "";
+        for (let i = 0; i < hex.length; i += 4) {
+          const charCode = parseInt(hex.slice(i, i + 4), 16);
+          if (!isNaN(charCode) && charCode > 31 && charCode < 127) {
+            decoded += String.fromCharCode(charCode);
+          }
+        }
+        if (decoded.trim().length > 1) {
+          text += decoded + " ";
+        }
+      }
+    } catch {
+      // Ignore binary failures (e.g. image streams)
+    }
+  }
+  
+  // If compressed text extraction was empty, fallback to scanning raw uncompressed parentheses
+  if (!text.trim()) {
+    const fallbackRegex = /\(([^)]+)\)/g;
+    let fallbackMatch;
+    while ((fallbackMatch = fallbackRegex.exec(pdfString)) !== null) {
+      const clean = fallbackMatch[1]
         .replace(/\\([0-7]{3})/g, (m, oct) => String.fromCharCode(parseInt(oct, 8)))
         .replace(/\\(.)/g, "$1");
-        
-      // Filter out PDF internal metadata labels and layout codes
       if (clean.length > 2 && !/^[A-Z]{6}\+/.test(clean)) {
         text += clean + " ";
       }
     }
-    
-    return text.replace(/\s+/g, " ").trim();
-  } catch (err) {
-    console.error("PDF text extraction error:", err);
-    return "";
   }
+  
+  return text.replace(/\s+/g, " ").trim();
 }
 
 export async function POST(req: NextRequest) {
@@ -37,7 +77,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "No file details provided." }, { status: 400 });
     }
 
-    // Decode file contents to raw text for parsing
+    // Extract raw text content from decoded base64 payload
     let extractedText = "";
     if (fileBase64) {
       const buffer = Buffer.from(fileBase64, "base64");
@@ -48,12 +88,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // If text extraction was completely empty, fallback to basic template text
     if (!extractedText) {
       extractedText = fileContent || "";
     }
 
-    // Call AI to parse details
+    console.log(`Extracted resume text length: ${extractedText.length} characters.`);
+
     const prompt = `
 You are an expert AI Resume Parser. Extract all professional details from the uploaded file: "${fileName}".
 Raw Extracted Content:
@@ -75,12 +115,12 @@ Respond strictly in JSON format. The response must match this structure exactly:
 }
     `.trim();
 
+    // Call AI to extract structured details (forwarding base64 inlineData payload if supported)
     const aiResponse = await getAICompletion(prompt, {
       fileBase64,
       fileMimeType
     });
 
-    // If AI succeeded, parse and return
     if (aiResponse.success && aiResponse.text) {
       try {
         const cleanText = aiResponse.text.replace(/```json|```/g, "").trim();
@@ -92,7 +132,6 @@ Respond strictly in JSON format. The response must match this structure exactly:
     }
 
     // LOCAL DYNAMIC NLP PARSER BACKUP
-    // Runs regex and substring searches against the actual extracted document text!
     console.log("Using local dynamic NLP parsing backup for resume details.");
     
     // Extract Email
@@ -103,7 +142,7 @@ Respond strictly in JSON format. The response must match this structure exactly:
     const phoneMatch = extractedText.match(/\+?\d[\d\s.-]{8,15}\d/);
     const parsedPhone = phoneMatch ? phoneMatch[0] : "+1 (555) 019-2834";
 
-    // Extract Name (Fallback to cleaning filename if first lines don't have standard names)
+    // Extract Name from filename
     let parsedName = "";
     const cleanFileName = fileName.replace(/_Resume|_resume|\.pdf|\.docx|\.txt/gi, "").replace(/[_-]/g, " ").trim();
     const words = cleanFileName.split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
