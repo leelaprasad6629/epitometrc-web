@@ -81,7 +81,7 @@ export default function StudentProfilePage() {
                 <p className="text-xs font-semibold text-orange-500 font-sans">Student Apprentice</p>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-3 pt-1 text-slate-400 text-xs font-sans">
                   <span className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" /> London, UK
+                    <MapPin className="h-3.5 w-3.5" /> {parsedResumeDetails?.location || "London, UK"}
                   </span>
                   <span className="flex items-center gap-1">
                     <Mail className="h-3.5 w-3.5" /> {email}

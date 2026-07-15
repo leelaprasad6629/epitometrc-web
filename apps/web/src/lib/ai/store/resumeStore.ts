@@ -6,6 +6,10 @@ export interface ParsedResume {
   fullName: string;
   email: string;
   phone: string;
+  location: string;
+  linkedin: string;
+  github: string;
+  portfolioWebsite: string;
   education: string;
   experience: string;
   projects: string;
@@ -14,8 +18,12 @@ export interface ParsedResume {
   softSkills: string[];
   programmingLanguages: string[];
   frameworks: string[];
+  libraries: string[];
   databases: string[];
-  toolsTechnologies: string[];
+  cloudTechnologies: string[];
+  developerTools: string[];
+  achievements: string;
+  internships: string;
 }
 
 export interface ResumeStore {
@@ -24,8 +32,10 @@ export interface ResumeStore {
   fileMimeType: string | null;
   selectedJobRole: string;
   parsedResumeDetails: ParsedResume | null;
+  verified: boolean;
+  uploadTimestamp: string | null;
   
-  // Scoring parameters
+  // Scoring parameters (Calculated programmatically)
   atsScore: number;
   matchScore: number;
   skillMatchPercentage: number;
@@ -50,6 +60,7 @@ export interface ResumeStore {
   ) => void;
   updateParsedDetails: (details: Partial<ParsedResume>) => void;
   setSelectedJobRole: (role: string) => void;
+  setVerified: (verified: boolean) => void;
   updateAnalysis: (analysis: {
     atsScore: number;
     matchScore: number;
@@ -67,12 +78,38 @@ export interface ResumeStore {
   deleteResume: () => void;
 }
 
+const initialParsedResume: ParsedResume = {
+  fullName: "",
+  email: "",
+  phone: "",
+  location: "",
+  linkedin: "",
+  github: "",
+  portfolioWebsite: "",
+  education: "",
+  experience: "",
+  projects: "",
+  certifications: "",
+  technicalSkills: [],
+  softSkills: [],
+  programmingLanguages: [],
+  frameworks: [],
+  libraries: [],
+  databases: [],
+  cloudTechnologies: [],
+  developerTools: [],
+  achievements: "",
+  internships: ""
+};
+
 export const useResumeStore = create<ResumeStore>((set) => ({
   fileName: null,
   fileBase64: null,
   fileMimeType: null,
   selectedJobRole: "Frontend Developer",
   parsedResumeDetails: null,
+  verified: false,
+  uploadTimestamp: null,
 
   atsScore: 0,
   matchScore: 0,
@@ -93,17 +130,20 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       fileName,
       fileBase64,
       fileMimeType,
-      parsedResumeDetails: parsedResult,
+      parsedResumeDetails: { ...initialParsedResume, ...parsedResult },
+      verified: false, // Must be verified by student manually
+      uploadTimestamp: new Date().toISOString()
     }),
 
   updateParsedDetails: (details) =>
     set((state) => ({
       parsedResumeDetails: state.parsedResumeDetails
         ? { ...state.parsedResumeDetails, ...details }
-        : null,
+        : null
     })),
 
   setSelectedJobRole: (role) => set({ selectedJobRole: role }),
+  setVerified: (verified) => set({ verified }),
 
   updateAnalysis: (analysis) => set({ ...analysis }),
 
@@ -113,6 +153,8 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       fileBase64: null,
       fileMimeType: null,
       parsedResumeDetails: null,
+      verified: false,
+      uploadTimestamp: null,
       atsScore: 0,
       matchScore: 0,
       skillMatchPercentage: 0,
@@ -124,6 +166,6 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       improvements: [],
       recommendations: [],
       certRecommendations: [],
-      projectRecommendations: [],
-    }),
+      projectRecommendations: []
+    })
 }));
