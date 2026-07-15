@@ -33,7 +33,7 @@ export default function AIResumeCoachPage() {
     const roleName = selectedJobRole || "Software Developer";
     const userSkills = parsedResumeDetails.technicalSkills || [];
     const summary = parsedResumeDetails.bio || "Dedicated software engineering student.";
-    const projectsString = parsedResumeDetails.projects?.map(p => `${p.name}: ${p.description}`).join("\n\n") || "Worked on IT services dashboard configurations.";
+    const projectsString = parsedResumeDetails.projects?.map(p => `${p.projectTitle}: ${p.description}`).join("\n\n") || "Worked on IT services dashboard configurations.";
 
     // Set initial optimized values
     setOptimizedSummary(summary);
@@ -111,7 +111,7 @@ export default function AIResumeCoachPage() {
           if (s.category === "Summary" && parsedResumeDetails) {
             setOptimizedSummary(parsedResumeDetails.bio || "");
           } else if (s.category === "Project" && parsedResumeDetails) {
-            const formatted = parsedResumeDetails.projects?.map(p => `${p.name}: ${p.description}`).join("\n\n") || "";
+            const formatted = parsedResumeDetails.projects?.map(p => `${p.projectTitle}: ${p.description}`).join("\n\n") || "";
             setOptimizedProjects(formatted);
           } else if (s.category === "Skills" && parsedResumeDetails) {
             setOptimizedSkills(parsedResumeDetails.technicalSkills);
@@ -131,9 +131,9 @@ export default function AIResumeCoachPage() {
     const lines = optimizedProjects.split("\n\n").filter(Boolean);
     const parsedProjectsList = lines.map(line => {
       const parts = line.split(":");
-      const name = parts[0]?.trim() || "Project";
+      const projectTitle = parts[0]?.trim() || "Project";
       const description = parts.slice(1).join(":")?.trim() || "";
-      return { name, description, technologies: [] };
+      return { projectTitle, description, technologiesUsed: [], githubLink: "", liveUrl: "", duration: "" };
     });
 
     setTimeout(() => {

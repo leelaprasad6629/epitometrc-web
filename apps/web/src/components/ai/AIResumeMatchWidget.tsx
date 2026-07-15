@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useResumeStore, ParsedResume, EducationEntry, ExperienceEntry, ProjectEntry, CertificationEntry, InternshipEntry, AchievementEntry } from "@/lib/ai/store/resumeStore";
 import { Input } from "@/components/ui/input";
 
-// Role Skills Mapping Configuration
 const ROLE_SKILLS_MAP: Record<string, { mustHave: string[]; preferred: string[] }> = {
   "Full Stack Developer": {
     mustHave: ["javascript", "react", "node.js", "express", "sql", "git"],
@@ -74,42 +73,11 @@ export default function AIResumeMatchWidget() {
     loadProfileFromServer();
   }, [loadProfileFromServer]);
 
-  // Trigger Programmatic Matching Analysis
   const runProgrammaticAnalysis = async (currentDetails: ParsedResume, role: string) => {
     setAnalyzing(true);
     try {
-      const fields = [
-        currentDetails.fullName,
-        currentDetails.email,
-        currentDetails.phone,
-        currentDetails.location,
-        currentDetails.linkedin,
-        currentDetails.github,
-        currentDetails.portfolioWebsite,
-        currentDetails.education?.length > 0 ? "edu" : "",
-        currentDetails.experience?.length > 0 ? "exp" : "",
-        currentDetails.projects?.length > 0 ? "proj" : "",
-        currentDetails.certifications?.length > 0 ? "cert" : "",
-        currentDetails.technicalSkills?.length > 0 ? "tech" : "",
-        currentDetails.softSkills?.length > 0 ? "soft" : "",
-        currentDetails.bio ? "bio" : "",
-        currentDetails.programmingLanguages?.length > 0 ? "langs" : "",
-        currentDetails.frontend?.length > 0 ? "front" : "",
-        currentDetails.backend?.length > 0 ? "back" : "",
-        currentDetails.frameworks?.length > 0 ? "frames" : "",
-        currentDetails.databases?.length > 0 ? "dbs" : "",
-        currentDetails.cloud?.length > 0 ? "clouds" : "",
-        currentDetails.devops?.length > 0 ? "devops" : "",
-        currentDetails.testing?.length > 0 ? "test" : "",
-        currentDetails.mobile?.length > 0 ? "mobile" : "",
-        currentDetails.aiml?.length > 0 ? "aiml" : "",
-        currentDetails.achievements?.length > 0 ? "achieve" : "",
-        currentDetails.internships?.length > 0 ? "intern" : ""
-      ].filter(Boolean);
-      
-      const completenessVal = Math.round((fields.length / 26) * 100);
+      const completenessVal = currentDetails.overallCompleteness || 0;
 
-      // Programmatic Skill Match
       const requirements = ROLE_SKILLS_MAP[role] || { mustHave: [], preferred: [] };
       const allUserSkills = [
         ...(currentDetails.technicalSkills || []),
@@ -121,8 +89,8 @@ export default function AIResumeMatchWidget() {
         ...(currentDetails.cloud || []),
         ...(currentDetails.devops || []),
         ...(currentDetails.testing || []),
-        ...(currentDetails.mobile || []),
-        ...(currentDetails.aiml || [])
+        ...(currentDetails.aiml || []),
+        ...(currentDetails.mobile || [])
       ].map(s => s.trim().toLowerCase());
 
       const matchedMustHave = requirements.mustHave.filter(s => allUserSkills.includes(s));
@@ -146,7 +114,6 @@ export default function AIResumeMatchWidget() {
         .filter(s => !allUserSkills.includes(s))
         .map(s => s.toUpperCase());
 
-      // Fetch dynamic insights
       const res = await fetch("/api/ai/resume-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -180,20 +147,18 @@ export default function AIResumeMatchWidget() {
         });
       }
     } catch (err) {
-      console.error("Analysis generation failed:", err);
+      console.error("Analysis failed:", err);
     } finally {
       setAnalyzing(false);
     }
   };
 
-  // Re-run matching analysis on selected job role changes (if verified)
   useEffect(() => {
     if (parsedResumeDetails && verified) {
       runProgrammaticAnalysis(parsedResumeDetails, selectedJobRole);
     }
   }, [selectedJobRole]);
 
-  // Handle file upload and parse request
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -271,29 +236,29 @@ export default function AIResumeMatchWidget() {
     );
   };
 
-  // Status Badge System Renderer based on type and score
+  // Phase 9: Verification Status Badges
   const renderStatusBadge = (field: string, type: "deterministic" | "structured" | "ai") => {
     if (type === "ai") {
       return (
         <span className="text-[9px] font-black text-blue-600 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
-          <Info className="h-3 w-3" /> AI Generated – Review Recommended
+          <Info className="h-3 w-3" /> AI Generated
         </span>
       );
     }
 
-    const score = confidenceScores?.[field] ?? 0;
-    
-    // Check if empty
     const value = (parsedResumeDetails as any)?.[field];
     const isEmpty = !value || (Array.isArray(value) && value.length === 0);
-    
-    if (score === 0 || isEmpty) {
+
+    if (isEmpty) {
       return (
-        <span className="text-[9px] font-black text-red-500 bg-red-50 border border-red-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
+        <span className="text-[9px] font-black text-slate-500 bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
           <ShieldAlert className="h-3 w-3" /> Missing Information
         </span>
       );
     }
+
+    // Dynamic verification score lookup
+    const score = confidenceScores?.[field] ?? 0;
     
     if (score < 90) {
       return (
@@ -322,10 +287,10 @@ export default function AIResumeMatchWidget() {
     setReviewingSkills(false);
   };
 
-  // List Modification Handlers
+  // Structured verification list add/edits
   const addEducation = () => {
     const list = parsedResumeDetails?.education || [];
-    updateParsedDetails({ education: [...list, { institution: "", degree: "", year: "", location: "" }] });
+    updateParsedDetails({ education: [...list, { degree: "", branch: "", institution: "", university: "", startYear: "", endYear: "", cgpa: "" }] });
   };
   const removeEducation = (idx: number) => {
     const list = parsedResumeDetails?.education || [];
@@ -338,7 +303,7 @@ export default function AIResumeMatchWidget() {
 
   const addExperience = () => {
     const list = parsedResumeDetails?.experience || [];
-    updateParsedDetails({ experience: [...list, { company: "", role: "", duration: "", description: "", location: "" }] });
+    updateParsedDetails({ experience: [...list, { companyName: "", role: "", employmentType: "Full-time", startDate: "", endDate: "", duration: "", responsibilities: "" }] });
   };
   const removeExperience = (idx: number) => {
     const list = parsedResumeDetails?.experience || [];
@@ -351,7 +316,7 @@ export default function AIResumeMatchWidget() {
 
   const addProject = () => {
     const list = parsedResumeDetails?.projects || [];
-    updateParsedDetails({ projects: [...list, { name: "", description: "", technologies: [] }] });
+    updateParsedDetails({ projects: [...list, { projectTitle: "", description: "", technologiesUsed: [], githubLink: "", liveUrl: "", duration: "" }] });
   };
   const removeProject = (idx: number) => {
     const list = parsedResumeDetails?.projects || [];
@@ -373,11 +338,6 @@ export default function AIResumeMatchWidget() {
         </div>
       </div>
 
-      <p className="text-slate-400 text-xs leading-relaxed text-left font-medium">
-        Upload your resume source of truth. Parse details, verify your profile metrics, and match skills against target job configurations.
-      </p>
-
-      {/* Upload Controls */}
       {fileName ? (
         <div className="rounded-xl border border-slate-100 p-4 bg-slate-50/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-left">
           <div className="flex items-start gap-3">
@@ -386,7 +346,7 @@ export default function AIResumeMatchWidget() {
             </span>
             <div className="space-y-0.5">
               <h4 className="text-xs font-bold text-slate-800 line-clamp-1">{fileName}</h4>
-              <p className="text-[10px] text-slate-400 font-medium font-sans">Dynamic Stored Source of Truth</p>
+              <p className="text-[10px] text-slate-400 font-medium font-sans">Verified Profile Stored</p>
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -400,13 +360,13 @@ export default function AIResumeMatchWidget() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[10px] transition-colors"
             >
               <Trash2 className="h-3 w-3" />
-              Delete Stored
+              Delete
             </button>
           </div>
         </div>
       ) : (
         <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-6 bg-slate-50/20 hover:bg-slate-50 hover:border-orange-400 cursor-pointer transition-all">
-          <Upload className="h-6.5 w-6.5 text-slate-400 mb-1.5 animate-bounce" />
+          <Upload className="h-6.5 w-6.5 text-slate-400 mb-1.5" />
           <div className="text-center">
             <p className="text-xs font-bold text-slate-700">Click to upload your resume</p>
             <p className="text-[9px] text-slate-400 font-medium font-sans">Supports PDF, DOCX, or TXT</p>
@@ -416,7 +376,7 @@ export default function AIResumeMatchWidget() {
       )}
 
       {loading && (
-        <p className="text-orange-500 font-semibold text-center animate-pulse">Running PDF Text Extraction and Gemini Parser Pipeline...</p>
+        <p className="text-orange-500 font-semibold text-center animate-pulse">Running 10-Phase Segmentation Parser...</p>
       )}
 
       {error && (
@@ -426,10 +386,10 @@ export default function AIResumeMatchWidget() {
       {parsedResumeDetails && missingSkillsInProfile.length > 0 && (
         <div className="rounded-xl border border-blue-100 p-4 bg-blue-50/20 text-left space-y-3.5">
           <div className="flex items-center gap-2 text-[#0b172a] font-bold text-xs">
-            <Sparkles className="h-4.5 w-4.5 text-blue-500 animate-pulse" />
-            AI Detected New Skills
+            <Sparkles className="h-4.5 w-4.5 text-blue-500" />
+            AI Detected Skills
           </div>
-          <p className="text-slate-500 leading-normal">
+          <p className="text-slate-500 leading-normal text-[10.5px]">
             We found {missingSkillsInProfile.length} additional skills in your resume.
           </p>
           
@@ -445,32 +405,22 @@ export default function AIResumeMatchWidget() {
                         updateParsedDetails({ verifiedSkills: updated });
                       }}
                       className="text-emerald-600 hover:text-emerald-700 font-bold ml-1"
-                      title="Add skill"
                     >
                       ✓
                     </button>
                   </span>
                 ))}
               </div>
-              <button
-                onClick={() => setReviewingSkills(false)}
-                className="text-[10px] font-bold text-slate-400 hover:text-slate-655"
-              >
+              <button onClick={() => setReviewingSkills(false)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600">
                 Close Review
               </button>
             </div>
           ) : (
             <div className="flex gap-2">
-              <button
-                onClick={handleAddAllDetected}
-                className="px-3.5 py-1.5 rounded-lg bg-[#0b172a] hover:bg-slate-800 text-white font-bold text-[10px]"
-              >
+              <button onClick={handleAddAllDetected} className="px-3.5 py-1.5 rounded-lg bg-[#0b172a] text-white font-bold text-[10px]">
                 Add All
               </button>
-              <button
-                onClick={() => setReviewingSkills(true)}
-                className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-bold text-[10px]"
-              >
+              <button onClick={() => setReviewingSkills(true)} className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-655 font-bold text-[10px]">
                 Review
               </button>
             </div>
@@ -480,14 +430,11 @@ export default function AIResumeMatchWidget() {
 
       {parsedResumeDetails && (
         <div className="space-y-4">
-          {/* Tab Navigation */}
           <div className="flex rounded-xl bg-slate-50 p-1 border border-slate-100">
             <button
               onClick={() => setActiveTab("details")}
               className={`flex-1 py-2 rounded-lg font-bold text-[10.5px] uppercase tracking-wider transition-colors ${
-                activeTab === "details"
-                  ? "bg-white text-[#0b172a] shadow-sm border border-slate-100"
-                  : "text-slate-400 hover:text-slate-600"
+                activeTab === "details" ? "bg-white text-[#0b172a] shadow-sm border border-slate-100" : "text-slate-400"
               }`}
             >
               📋 Verification Inputs
@@ -496,9 +443,7 @@ export default function AIResumeMatchWidget() {
               disabled={!verified}
               onClick={() => setActiveTab("analytics")}
               className={`flex-1 py-2 rounded-lg font-bold text-[10.5px] uppercase tracking-wider transition-colors disabled:opacity-50 ${
-                activeTab === "analytics"
-                  ? "bg-white text-[#0b172a] shadow-sm border border-slate-100"
-                  : "text-slate-400 hover:text-slate-600"
+                activeTab === "analytics" ? "bg-white text-[#0b172a] shadow-sm border border-slate-100" : "text-slate-400"
               }`}
             >
               📊 Programmatic Match
@@ -516,7 +461,7 @@ export default function AIResumeMatchWidget() {
               >
                 <div className="border border-slate-100 p-4.5 rounded-2xl bg-slate-50/20 space-y-4">
                   <h3 className="font-bold text-slate-700 flex items-center gap-1.5 border-b border-slate-50 pb-2">
-                    <User className="h-4.5 w-4.5 text-orange-500" /> Personal & Contact Details
+                    <User className="h-4.5 w-4.5 text-orange-500" /> Personal Info
                   </h3>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -528,7 +473,7 @@ export default function AIResumeMatchWidget() {
                         type="text"
                         value={parsedResumeDetails.fullName}
                         onChange={(e) => updateParsedDetails({ fullName: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
+                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-655 outline-none text-xs bg-white focus:border-orange-500"
                       />
                     </div>
                     <div className="space-y-1">
@@ -539,7 +484,7 @@ export default function AIResumeMatchWidget() {
                         type="email"
                         value={parsedResumeDetails.email}
                         onChange={(e) => updateParsedDetails({ email: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
+                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-655 outline-none text-xs bg-white focus:border-orange-500"
                       />
                     </div>
                     <div className="space-y-1">
@@ -550,7 +495,7 @@ export default function AIResumeMatchWidget() {
                         type="text"
                         value={parsedResumeDetails.phone}
                         onChange={(e) => updateParsedDetails({ phone: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
+                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-655 outline-none text-xs bg-white focus:border-orange-500"
                       />
                     </div>
                     <div className="space-y-1">
@@ -561,72 +506,17 @@ export default function AIResumeMatchWidget() {
                         type="text"
                         value={parsedResumeDetails.location}
                         onChange={(e) => updateParsedDetails({ location: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
+                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-655 outline-none text-xs bg-white focus:border-orange-500"
                       />
                     </div>
-                  </div>
-
-                  <h3 className="font-bold text-slate-700 flex items-center gap-1.5 border-b border-slate-50 pb-2 pt-2">
-                    <Globe className="h-4.5 w-4.5 text-orange-500" /> Web Links
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        LinkedIn {renderStatusBadge("linkedin", "deterministic")}
-                      </label>
-                      <input
-                        type="text"
-                        value={parsedResumeDetails.linkedin}
-                        onChange={(e) => updateParsedDetails({ linkedin: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        GitHub {renderStatusBadge("github", "deterministic")}
-                      </label>
-                      <input
-                        type="text"
-                        value={parsedResumeDetails.github}
-                        onChange={(e) => updateParsedDetails({ github: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Portfolio URL {renderStatusBadge("portfolioWebsite", "deterministic")}
-                      </label>
-                      <input
-                        type="text"
-                        value={parsedResumeDetails.portfolioWebsite}
-                        onChange={(e) => updateParsedDetails({ portfolioWebsite: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Summary Profile Bio */}
-                  <h3 className="font-bold text-slate-700 flex items-center gap-1.5 border-b border-slate-50 pb-2 pt-2">
-                    <BookOpen className="h-4.5 w-4.5 text-orange-500" /> Summary Biography
-                  </h3>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                      Summary Biography {renderStatusBadge("bio", "ai")}
-                    </label>
-                    <textarea
-                      value={parsedResumeDetails.bio}
-                      onChange={(e) => updateParsedDetails({ bio: e.target.value })}
-                      className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-600 h-16 resize-none outline-none font-sans bg-white focus:border-orange-500"
-                    />
                   </div>
 
                   <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
                     <span className="flex items-center gap-1.5">
-                      <BookOpen className="h-4.5 w-4.5 text-orange-500" /> Education History {renderStatusBadge("education", "structured")}
+                      <BookOpen className="h-4.5 w-4.5 text-orange-500" /> Education Background {renderStatusBadge("education", "structured")}
                     </span>
-                    <button onClick={addEducation} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[10px]">
-                      <Plus className="h-3.5 w-3.5" /> Add
+                    <button onClick={addEducation} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[9px]">
+                      <Plus className="h-3 w-3" /> Add
                     </button>
                   </h3>
 
@@ -638,27 +528,27 @@ export default function AIResumeMatchWidget() {
                         </button>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6">
                           <Input
-                            placeholder="Institution"
-                            value={item.institution}
-                            onChange={(e) => editEducation(idx, "institution", e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                          <Input
                             placeholder="Degree"
                             value={item.degree}
                             onChange={(e) => editEducation(idx, "degree", e.target.value)}
                             className="h-8 text-xs"
                           />
                           <Input
-                            placeholder="Year"
-                            value={item.year}
-                            onChange={(e) => editEducation(idx, "year", e.target.value)}
+                            placeholder="Institution"
+                            value={item.institution}
+                            onChange={(e) => editEducation(idx, "institution", e.target.value)}
                             className="h-8 text-xs"
                           />
                           <Input
-                            placeholder="Location"
-                            value={item.location}
-                            onChange={(e) => editEducation(idx, "location", e.target.value)}
+                            placeholder="Branch"
+                            value={item.branch}
+                            onChange={(e) => editEducation(idx, "branch", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="End Year"
+                            value={item.endYear}
+                            onChange={(e) => editEducation(idx, "endYear", e.target.value)}
                             className="h-8 text-xs"
                           />
                         </div>
@@ -670,8 +560,8 @@ export default function AIResumeMatchWidget() {
                     <span className="flex items-center gap-1.5">
                       <Briefcase className="h-4.5 w-4.5 text-orange-500" /> Work Experience {renderStatusBadge("experience", "structured")}
                     </span>
-                    <button onClick={addExperience} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[10px]">
-                      <Plus className="h-3.5 w-3.5" /> Add
+                    <button onClick={addExperience} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[9px]">
+                      <Plus className="h-3 w-3" /> Add
                     </button>
                   </h3>
 
@@ -683,9 +573,9 @@ export default function AIResumeMatchWidget() {
                         </button>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6">
                           <Input
-                            placeholder="Company"
-                            value={item.company}
-                            onChange={(e) => editExperience(idx, "company", e.target.value)}
+                            placeholder="Company Name"
+                            value={item.companyName}
+                            onChange={(e) => editExperience(idx, "companyName", e.target.value)}
                             className="h-8 text-xs"
                           />
                           <Input
@@ -694,24 +584,12 @@ export default function AIResumeMatchWidget() {
                             onChange={(e) => editExperience(idx, "role", e.target.value)}
                             className="h-8 text-xs"
                           />
-                          <Input
-                            placeholder="Duration"
-                            value={item.duration}
-                            onChange={(e) => editExperience(idx, "duration", e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                          <Input
-                            placeholder="Location"
-                            value={item.location}
-                            onChange={(e) => editExperience(idx, "location", e.target.value)}
-                            className="h-8 text-xs"
-                          />
                         </div>
                         <textarea
-                          placeholder="Accomplishments Description"
-                          value={item.description}
-                          onChange={(e) => editExperience(idx, "description", e.target.value)}
-                          className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-600 h-14 resize-none outline-none font-sans"
+                          placeholder="Responsibilities"
+                          value={item.responsibilities}
+                          onChange={(e) => editExperience(idx, "responsibilities", e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-655 h-14 resize-none outline-none font-sans"
                         />
                       </div>
                     ))}
@@ -719,10 +597,10 @@ export default function AIResumeMatchWidget() {
 
                   <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
                     <span className="flex items-center gap-1.5">
-                      <Globe className="h-4.5 w-4.5 text-orange-500" /> Projects Portfolio {renderStatusBadge("projects", "structured")}
+                      <Globe className="h-4.5 w-4.5 text-orange-500" /> Projects {renderStatusBadge("projects", "structured")}
                     </span>
-                    <button onClick={addProject} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[10px]">
-                      <Plus className="h-3.5 w-3.5" /> Add
+                    <button onClick={addProject} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[9px]">
+                      <Plus className="h-3 w-3" /> Add
                     </button>
                   </h3>
 
@@ -734,46 +612,26 @@ export default function AIResumeMatchWidget() {
                         </button>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6">
                           <Input
-                            placeholder="Project Name"
-                            value={item.name}
-                            onChange={(e) => editProject(idx, "name", e.target.value)}
+                            placeholder="Project Title"
+                            value={item.projectTitle}
+                            onChange={(e) => editProject(idx, "projectTitle", e.target.value)}
                             className="h-8 text-xs"
                           />
                           <Input
                             placeholder="Technologies (comma-separated)"
-                            value={item.technologies?.join(", ") || ""}
-                            onChange={(e) => editProject(idx, "technologies", e.target.value.split(",").map(t => t.trim()).filter(Boolean))}
+                            value={item.technologiesUsed?.join(", ") || ""}
+                            onChange={(e) => editProject(idx, "technologiesUsed", e.target.value.split(",").map(t => t.trim()).filter(Boolean))}
                             className="h-8 text-xs"
                           />
                         </div>
                         <textarea
-                          placeholder="Project Description"
+                          placeholder="Description"
                           value={item.description}
                           onChange={(e) => editProject(idx, "description", e.target.value)}
-                          className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-600 h-14 resize-none outline-none font-sans"
+                          className="w-full rounded-lg border border-slate-200 p-2 text-xs h-14 resize-none outline-none font-sans"
                         />
                       </div>
                     ))}
-                  </div>
-
-                  <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
-                    <span className="flex items-center gap-1.5">
-                      <Award className="h-4.5 w-4.5 text-orange-500" /> Technical Skills {renderStatusBadge("technicalSkills", "deterministic")}
-                    </span>
-                  </h3>
-
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                        Technical Skills (comma-separated)
-                      </label>
-                      <input
-                        type="text"
-                        value={parsedResumeDetails.technicalSkills?.join(", ") || ""}
-                        onChange={(e) => updateParsedDetails({ technicalSkills: e.target.value.split(",").map(x => x.trim()).filter(Boolean) })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
                   </div>
                 </div>
 
@@ -781,17 +639,9 @@ export default function AIResumeMatchWidget() {
                   <button
                     onClick={handleVerifyAndSave}
                     disabled={verifiedSaved}
-                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold transition-colors disabled:opacity-60 shadow-sm shadow-orange-100 text-xs"
+                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#0b172a] hover:bg-slate-800 text-white font-bold transition-colors disabled:opacity-60 shadow-sm text-xs"
                   >
-                    {verifiedSaved ? (
-                      <>
-                        <Check className="h-4.5 w-4.5 animate-ping" /> Details Saved!
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="h-4.5 w-4.5" /> Verify & Save Details
-                      </>
-                    )}
+                    {verifiedSaved ? "Details Saved!" : "Verify & Save Details"}
                   </button>
                 </div>
               </motion.div>
@@ -810,7 +660,7 @@ export default function AIResumeMatchWidget() {
                   <select
                     value={selectedJobRole}
                     onChange={(e) => setSelectedJobRole(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-slate-200 px-3 py-1.5 outline-none bg-white text-slate-600 font-semibold"
+                    className="w-full h-10 rounded-xl border border-slate-200 px-3 py-1.5 outline-none bg-white text-slate-655 font-semibold"
                   >
                     {Object.keys(ROLE_SKILLS_MAP).map((role) => (
                       <option key={role} value={role}>{role}</option>
@@ -824,19 +674,6 @@ export default function AIResumeMatchWidget() {
                   <CircularProgress value={skillMatchPercentage} label="Skills Match" colorClass="stroke-blue-500" />
                 </div>
 
-                <div className="space-y-1.5 pt-1">
-                  <div className="flex justify-between text-[9px] font-bold text-slate-600">
-                    <span>Profile Completeness (21 categories)</span>
-                    <span>{completeness}%</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 transition-all duration-500"
-                      style={{ width: `${completeness}%` }}
-                    />
-                  </div>
-                </div>
-
                 {analyzing ? (
                   <p className="text-orange-500 text-center animate-pulse py-2">Recalculating programmatic metrics and AI analysis...</p>
                 ) : (
@@ -844,24 +681,20 @@ export default function AIResumeMatchWidget() {
                     <div className="border-t border-slate-100 pt-4 space-y-3">
                       <div className="space-y-1.5">
                         <span className="text-[9.5px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-                          <CheckCircle2 className="h-3.5 w-3.5" /> Programmatic Matched Skills ({matchedSkills.length})
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Matched Skills ({matchedSkills.length})
                         </span>
                         <div className="flex flex-wrap gap-1">
-                          {matchedSkills.length > 0 ? (
-                            matchedSkills.map((s, idx) => (
-                              <span key={idx} className="px-2 py-0.5 rounded bg-emerald-50 text-[9px] font-bold text-emerald-600 border border-emerald-100">
-                                {s}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-slate-400 italic text-[10px]">No matches found.</span>
-                          )}
+                          {matchedSkills.map((s, idx) => (
+                            <span key={idx} className="px-2 py-0.5 rounded bg-emerald-50 text-[9px] font-bold text-emerald-600 border border-emerald-100">
+                              {s}
+                            </span>
+                          ))}
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
                         <span className="text-[9.5px] font-bold text-red-500 uppercase tracking-wider flex items-center gap-1">
-                          <ShieldAlert className="h-3.5 w-3.5" /> Programmatic Missing Skills ({missingSkills.length})
+                          <ShieldAlert className="h-3.5 w-3.5" /> Missing Target Skills ({missingSkills.length})
                         </span>
                         <div className="flex flex-wrap gap-1">
                           {missingSkills.length > 0 ? (
@@ -886,20 +719,11 @@ export default function AIResumeMatchWidget() {
                       </div>
 
                       <div className="space-y-1 pt-1">
-                        <span className="font-bold text-slate-700 block">AI Strategic Recommendations & Suggestions</span>
+                        <span className="font-bold text-slate-700 block">AI Strategic Recommendations</span>
                         <ul className="list-disc pl-4 space-y-1 text-slate-500 text-[10px] leading-relaxed">
                           {recommendations.map((r, idx) => <li key={idx}>{r}</li>)}
                         </ul>
                       </div>
-
-                      {improvements.length > 0 && (
-                        <div className="space-y-1 pt-1">
-                          <span className="font-bold text-slate-700 block">AI ATS Improvements & Warnings</span>
-                          <ul className="list-disc pl-4 space-y-1 text-slate-500 text-[10px] leading-relaxed">
-                            {improvements.map((imp, idx) => <li key={idx}>{imp}</li>)}
-                          </ul>
-                        </div>
-                      )}
                     </div>
                   </>
                 )}

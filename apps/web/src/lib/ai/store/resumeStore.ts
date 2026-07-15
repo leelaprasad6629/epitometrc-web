@@ -3,30 +3,39 @@
 import { create } from "zustand";
 
 export interface EducationEntry {
-  institution: string;
   degree: string;
-  year: string;
-  location: string;
+  branch: string;
+  institution: string;
+  university: string;
+  startYear: string;
+  endYear: string;
+  cgpa: string;
 }
 
 export interface ExperienceEntry {
-  company: string;
+  companyName: string;
   role: string;
+  employmentType: string;
+  startDate: string;
+  endDate: string;
   duration: string;
-  description: string;
-  location: string;
+  responsibilities: string;
 }
 
 export interface ProjectEntry {
-  name: string;
+  projectTitle: string;
   description: string;
-  technologies: string[];
+  technologiesUsed: string[];
+  githubLink: string;
+  liveUrl: string;
+  duration: string;
 }
 
 export interface CertificationEntry {
-  name: string;
-  issuer: string;
-  year: string;
+  certificationName: string;
+  organization: string;
+  date: string;
+  credentialId: string;
 }
 
 export interface InternshipEntry {
@@ -47,7 +56,7 @@ export interface ParsedResume {
   email: string;
   phone: string;
   location: string;
-  profileImage: string | null; // base64 payload
+  profileImage: string | null;
   linkedin: string;
   github: string;
   portfolioWebsite: string;
@@ -56,7 +65,7 @@ export interface ParsedResume {
   hackerrank: string;
   codechef: string;
   codeforces: string;
-  bio: string; // Summary biography
+  bio: string; // Biography summary
   education: EducationEntry[];
   experience: ExperienceEntry[];
   projects: ProjectEntry[];
@@ -65,17 +74,32 @@ export interface ParsedResume {
   achievements: AchievementEntry[];
   technicalSkills: string[];
   softSkills: string[];
+  
+  // Categorized Technical Skills (14 Groups)
   programmingLanguages: string[];
+  frameworks: string[];
   frontend: string[];
   backend: string[];
-  frameworks: string[];
   databases: string[];
   cloud: string[];
   devops: string[];
   testing: string[];
-  mobile: string[];
   aiml: string[];
-  verifiedSkills: string[]; // Autocomplete verified list
+  mobile: string[];
+  tools: string[];
+  operatingSystems: string[];
+  networking: string[];
+  cyberSecurity: string[];
+  
+  verifiedSkills: string[];
+  
+  // Semantic career insights (Phase 6)
+  candidateProfile: string;
+  careerDomain: string;
+  
+  // Completeness metrics (Phase 5)
+  overallCompleteness: number;
+  completenessMetrics: Record<string, number>;
 }
 
 export interface ResumeStore {
@@ -87,7 +111,7 @@ export interface ResumeStore {
   verified: boolean;
   uploadTimestamp: string | null;
   confidenceScores: Record<string, number>;
-  
+
   // Scoring parameters (Calculated programmatically)
   atsScore: number;
   matchScore: number;
@@ -157,17 +181,29 @@ const initialParsedResume: ParsedResume = {
   achievements: [],
   technicalSkills: [],
   softSkills: [],
+  
   programmingLanguages: [],
+  frameworks: [],
   frontend: [],
   backend: [],
-  frameworks: [],
   databases: [],
   cloud: [],
   devops: [],
   testing: [],
-  mobile: [],
   aiml: [],
-  verifiedSkills: []
+  mobile: [],
+  tools: [],
+  operatingSystems: [],
+  networking: [],
+  cyberSecurity: [],
+  
+  verifiedSkills: [],
+  
+  candidateProfile: "",
+  careerDomain: "",
+  
+  overallCompleteness: 0,
+  completenessMetrics: {}
 };
 
 // Helper cookie read/write utilities
@@ -209,7 +245,6 @@ function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScor
     sessionStorage.removeItem("student_profile_image");
   }
 
-  // Save the text fields to persistent 1-year cookies
   const textProfile = { ...profile, profileImage: null };
   setCookie("student_profile_text", JSON.stringify(textProfile));
   setCookie("student_profile_confidence", JSON.stringify(confidenceScores));
@@ -246,7 +281,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         ...state.parsedResumeDetails,
         ...parsedResult
       };
-      
+
       const parsedTech = parsedResult.technicalSkills || [];
       const currentVerified = mergedDetails.verifiedSkills || [];
       const updatedVerified = Array.from(new Set([...currentVerified, ...parsedTech]));
@@ -271,6 +306,76 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       const mergedDetails = state.parsedResumeDetails
         ? { ...state.parsedResumeDetails, ...details }
         : { ...initialParsedResume, ...details };
+
+      // Calculate completeness programmatically on edit updates
+      const metrics: Record<string, number> = {};
+      
+      // Personal Info (fullName, email, phone, location)
+      const personalFields = [mergedDetails.fullName, mergedDetails.email, mergedDetails.phone, mergedDetails.location];
+      metrics["Personal Info"] = Math.round((personalFields.filter(Boolean).length / 4) * 100);
+
+      // Bio / Summary
+      metrics["Professional Summary"] = mergedDetails.bio?.trim() ? 100 : 0;
+
+      // Education List
+      if (mergedDetails.education?.length > 0) {
+        let total = mergedDetails.education.length * 4; // degree, institution, branch, endYear
+        let filled = 0;
+        mergedDetails.education.forEach(e => {
+          if (e.degree) filled++;
+          if (e.institution) filled++;
+          if (e.branch) filled++;
+          if (e.endYear) filled++;
+        });
+        metrics["Education"] = Math.round((filled / total) * 100);
+      } else {
+        metrics["Education"] = 0;
+      }
+
+      // Experience List
+      if (mergedDetails.experience?.length > 0) {
+        let total = mergedDetails.experience.length * 3; // companyName, role, responsibilities
+        let filled = 0;
+        mergedDetails.experience.forEach(exp => {
+          if (exp.companyName) filled++;
+          if (exp.role) filled++;
+          if (exp.responsibilities) filled++;
+        });
+        metrics["Experience"] = Math.round((filled / total) * 100);
+      } else {
+        metrics["Experience"] = 0;
+      }
+
+      // Projects List
+      if (mergedDetails.projects?.length > 0) {
+        let total = mergedDetails.projects.length * 3; // projectTitle, description, technologiesUsed
+        let filled = 0;
+        mergedDetails.projects.forEach(p => {
+          if (p.projectTitle) filled++;
+          if (p.description) filled++;
+          if (p.technologiesUsed?.length > 0) filled++;
+        });
+        metrics["Projects"] = Math.round((filled / total) * 100);
+      } else {
+        metrics["Projects"] = 0;
+      }
+
+      // Skills List
+      const skillsCount = mergedDetails.technicalSkills?.length || 0;
+      metrics["Skills"] = Math.min(100, Math.round((skillsCount / 5) * 100));
+
+      // Certifications
+      metrics["Certifications"] = mergedDetails.certifications?.length > 0 ? 100 : 0;
+
+      // Achievements
+      metrics["Achievements"] = mergedDetails.achievements?.length > 0 ? 100 : 0;
+
+      // Overall sum
+      const values = Object.values(metrics);
+      const overall = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+
+      mergedDetails.completenessMetrics = metrics;
+      mergedDetails.overallCompleteness = overall;
 
       // Persist to browser storage
       syncProfileToClientStorage(mergedDetails, get().confidenceScores);
@@ -320,7 +425,6 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         const textProfile = JSON.parse(textCookie);
         const confidence = confidenceCookie ? JSON.parse(confidenceCookie) : {};
         
-        // Restore base64 image
         textProfile.profileImage = imageSession || null;
 
         set({
