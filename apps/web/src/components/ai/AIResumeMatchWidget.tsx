@@ -43,6 +43,7 @@ export default function AIResumeMatchWidget() {
     selectedJobRole,
     parsedResumeDetails,
     verified,
+    confidenceScores,
     atsScore,
     matchScore,
     skillMatchPercentage,
@@ -125,8 +126,6 @@ export default function AIResumeMatchWidget() {
       const preferredScore = requirements.preferred.length > 0 ? (matchedPreferred.length / requirements.preferred.length) * 30 : 0;
       
       const matchScoreVal = Math.min(100, Math.round(mustHaveScore + preferredScore));
-      
-      // ATS Score = weighted average of completeness and skill matching
       const atsScoreVal = Math.min(100, Math.round((matchScoreVal * 0.7) + (completenessVal * 0.3)));
 
       const matchedList = [...matchedMustHave, ...matchedPreferred].map(s => s.toUpperCase());
@@ -206,7 +205,7 @@ export default function AIResumeMatchWidget() {
 
         const data = await res.json();
         if (res.ok && data.success) {
-          setResumeData(file.name, base64Data, file.type || "application/pdf", data.result);
+          setResumeData(file.name, base64Data, file.type || "application/pdf", data.result, data.confidenceScores);
           setActiveTab("details");
         } else {
           setError(data.error || "Failed to parse resume.");
@@ -259,6 +258,30 @@ export default function AIResumeMatchWidget() {
         </div>
         <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-center">{label}</span>
       </div>
+    );
+  };
+
+  // Confidence Score badge helper
+  const renderConfidenceBadge = (field: string) => {
+    const score = confidenceScores?.[field] ?? 0;
+    if (score === 0) {
+      return (
+        <span className="text-[9px] font-black text-red-500 bg-red-50 border border-red-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
+          <AlertTriangle className="h-3 w-3" /> low confidence review required
+        </span>
+      );
+    }
+    if (score < 80) {
+      return (
+        <span className="text-[9px] font-black text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5 ml-2 inline-flex">
+          {score}% Confidence
+        </span>
+      );
+    }
+    return (
+      <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 rounded px-1.5 py-0.5 ml-2 inline-flex">
+        {score}% Confidence
+      </span>
     );
   };
 
@@ -426,7 +449,6 @@ export default function AIResumeMatchWidget() {
                 exit={{ opacity: 0, y: -5 }}
                 className="space-y-4 text-left pt-1"
               >
-                {/* 21 Categories grouped together */}
                 <div className="border border-slate-100 p-4.5 rounded-2xl bg-slate-50/20 space-y-4">
                   <h3 className="font-bold text-slate-700 flex items-center gap-1.5 border-b border-slate-50 pb-2">
                     <User className="h-4.5 w-4.5 text-orange-500" /> Personal & Contact Details
@@ -434,7 +456,9 @@ export default function AIResumeMatchWidget() {
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        Full Name {renderConfidenceBadge("fullName")}
+                      </label>
                       <input
                         type="text"
                         value={parsedResumeDetails.fullName}
@@ -443,7 +467,9 @@ export default function AIResumeMatchWidget() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        Email Address {renderConfidenceBadge("email")}
+                      </label>
                       <input
                         type="email"
                         value={parsedResumeDetails.email}
@@ -452,7 +478,9 @@ export default function AIResumeMatchWidget() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Phone Number</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        Phone Number {renderConfidenceBadge("phone")}
+                      </label>
                       <input
                         type="text"
                         value={parsedResumeDetails.phone}
@@ -461,7 +489,9 @@ export default function AIResumeMatchWidget() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Location</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        Location {renderConfidenceBadge("location")}
+                      </label>
                       <input
                         type="text"
                         value={parsedResumeDetails.location}
@@ -477,7 +507,9 @@ export default function AIResumeMatchWidget() {
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">LinkedIn</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        LinkedIn {renderConfidenceBadge("linkedin")}
+                      </label>
                       <input
                         type="text"
                         value={parsedResumeDetails.linkedin}
@@ -486,7 +518,9 @@ export default function AIResumeMatchWidget() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">GitHub</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        GitHub {renderConfidenceBadge("github")}
+                      </label>
                       <input
                         type="text"
                         value={parsedResumeDetails.github}
@@ -495,7 +529,9 @@ export default function AIResumeMatchWidget() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Portfolio URL</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        Portfolio URL {renderConfidenceBadge("portfolioWebsite")}
+                      </label>
                       <input
                         type="text"
                         value={parsedResumeDetails.portfolioWebsite}
@@ -511,7 +547,9 @@ export default function AIResumeMatchWidget() {
 
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Education History</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        Education History {renderConfidenceBadge("education")}
+                      </label>
                       <input
                         type="text"
                         value={parsedResumeDetails.education}
@@ -520,7 +558,9 @@ export default function AIResumeMatchWidget() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Experience Details</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        Experience Details {renderConfidenceBadge("experience")}
+                      </label>
                       <textarea
                         value={parsedResumeDetails.experience}
                         onChange={(e) => updateParsedDetails({ experience: e.target.value })}
@@ -528,7 +568,9 @@ export default function AIResumeMatchWidget() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Projects Summary</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        Projects Summary {renderConfidenceBadge("projects")}
+                      </label>
                       <textarea
                         value={parsedResumeDetails.projects}
                         onChange={(e) => updateParsedDetails({ projects: e.target.value })}
@@ -537,7 +579,9 @@ export default function AIResumeMatchWidget() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Certifications</label>
+                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                          Certifications {renderConfidenceBadge("certifications")}
+                        </label>
                         <input
                           type="text"
                           value={parsedResumeDetails.certifications}
@@ -572,78 +616,15 @@ export default function AIResumeMatchWidget() {
 
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Technical Skills (comma-separated)</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                        Technical Skills (comma-separated) {renderConfidenceBadge("technicalSkills")}
+                      </label>
                       <input
                         type="text"
                         value={parsedResumeDetails.technicalSkills?.join(", ") || ""}
                         onChange={(e) => updateParsedDetails({ technicalSkills: e.target.value.split(",").map(x => x.trim()).filter(Boolean) })}
                         className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
                       />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Soft Skills (comma-separated)</label>
-                      <input
-                        type="text"
-                        value={parsedResumeDetails.softSkills?.join(", ") || ""}
-                        onChange={(e) => updateParsedDetails({ softSkills: e.target.value.split(",").map(x => x.trim()).filter(Boolean) })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Programming Languages</label>
-                        <input
-                          type="text"
-                          value={parsedResumeDetails.programmingLanguages?.join(", ") || ""}
-                          onChange={(e) => updateParsedDetails({ programmingLanguages: e.target.value.split(",").map(x => x.trim()).filter(Boolean) })}
-                          className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Frameworks</label>
-                        <input
-                          type="text"
-                          value={parsedResumeDetails.frameworks?.join(", ") || ""}
-                          onChange={(e) => updateParsedDetails({ frameworks: e.target.value.split(",").map(x => x.trim()).filter(Boolean) })}
-                          className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Libraries</label>
-                        <input
-                          type="text"
-                          value={parsedResumeDetails.libraries?.join(", ") || ""}
-                          onChange={(e) => updateParsedDetails({ libraries: e.target.value.split(",").map(x => x.trim()).filter(Boolean) })}
-                          className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Databases</label>
-                        <input
-                          type="text"
-                          value={parsedResumeDetails.databases?.join(", ") || ""}
-                          onChange={(e) => updateParsedDetails({ databases: e.target.value.split(",").map(x => x.trim()).filter(Boolean) })}
-                          className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Cloud Technologies</label>
-                        <input
-                          type="text"
-                          value={parsedResumeDetails.cloudTechnologies?.join(", ") || ""}
-                          onChange={(e) => updateParsedDetails({ cloudTechnologies: e.target.value.split(",").map(x => x.trim()).filter(Boolean) })}
-                          className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Developer Tools</label>
-                        <input
-                          type="text"
-                          value={parsedResumeDetails.developerTools?.join(", ") || ""}
-                          onChange={(e) => updateParsedDetails({ developerTools: e.target.value.split(",").map(x => x.trim()).filter(Boolean) })}
-                          className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                        />
-                      </div>
                     </div>
                   </div>
                 </div>

@@ -42,6 +42,7 @@ export interface ResumeStore {
   parsedResumeDetails: ParsedResume | null;
   verified: boolean;
   uploadTimestamp: string | null;
+  confidenceScores: Record<string, number>; // Maps field name to percentage
   
   // Scoring parameters (Calculated programmatically)
   atsScore: number;
@@ -64,7 +65,8 @@ export interface ResumeStore {
     fileName: string,
     fileBase64: string,
     fileMimeType: string,
-    parsedResult: Partial<ParsedResume>
+    parsedResult: Partial<ParsedResume>,
+    confidenceScores: Record<string, number>
   ) => void;
   updateParsedDetails: (details: Partial<ParsedResume>) => void;
   setSelectedJobRole: (role: string) => void;
@@ -126,6 +128,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
   parsedResumeDetails: null,
   verified: false,
   uploadTimestamp: null,
+  confidenceScores: {},
 
   atsScore: 0,
   matchScore: 0,
@@ -141,7 +144,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
   certRecommendations: [],
   projectRecommendations: [],
 
-  setResumeData: (fileName, fileBase64, fileMimeType, parsedResult) =>
+  setResumeData: (fileName, fileBase64, fileMimeType, parsedResult, confidenceScores) =>
     set((state) => {
       const mergedDetails = {
         ...initialParsedResume,
@@ -160,8 +163,9 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         fileBase64,
         fileMimeType,
         parsedResumeDetails: mergedDetails,
-        verified: false, // Force re-verification
-        uploadTimestamp: new Date().toISOString()
+        verified: false, // Force manual re-verification
+        uploadTimestamp: new Date().toISOString(),
+        confidenceScores
       };
     }),
 
@@ -185,6 +189,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       parsedResumeDetails: null,
       verified: false,
       uploadTimestamp: null,
+      confidenceScores: {},
       atsScore: 0,
       matchScore: 0,
       skillMatchPercentage: 0,
