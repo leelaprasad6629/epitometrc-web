@@ -3,68 +3,9 @@ import { getAICompletion } from "@/lib/ai/services/aiService";
 import { PdfReader } from "pdfreader";
 import mammoth from "mammoth";
 
-<<<<<<< Updated upstream
-// Predefined Skills Alias Knowledge Base Map
-const SKILL_ALIASES: Record<string, string> = {
-  "js": "JavaScript",
-  "javascript": "JavaScript",
-  "ts": "TypeScript",
-  "typescript": "TypeScript",
-  "react.js": "React",
-  "reactjs": "React",
-  "react": "React",
-  "react native": "React Native",
-  "redux": "Redux",
-  "nextjs": "Next.js",
-  "next.js": "Next.js",
-  "node": "Node.js",
-  "nodejs": "Node.js",
-  "node.js": "Node.js",
-  "c sharp": "C#",
-  "c#": "C#",
-  "cplusplus": "C++",
-  "c++": "C++",
-  "py": "Python",
-  "python": "Python",
-  "pytorch": "PyTorch",
-  "aws": "AWS",
-  "amazon web services": "AWS",
-  "docker": "Docker",
-  "kubernetes": "Kubernetes",
-  "k8s": "Kubernetes",
-  "postgres": "PostgreSQL",
-  "postgresql": "PostgreSQL",
-  "mongodb": "MongoDB",
-  "mongo": "MongoDB",
-  "mysql": "MySQL",
-  "git": "Git",
-  "github": "GitHub",
-  "terraform": "Terraform",
-  "graphql": "GraphQL",
-  "tailwind": "Tailwind CSS",
-  "tailwindcss": "Tailwind CSS",
-  "express": "Express.js",
-  "expressjs": "Express.js",
-  "spring": "Spring Boot",
-  "springboot": "Spring Boot",
-  "spring boot": "Spring Boot",
-  "java": "Java",
-  "django": "Django",
-  "fastapi": "FastAPI",
-  "flask": "Flask",
-  "html": "HTML5",
-  "html5": "HTML5",
-  "css": "CSS3",
-  "css3": "CSS3",
-  "sass": "Sass",
-  "prisma": "Prisma",
-  "supabase": "Supabase"
-};
-
-// 1. PDF Parser using coordinate-based sorting (PdfReader)
-=======
-// Predefined Skills Alias Knowledge Base Map with Categories
+// Extended predefined skills normalization alias database mapped to 14 groups
 const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
+  // Programming Languages
   "js": { name: "JavaScript", category: "programmingLanguages" },
   "javascript": { name: "JavaScript", category: "programmingLanguages" },
   "ts": { name: "TypeScript", category: "programmingLanguages" },
@@ -76,22 +17,15 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
   "c sharp": { name: "C#", category: "programmingLanguages" },
   "c++": { name: "C++", category: "programmingLanguages" },
   "cplusplus": { name: "C++", category: "programmingLanguages" },
+  "go": { name: "Go", category: "programmingLanguages" },
+  "golang": { name: "Go", category: "programmingLanguages" },
+  "rust": { name: "Rust", category: "programmingLanguages" },
+  "ruby": { name: "Ruby", category: "programmingLanguages" },
+  "php": { name: "PHP", category: "programmingLanguages" },
+  "kotlin": { name: "Kotlin", category: "programmingLanguages" },
+  "swift": { name: "Swift", category: "programmingLanguages" },
   
-  "html": { name: "HTML5", category: "frontend" },
-  "html5": { name: "HTML5", category: "frontend" },
-  "css": { name: "CSS3", category: "frontend" },
-  "css3": { name: "CSS3", category: "frontend" },
-  "tailwind": { name: "Tailwind CSS", category: "frontend" },
-  "tailwindcss": { name: "Tailwind CSS", category: "frontend" },
-  "sass": { name: "Sass", category: "frontend" },
-  "bootstrap": { name: "Bootstrap", category: "frontend" },
-  
-  "node": { name: "Node.js", category: "backend" },
-  "nodejs": { name: "Node.js", category: "backend" },
-  "node.js": { name: "Node.js", category: "backend" },
-  "express": { name: "Express.js", category: "backend" },
-  "expressjs": { name: "Express.js", category: "backend" },
-  
+  // Frameworks
   "react.js": { name: "React", category: "frameworks" },
   "reactjs": { name: "React", category: "frameworks" },
   "react": { name: "React", category: "frameworks" },
@@ -103,7 +37,37 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
   "springboot": { name: "Spring Boot", category: "frameworks" },
   "spring boot": { name: "Spring Boot", category: "frameworks" },
   "spring": { name: "Spring Boot", category: "frameworks" },
+  "vue": { name: "Vue.js", category: "frameworks" },
+  "vuejs": { name: "Vue.js", category: "frameworks" },
+  "vue.js": { name: "Vue.js", category: "frameworks" },
+  "angular": { name: "Angular", category: "frameworks" },
+  "nestjs": { name: "NestJS", category: "frameworks" },
   
+  // Frontend
+  "html": { name: "HTML5", category: "frontend" },
+  "html5": { name: "HTML5", category: "frontend" },
+  "css": { name: "CSS3", category: "frontend" },
+  "css3": { name: "CSS3", category: "frontend" },
+  "tailwind": { name: "Tailwind CSS", category: "frontend" },
+  "tailwindcss": { name: "Tailwind CSS", category: "frontend" },
+  "sass": { name: "Sass", category: "frontend" },
+  "bootstrap": { name: "Bootstrap", category: "frontend" },
+  "redux": { name: "Redux", category: "frontend" },
+  "zustand": { name: "Zustand", category: "frontend" },
+  "webpack": { name: "Webpack", category: "frontend" },
+  "vite": { name: "Vite", category: "frontend" },
+  
+  // Backend
+  "node": { name: "Node.js", category: "backend" },
+  "nodejs": { name: "Node.js", category: "backend" },
+  "node.js": { name: "Node.js", category: "backend" },
+  "express": { name: "Express.js", category: "backend" },
+  "expressjs": { name: "Express.js", category: "backend" },
+  "graphql": { name: "GraphQL", category: "backend" },
+  "rest api": { name: "REST APIs", category: "backend" },
+  "rest apis": { name: "REST APIs", category: "backend" },
+  
+  // Databases
   "postgres": { name: "PostgreSQL", category: "databases" },
   "postgresql": { name: "PostgreSQL", category: "databases" },
   "mongodb": { name: "MongoDB", category: "databases" },
@@ -111,46 +75,75 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
   "mysql": { name: "MySQL", category: "databases" },
   "redis": { name: "Redis", category: "databases" },
   "sqlite": { name: "SQLite", category: "databases" },
+  "prisma": { name: "Prisma", category: "databases" },
   
+  // Cloud
   "aws": { name: "AWS", category: "cloud" },
   "amazon web services": { name: "AWS", category: "cloud" },
   "supabase": { name: "Supabase", category: "cloud" },
+  "azure": { name: "Azure", category: "cloud" },
+  "gcp": { name: "Google Cloud", category: "cloud" },
+  "google cloud": { name: "Google Cloud", category: "cloud" },
+  "vercel": { name: "Vercel", category: "cloud" },
   
+  // DevOps
   "docker": { name: "Docker", category: "devops" },
   "kubernetes": { name: "Kubernetes", category: "devops" },
   "k8s": { name: "Kubernetes", category: "devops" },
   "git": { name: "Git", category: "devops" },
   "github": { name: "GitHub", category: "devops" },
+  "gitlab": { name: "GitHub", category: "devops" },
   "terraform": { name: "Terraform", category: "devops" },
-  "graphql": { name: "GraphQL", category: "devops" },
+  "ci/cd": { name: "CI/CD", category: "devops" },
   
+  // Testing
   "jest": { name: "Jest", category: "testing" },
   "cypress": { name: "Cypress", category: "testing" },
   "selenium": { name: "Selenium", category: "testing" },
+  "playwright": { name: "Playwright", category: "testing" },
   
-  "react native": { name: "React Native", category: "mobile" },
-  "flutter": { name: "Flutter", category: "mobile" },
-  
+  // AI/ML
   "pytorch": { name: "PyTorch", category: "aiml" },
   "tensorflow": { name: "TensorFlow", category: "aiml" },
   "pandas": { name: "Pandas", category: "aiml" },
-  "numpy": { name: "NumPy", category: "aiml" }
+  "numpy": { name: "NumPy", category: "aiml" },
+  "scikit-learn": { name: "Scikit-learn", category: "aiml" },
+  "nlp": { name: "NLP", category: "aiml" },
+  
+  // Mobile
+  "react native": { name: "React Native", category: "mobile" },
+  "flutter": { name: "Flutter", category: "mobile" },
+  
+  // Tools
+  "postman": { name: "Postman", category: "tools" },
+  "figma": { name: "Figma", category: "tools" },
+  "jira": { name: "Jira", category: "tools" },
+  
+  // Operating Systems
+  "linux": { name: "Linux", category: "operatingSystems" },
+  "ubuntu": { name: "Linux", category: "operatingSystems" },
+  "windows": { name: "Windows", category: "operatingSystems" },
+  "macos": { name: "macOS", category: "operatingSystems" },
+  
+  // Networking
+  "dns": { name: "DNS", category: "networking" },
+  "http": { name: "HTTP", category: "networking" },
+  "https": { name: "HTTPS", category: "networking" },
+  
+  // Cyber Security
+  "oauth": { name: "OAuth", category: "cyberSecurity" },
+  "jwt": { name: "JWT", category: "cyberSecurity" },
+  "owasp": { name: "OWASP", category: "cyberSecurity" }
 };
 
 // PDF Parser using coordinate-based sorting
->>>>>>> Stashed changes
 function parsePdfBuffer(buffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
     let rows: Record<number, any[]> = {};
-    
     new PdfReader().parseBuffer(buffer, (err, item) => {
       if (err) {
         reject(err);
       } else if (!item) {
-<<<<<<< Updated upstream
-        // End of file: reconstruct lines by sorting y-coordinates then x-coordinates
-=======
->>>>>>> Stashed changes
         let text = "";
         const yCoords = Object.keys(rows).map(Number).sort((a, b) => a - b);
         for (const y of yCoords) {
@@ -159,25 +152,15 @@ function parsePdfBuffer(buffer: Buffer): Promise<string> {
         }
         resolve(text);
       } else if (item.text) {
-<<<<<<< Updated upstream
-        // Group items on the same line (rounding y to group nearby coordinates)
-=======
->>>>>>> Stashed changes
         const y = Math.round(item.y * 100);
-        if (!rows[y]) {
-          rows[y] = [];
-        }
+        if (!rows[y]) rows[y] = [];
         rows[y].push(item);
       }
     });
   });
 }
 
-<<<<<<< Updated upstream
-// 2. DOCX Parser using mammoth
-=======
 // DOCX Parser using mammoth
->>>>>>> Stashed changes
 async function parseDocxBuffer(buffer: Buffer): Promise<string> {
   try {
     const result = await mammoth.extractRawText({ buffer });
@@ -188,10 +171,6 @@ async function parseDocxBuffer(buffer: Buffer): Promise<string> {
   }
 }
 
-<<<<<<< Updated upstream
-// Simple Helper to clean and segment text
-=======
->>>>>>> Stashed changes
 function cleanText(text: string): string {
   return text
     .replace(/[ \t]+/g, " ")
@@ -200,22 +179,52 @@ function cleanText(text: string): string {
     .trim();
 }
 
-// Deterministically scans the first few lines of the resume to find the candidate's real name
-function extractNameDeterministically(text: string): string {
-  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  for (let i = 0; i < Math.min(5, lines.length); i++) {
-    const line = lines[i];
-    const words = line.split(/\s+/);
-    if (words.length >= 2 && words.length <= 4) {
-      const hasEmailOrPhone = /@|\+?\d{4,}/.test(line);
-      const containsForbidden = /resume|cv|curriculum|page|contact|email|phone|profile|summary|experience|education|projects/i.test(line);
-      const isAllCapitalized = words.every(w => /^[A-Z][a-zA-Z]*$/.test(w));
-      if (isAllCapitalized && !hasEmailOrPhone && !containsForbidden) {
-        return line;
+// Phase 1 — Resume Segmentation Scanner
+interface SectionRegex {
+  key: string;
+  regex: RegExp;
+}
+
+const SECTION_RULES: SectionRegex[] = [
+  { key: "bio", regex: /^(?:professional\s+summary|summary|career\s+objective|about\s+me|about|profile)/i },
+  { key: "education", regex: /^(?:education|academic\s+background|qualifications|educational\s+qualifications|academic\s+history|academic\s+info)/i },
+  { key: "experience", regex: /^(?:experience|work\s+experience|professional\s+experience|employment\s+history|employment|work\s+history)/i },
+  { key: "projects", regex: /^(?:projects|personal\s+projects|academic\s+projects|portfolio\s+projects|key\s+projects)/i },
+  { key: "certifications", regex: /^(?:certifications|courses|licenses|credentials|certifications\s+&\s+courses)/i },
+  { key: "internships", regex: /^(?:internships|internship\s+experience|internship\s+history)/i },
+  { key: "achievements", regex: /^(?:achievements|awards|honors|awards\s+&\s+achievements)/i },
+  { key: "skills", regex: /^(?:skills|technical\s+skills|core\s+competencies|expertise|technologies)/i }
+];
+
+function segmentResumeText(text: string): Record<string, string> {
+  const sections: Record<string, string> = {
+    personal: "" // Default personal information section
+  };
+
+  const lines = text.split("\n");
+  let currentSection = "personal";
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // Check if line matches any section heading rule
+    let headingMatched = false;
+    for (const rule of SECTION_RULES) {
+      if (rule.regex.test(trimmed)) {
+        currentSection = rule.key;
+        sections[currentSection] = (sections[currentSection] || "") + line + "\n";
+        headingMatched = true;
+        break;
       }
     }
+
+    if (!headingMatched) {
+      sections[currentSection] = (sections[currentSection] || "") + line + "\n";
+    }
   }
-  return "";
+
+  return sections;
 }
 
 export async function POST(req: NextRequest) {
@@ -229,7 +238,6 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(fileBase64, "base64");
     let rawText = "";
 
-    // Step 1: Professional Document Parsing
     if (fileMimeType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf")) {
       rawText = await parsePdfBuffer(buffer);
     } else if (
@@ -241,167 +249,59 @@ export async function POST(req: NextRequest) {
       rawText = buffer.toString("utf-8");
     }
 
-<<<<<<< Updated upstream
-    // Step 2: Text Cleaning & Normalization
     const cleanedText = cleanText(rawText);
 
-    // Step 3: Deterministic Extraction Scanner
-    const emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    // Phase 1 & 2: Segmentation & Section Classification
+    const segmentedBlocks = segmentResumeText(cleanedText);
+
+    // Phase 3: Hybrid Extraction
+    // Deterministic extraction for personal information
+    const personalText = segmentedBlocks.personal || cleanedText;
+    
+    const emailMatch = personalText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     const parsedEmail = emailMatch ? emailMatch[0].trim() : "";
 
-    const phoneMatch = cleanedText.match(/\+?\d[\d\s.-]{8,15}\d/);
-    const parsedPhone = phoneMatch ? phoneMatch[0].trim() : "";
-
-    // Robust web links scanner - handles various schemes and subdomains
-    const githubRegex = /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9%_-]+)/i;
-    const githubMatch = cleanedText.match(githubRegex);
-    const parsedGithub = githubMatch ? `https://github.com/${githubMatch[1]}` : "";
-
-    const linkedinRegex = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub)\/([a-zA-Z0-9%_-]+)/i;
-    const linkedinMatch = cleanedText.match(linkedinRegex);
-    const parsedLinkedin = linkedinMatch ? `https://www.linkedin.com/in/${linkedinMatch[1]}` : "";
-
-    const urlRegex = /(https?:\/\/[^\s]+)/gi;
-    const allUrls = cleanedText.match(urlRegex) || [];
-    const portfolioUrl = allUrls.find(u => !u.includes("linkedin.com") && !u.includes("github.com")) || "";
-    const parsedPortfolio = portfolioUrl ? portfolioUrl.replace(/[.,;]$/, "") : "";
-
-    const locationMatch = cleanedText.match(/(?:london|new york|san francisco|tokyo|toronto|berlin|paris|chicago|austin|seattle|vancouver)/i);
-    const parsedLocation = locationMatch ? locationMatch[0].charAt(0).toUpperCase() + locationMatch[0].slice(1) : "";
-
-    // Step 4: Skill Detection Engine using Dictionary & Aliases
-    const words = cleanedText.toLowerCase().split(/[\s,()\-]+/);
-    const detectedSkillsSet = new Set<string>();
-    const detectedLanguages: string[] = [];
-    const detectedFrameworks: string[] = [];
-    const detectedLibraries: string[] = [];
-    const detectedDatabases: string[] = [];
-    const detectedClouds: string[] = [];
-    const detectedTools: string[] = [];
-
-    // Scan text using skill aliases knowledge base
-    for (const word of words) {
-      if (SKILL_ALIASES[word]) {
-        detectedSkillsSet.add(SKILL_ALIASES[word]);
-      }
-    }
-
-    // Also check multi-word skills like "spring boot" or "react native"
-    const skillList = Object.keys(SKILL_ALIASES);
-    for (const key of skillList) {
-      if (key.includes(" ") && cleanedText.toLowerCase().includes(key)) {
-        detectedSkillsSet.add(SKILL_ALIASES[key]);
-      }
-    }
-
-    // Segment detected skills into subcategories
-    const technicalSkills = Array.from(detectedSkillsSet);
-    technicalSkills.forEach(s => {
-      const lower = s.toLowerCase();
-      if (["javascript", "typescript", "python", "java", "c#", "c++", "html5", "css3"].includes(lower)) {
-        detectedLanguages.push(s);
-      } else if (["next.js", "django", "fastapi", "flask", "spring boot", "express.js"].includes(lower)) {
-        detectedFrameworks.push(s);
-      } else if (["react", "redux", "zustand", "framer motion", "pandas", "numpy"].includes(lower)) {
-        detectedLibraries.push(s);
-      } else if (["postgresql", "mongodb", "mysql", "redis", "sqlite", "prisma"].includes(lower)) {
-        detectedDatabases.push(s);
-      } else if (["aws", "supabase", "docker", "kubernetes"].includes(lower)) {
-        detectedClouds.push(s);
-      } else {
-        detectedTools.push(s);
-      }
-    });
-
-    // Step 5 & 6: Parallel Multi-Pass Gemini structured extractions
-    let fullName = "";
-    let headline = "";
-    let experience = "";
-    let education = "";
-    let projects = "";
-    let achievements = "";
-    let internships = "";
-    let certifications = "";
-    let softSkills: string[] = [];
-
-    // Pass 1: Personal Profile & Summary Bio
-    const promptPass1 = `
-Act as an ATS resume parser. Extract the full name, professional headline, and summary biography from this text.
-Do not hallucinate or guess values. Return strictly JSON with no comments:
-{
-  "fullName": "Extracted Name or empty string",
-  "headline": "Extracted professional title or empty string",
-  "bio": "Extracted professional biography or summary text or empty string"
-}
-Text:
-${cleanedText}
-    `.trim();
-
-    // Pass 2: Academic background, achievements & internships
-    const promptPass2 = `
-Act as an ATS resume parser. Extract the education history details, achievements sentences, and internships lists.
-Do not guess. Return strictly JSON with no comments:
-{
-  "education": "Extracted university and degree details or empty",
-  "achievements": "Extracted achievements or empty",
-  "internships": "Extracted internships or empty"
-}
-Text:
-${cleanedText}
-    `.trim();
-
-    // Pass 3: Projects, professional experience details, certifications & soft skills
-    const promptPass3 = `
-Act as an ATS resume parser. Extract the project accomplishments, experience history, certifications, and soft skills list.
-Do not guess. Return strictly JSON with no comments:
-{
-  "projects": "Extracted projects details or empty",
-  "experience": "Extracted experience history or empty",
-  "certifications": "Extracted certifications list or empty",
-=======
-    const cleanedText = cleanText(rawText);
-
-    // Step 3: Deterministic Extraction Scanner
-    const emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-    const parsedEmail = emailMatch ? emailMatch[0].trim() : "";
-
-    const phoneMatch = cleanedText.match(/\+?\d[\d\s.-]{8,15}\d/);
+    const phoneMatch = personalText.match(/\+?\d[\d\s.-]{8,15}\d/);
     const parsedPhone = phoneMatch ? phoneMatch[0].trim() : "";
 
     const githubRegex = /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9%_-]+)/i;
-    const githubMatch = cleanedText.match(githubRegex);
+    const githubMatch = personalText.match(githubRegex);
     const parsedGithub = githubMatch ? `https://github.com/${githubMatch[1]}` : "";
 
     const linkedinRegex = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub)\/([a-zA-Z0-9%_-]+)/i;
-    const linkedinMatch = cleanedText.match(linkedinRegex);
+    const linkedinMatch = personalText.match(linkedinRegex);
     const parsedLinkedin = linkedinMatch ? `https://www.linkedin.com/in/${linkedinMatch[1]}` : "";
 
     const urlRegex = /(https?:\/\/[^\s]+)/gi;
-    const allUrls = cleanedText.match(urlRegex) || [];
+    const allUrls = personalText.match(urlRegex) || [];
     const portfolioUrl = allUrls.find(u => !u.includes("linkedin.com") && !u.includes("github.com")) || "";
     const parsedPortfolio = portfolioUrl ? portfolioUrl.replace(/[.,;]$/, "") : "";
 
-    const locationMatch = cleanedText.match(/(?:london|new york|san francisco|tokyo|toronto|berlin|paris|chicago|austin|seattle|vancouver)/i);
+    const locationMatch = personalText.match(/(?:london|new york|san francisco|tokyo|toronto|berlin|paris|chicago|austin|seattle|vancouver)/i);
     const parsedLocation = locationMatch ? locationMatch[0].charAt(0).toUpperCase() + locationMatch[0].slice(1) : "";
 
-    // Step 4: Skill Detection Engine & Aliases Categorization
-    const words = cleanedText.toLowerCase().split(/[\s,()\-]+/);
+    // Deterministic Skill Normalization using predefined knowledge base alias map (14 groups)
+    const skillsText = segmentedBlocks.skills || cleanedText;
+    const words = skillsText.toLowerCase().split(/[\s,()\-]+/);
     const detectedSkillsSet = new Set<string>();
 
     const categorizedSkills: Record<string, string[]> = {
       programmingLanguages: [],
+      frameworks: [],
       frontend: [],
       backend: [],
-      frameworks: [],
       databases: [],
       cloud: [],
       devops: [],
       testing: [],
+      aiml: [],
       mobile: [],
-      aiml: []
+      tools: [],
+      operatingSystems: [],
+      networking: [],
+      cyberSecurity: []
     };
 
-    // Scan text using skill aliases knowledge base
     for (const word of words) {
       if (SKILL_ALIASES[word]) {
         const item = SKILL_ALIASES[word];
@@ -412,10 +312,10 @@ Do not guess. Return strictly JSON with no comments:
       }
     }
 
-    const skillList = Object.keys(SKILL_ALIASES);
-    for (const key of skillList) {
-      if (key.includes(" ") && cleanedText.toLowerCase().includes(key)) {
-        const item = SKILL_ALIASES[key];
+    const aliasList = Object.keys(SKILL_ALIASES);
+    for (const alias of aliasList) {
+      if (alias.includes(" ") && skillsText.toLowerCase().includes(alias)) {
+        const item = SKILL_ALIASES[alias];
         detectedSkillsSet.add(item.name);
         if (!categorizedSkills[item.category].includes(item.name)) {
           categorizedSkills[item.category].push(item.name);
@@ -423,9 +323,7 @@ Do not guess. Return strictly JSON with no comments:
       }
     }
 
-    const technicalSkills = Array.from(detectedSkillsSet);
-
-    // Step 5 & 6: Parallel Multi-Pass Gemini structured extractions
+    // Semantic AI extraction passes on specific segment blocks (with fallbacks)
     let fullName = "";
     let headline = "";
     let bio = "";
@@ -436,69 +334,85 @@ Do not guess. Return strictly JSON with no comments:
     let internships: any[] = [];
     let achievements: any[] = [];
     let softSkills: string[] = [];
+    let candidateProfile = "";
+    let careerDomain = "";
 
-    // Pass 1: Personal Profile & Summary Bio
+    // Pass 1: Personal profile & summary
     const promptPass1 = `
-Act as an ATS resume parser. Extract the full name, professional headline, and summary biography from this text.
-Do not hallucinate or guess values. Return strictly JSON with no comments:
+Act as an ATS resume parser. Extract full name, professional headline, and summary biography from this text.
+Do not guess or hallucinate. Return strictly JSON:
 {
-  "fullName": "Extracted Name or empty string",
-  "headline": "Extracted professional title or empty string",
-  "bio": "Extracted professional biography or summary text or empty string"
+  "fullName": "Extracted name or empty",
+  "headline": "Title or empty",
+  "bio": "Summary bio or empty"
 }
 Text:
-${cleanedText}
+${segmentedBlocks.personal || cleanedText}
+${segmentedBlocks.bio || ""}
     `.trim();
 
-    // Pass 2: Academic background, achievements & internships
+    // Pass 2: Education & Certifications
     const promptPass2 = `
-Act as an ATS resume parser. Extract the education history details, achievements, and internships lists.
-Return strictly JSON with no comments, matching this layout:
+Act as an ATS resume parser. Extract education and certifications records from this text.
+Return strictly JSON:
 {
   "education": [
-    { "institution": "University Name", "degree": "Degree Title", "year": "Graduation Year", "location": "Location" }
+    { "degree": "e.g. B.Sc.", "branch": "e.g. Computer Science", "institution": "University Name", "university": "Affiliated University Name", "startYear": "Year", "endYear": "Year", "cgpa": "e.g. 3.8/4.0" }
   ],
-  "achievements": [
-    { "title": "Achievement name", "description": "Accompanying description" }
-  ],
-  "internships": [
-    { "company": "Company Name", "role": "Internship Role", "duration": "Duration length", "description": "Responsibilities description" }
+  "certifications": [
+    { "certificationName": "Name", "organization": "Issuer Name", "date": "Date/Year", "credentialId": "ID or empty" }
   ]
 }
 Text:
-${cleanedText}
+${segmentedBlocks.education || ""}
+${segmentedBlocks.certifications || ""}
     `.trim();
 
-    // Pass 3: Projects, professional experience details, certifications & soft skills
+    // Pass 3: Work Experience, Projects, Internships & Achievements
     const promptPass3 = `
-Act as an ATS resume parser. Extract the project accomplishments, experience history, certifications, and soft skills list.
-Return strictly JSON with no comments, matching this layout:
+Act as an ATS resume parser. Extract experiences, projects, internships, achievements, and soft skills lists.
+Return strictly JSON:
 {
-  "projects": [
-    { "name": "Project Name", "description": "Project Description details", "technologies": ["React", "TypeScript"] }
-  ],
   "experience": [
-    { "company": "Company Name", "role": "Job Role", "duration": "Duration (e.g. 2022 - 2024)", "description": "Accomplishments", "location": "Location" }
+    { "companyName": "Company", "role": "Role", "employmentType": "Full-time/Part-time/Apprentice", "startDate": "Date", "endDate": "Date", "duration": "Duration", "responsibilities": "Bullet points summary text" }
   ],
-  "certifications": [
-    { "name": "Certification Name", "issuer": "Issuer Organization", "year": "Year Issued" }
+  "projects": [
+    { "projectTitle": "Title", "description": "Details", "technologiesUsed": ["React", "TypeScript"], "githubLink": "URL", "liveUrl": "URL", "duration": "Duration" }
   ],
->>>>>>> Stashed changes
-  "softSkills": ["Communication", "Agile"]
+  "internships": [
+    { "company": "Company", "role": "Role", "duration": "Duration", "description": "Responsibilities text" }
+  ],
+  "achievements": [
+    { "title": "Achievement title", "description": "Description detail" }
+  ],
+  "softSkills": ["Leadership", "Communication"]
+}
+Text:
+${segmentedBlocks.experience || ""}
+${segmentedBlocks.projects || ""}
+${segmentedBlocks.internships || ""}
+${segmentedBlocks.achievements || ""}
+    `.trim();
+
+    // Pass 4: Semantic candidate understanding (Phase 6)
+    const promptPass4 = `
+Act as an ATS recruiting assistant. Generate a semantic candiate profile summary sentence and select a career domain classification.
+Domains: Frontend Development, Backend, AI/ML, Full Stack, Cybersecurity, Data Science, Cloud.
+Return strictly JSON:
+{
+  "candidateProfile": "Semantic candiate summary sentence",
+  "careerDomain": "Selected Domain"
 }
 Text:
 ${cleanedText}
     `.trim();
 
     try {
-<<<<<<< Updated upstream
-      // Execute LLM passes in parallel for optimal production speed
-=======
->>>>>>> Stashed changes
-      const [res1, res2, res3] = await Promise.all([
+      const [res1, res2, res3, res4] = await Promise.all([
         getAICompletion(promptPass1),
         getAICompletion(promptPass2),
-        getAICompletion(promptPass3)
+        getAICompletion(promptPass3),
+        getAICompletion(promptPass4)
       ]);
 
       if (res1.success && res1.text) {
@@ -506,99 +420,70 @@ ${cleanedText}
         const obj = JSON.parse(cleanJson);
         fullName = obj.fullName || "";
         headline = obj.headline || "";
-<<<<<<< Updated upstream
-        experience = obj.bio || "";
-=======
         bio = obj.bio || "";
->>>>>>> Stashed changes
       }
-
       if (res2.success && res2.text) {
         const cleanJson = res2.text.replace(/```json|```/g, "").trim();
         const obj = JSON.parse(cleanJson);
-<<<<<<< Updated upstream
-        education = obj.education || "";
-        achievements = obj.achievements || "";
-        internships = obj.internships || "";
-=======
         education = obj.education || [];
-        achievements = obj.achievements || [];
-        internships = obj.internships || [];
->>>>>>> Stashed changes
+        certifications = obj.certifications || [];
       }
-
       if (res3.success && res3.text) {
         const cleanJson = res3.text.replace(/```json|```/g, "").trim();
         const obj = JSON.parse(cleanJson);
-<<<<<<< Updated upstream
-        projects = obj.projects || "";
-        certifications = obj.certifications || "";
-        softSkills = obj.softSkills || [];
-      }
-    } catch (err) {
-      console.warn("LLM parallel passes failed, using dynamic text fallback parser:", err);
-    }
-
-    // Fallback names from clean filename or deterministic scanner if LLM failed
-=======
-        projects = obj.projects || [];
         experience = obj.experience || [];
-        certifications = obj.certifications || [];
+        projects = obj.projects || [];
+        internships = obj.internships || [];
+        achievements = obj.achievements || [];
         softSkills = obj.softSkills || [];
       }
+      if (res4.success && res4.text) {
+        const cleanJson = res4.text.replace(/```json|```/g, "").trim();
+        const obj = JSON.parse(cleanJson);
+        candidateProfile = obj.candidateProfile || "";
+        careerDomain = obj.careerDomain || "";
+      }
     } catch (err) {
-      console.warn("LLM parallel passes failed, using fallbacks:", err);
+      console.warn("Gemini semantic parser failed, using fallback metrics:", err);
     }
 
-    // Fallback name logic if LLM failed to extract a valid name
->>>>>>> Stashed changes
+    // Deterministic Name extraction fallback
     if (!fullName || fullName.toLowerCase().includes("resume")) {
-      const deterministicName = extractNameDeterministically(cleanedText);
-      if (deterministicName) {
-        fullName = deterministicName;
+      const words = cleanedText.split("\n")[0]?.trim().split(/\s+/) || [];
+      if (words.length >= 2 && words.length <= 4) {
+        fullName = words.join(" ");
       } else {
-        const cleanFileName = fileName.replace(/_Resume|_resume|\.pdf|\.docx|\.txt/gi, "").replace(/[_-]/g, " ").trim();
-        fullName = cleanFileName.split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Alex Thompson";
+        fullName = "Alex Thompson";
       }
     }
     if (!headline) {
       headline = "Apprentice Engineer";
     }
+    if (!candidateProfile) {
+      candidateProfile = `${fullName} is an engineering student focusing on ${careerDomain || "Software Engineering"}.`;
+    }
+    if (!careerDomain) {
+      careerDomain = "Full Stack";
+    }
 
-<<<<<<< Updated upstream
-    // Step 8: Confidence Scoring System
-    const confidenceScores: Record<string, number> = {
-      fullName: fullName.length > 3 ? 98 : 0,
-      email: parsedEmail ? 100 : 0,
-      phone: parsedPhone ? 100 : 0,
-      location: parsedLocation ? 95 : 0,
-      linkedin: parsedLinkedin ? 100 : 0,
-      github: parsedGithub ? 100 : 0,
-      portfolioWebsite: parsedPortfolio ? 100 : 0,
-      education: education.length > 5 ? 88 : 0,
-      experience: experience.length > 10 ? 85 : 0,
-      projects: projects.length > 10 ? 85 : 0,
-      certifications: certifications.length > 5 ? 85 : 0,
-      technicalSkills: technicalSkills.length > 0 ? 90 : 0
-=======
-    // Step 8: Dynamic Component-Level Completeness Scoring
-    const calculateListConfidence = (arr: any[], requiredKeys: string[]): number => {
-      if (!arr || arr.length === 0) return 0;
-      let totalFields = arr.length * requiredKeys.length;
-      let filledFields = 0;
-      arr.forEach(item => {
-        requiredKeys.forEach(k => {
-          if (item[k] && String(item[k]).trim().length > 0) {
-            filledFields++;
-          }
-        });
-      });
-      return Math.round((filledFields / totalFields) * 100);
+    // Dynamic field completeness metrics
+    const completenessMetrics: Record<string, number> = {
+      personal: (fullName ? 25 : 0) + (parsedEmail ? 25 : 0) + (parsedPhone ? 25 : 0) + (parsedLocation ? 25 : 0),
+      education: education.length > 0 ? Math.round((education.filter(e => e.degree && e.institution && e.endYear).length / education.length) * 100) : 0,
+      experience: experience.length > 0 ? Math.round((experience.filter(exp => exp.companyName && exp.role).length / experience.length) * 100) : 0,
+      projects: projects.length > 0 ? Math.round((projects.filter(p => p.projectTitle && p.description).length / projects.length) * 100) : 0,
+      skills: detectedSkillsSet.size > 0 ? 100 : 0,
+      certifications: certifications.length > 0 ? 100 : 0,
+      achievements: achievements.length > 0 ? 100 : 0
     };
 
+    const overallCompleteness = Math.round(
+      Object.values(completenessMetrics).reduce((a, b) => a + b, 0) / Object.values(completenessMetrics).length
+    );
+
+    // Confidence mapping values
     const confidenceScores: Record<string, number> = {
-      // Deterministic fields (Valid: 100%, Invalid/Empty: 0%)
-      fullName: fullName.length > 2 ? 100 : 0,
+      fullName: fullName ? 100 : 0,
       email: parsedEmail ? 100 : 0,
       phone: parsedPhone ? 100 : 0,
       location: parsedLocation ? 100 : 0,
@@ -606,19 +491,13 @@ ${cleanedText}
       github: parsedGithub ? 100 : 0,
       portfolioWebsite: parsedPortfolio ? 100 : 0,
       
-      // Structured fields (Dynamic completeness calculation)
-      education: calculateListConfidence(education, ["institution", "degree", "year"]),
-      experience: calculateListConfidence(experience, ["company", "role", "duration", "description"]),
-      projects: calculateListConfidence(projects, ["name", "description"]),
-      certifications: calculateListConfidence(certifications, ["name", "issuer", "year"]),
-      internships: calculateListConfidence(internships, ["company", "role", "duration", "description"]),
-      achievements: calculateListConfidence(achievements, ["title", "description"]),
-      technicalSkills: technicalSkills.length > 0 ? 100 : 0,
-
-      // AI-Generated descriptive fields (flagged with -1 to render as AI Generated in UI)
+      education: education.length > 0 ? Math.round((education.filter(e => e.degree && e.institution).length / education.length) * 100) : 0,
+      experience: experience.length > 0 ? Math.round((experience.filter(exp => exp.companyName && exp.role).length / experience.length) * 100) : 0,
+      projects: projects.length > 0 ? Math.round((projects.filter(p => p.projectTitle && p.description).length / projects.length) * 100) : 0,
+      certifications: certifications.length > 0 ? 100 : 0,
+      
       bio: -1,
       softSkills: -1
->>>>>>> Stashed changes
     };
 
     return NextResponse.json({
@@ -637,51 +516,43 @@ ${cleanedText}
         hackerrank: "",
         codechef: "",
         codeforces: "",
-<<<<<<< Updated upstream
-=======
-        bio: bio || "AI Generated Professional Summary Bio",
->>>>>>> Stashed changes
+        bio: bio || "Professional profile summary.",
         education,
         experience,
         projects,
         certifications,
-<<<<<<< Updated upstream
-        technicalSkills,
-        softSkills: softSkills.length > 0 ? softSkills : ["Problem Solving", "Collaboration", "Critical Thinking"],
-        programmingLanguages: detectedLanguages,
-        frameworks: detectedFrameworks,
-        libraries: detectedLibraries,
-        databases: detectedDatabases,
-        cloudTechnologies: detectedClouds,
-        developerTools: detectedTools,
-        achievements,
-        internships,
-=======
         internships,
         achievements,
-        technicalSkills,
-        softSkills: softSkills.length > 0 ? softSkills : ["Problem Solving", "Collaboration", "Critical Thinking"],
+        technicalSkills: Array.from(detectedSkillsSet),
+        softSkills: softSkills.length > 0 ? softSkills : ["Communication", "Problem Solving", "Teamwork"],
         
-        // Categorized skills groups
         programmingLanguages: categorizedSkills.programmingLanguages,
+        frameworks: categorizedSkills.frameworks,
         frontend: categorizedSkills.frontend,
         backend: categorizedSkills.backend,
-        frameworks: categorizedSkills.frameworks,
         databases: categorizedSkills.databases,
         cloud: categorizedSkills.cloud,
         devops: categorizedSkills.devops,
         testing: categorizedSkills.testing,
-        mobile: categorizedSkills.mobile,
         aiml: categorizedSkills.aiml,
+        mobile: categorizedSkills.mobile,
+        tools: categorizedSkills.tools,
+        operatingSystems: categorizedSkills.operatingSystems,
+        networking: categorizedSkills.networking,
+        cyberSecurity: categorizedSkills.cyberSecurity,
         
->>>>>>> Stashed changes
-        verifiedSkills: technicalSkills
+        verifiedSkills: Array.from(detectedSkillsSet),
+        
+        candidateProfile,
+        careerDomain,
+        overallCompleteness,
+        completenessMetrics
       },
       confidenceScores
     });
 
   } catch (error: any) {
-    console.error("Parser Route Error:", error);
+    console.error("10-Phase Parser Route Error:", error);
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
   }
 }
