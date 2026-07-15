@@ -82,7 +82,7 @@ export default function AIMockInterviewWidget() {
     // Make initial question fully personalized based on the verified 21 stack categories
     const primaryLang = parsedResumeDetails.programmingLanguages?.[0] || parsedResumeDetails.technicalSkills?.[0] || "JavaScript";
     const primaryFrame = parsedResumeDetails.frameworks?.[0] || parsedResumeDetails.technicalSkills?.[1] || "React";
-    const primaryCloud = parsedResumeDetails.cloudTechnologies?.[0] || "cloud architecture";
+    const primaryCloud = parsedResumeDetails.cloud?.[0] || "cloud architecture";
 
     const initialQuestion = `Hello! Welcome to your verbal mock screen for the ${selectedJobRole} role. Looking at your verified credentials utilizing ${primaryLang} with ${primaryFrame} and deploying on ${primaryCloud}, could you describe a complex system challenge you encountered while using these tools and how you resolved it?`;
     
@@ -152,7 +152,7 @@ export default function AIMockInterviewWidget() {
             strengths: [`Excellent explanation of ${parsedResumeDetails?.frameworks?.[0] || "your stack"} libraries.`, "Demonstrates production-ready system design thinking."],
             improvements: ["Expand details on concurrent database write patterns.", "Document your unit test strategies."],
             feedback: "Solid technical knowledge. Performance meets all expectations for a junior roles.",
-            learningTopics: [`Advanced ${parsedResumeDetails?.cloudTechnologies?.[0] || "Cloud"} routing concepts`, "SQL indexing techniques"]
+            learningTopics: [`Advanced ${parsedResumeDetails?.cloud?.[0] || "Cloud"} routing concepts`, "SQL indexing techniques"]
           };
           setReport(finalReport);
         } else {

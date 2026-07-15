@@ -2,6 +2,45 @@
 
 import { create } from "zustand";
 
+export interface EducationEntry {
+  institution: string;
+  degree: string;
+  year: string;
+  location: string;
+}
+
+export interface ExperienceEntry {
+  company: string;
+  role: string;
+  duration: string;
+  description: string;
+  location: string;
+}
+
+export interface ProjectEntry {
+  name: string;
+  description: string;
+  technologies: string[];
+}
+
+export interface CertificationEntry {
+  name: string;
+  issuer: string;
+  year: string;
+}
+
+export interface InternshipEntry {
+  company: string;
+  role: string;
+  duration: string;
+  description: string;
+}
+
+export interface AchievementEntry {
+  title: string;
+  description: string;
+}
+
 export interface ParsedResume {
   fullName: string;
   headline: string;
@@ -17,20 +56,25 @@ export interface ParsedResume {
   hackerrank: string;
   codechef: string;
   codeforces: string;
-  education: string;
-  experience: string; // Biography
-  projects: string;
-  certifications: string;
+  bio: string; // Summary biography
+  education: EducationEntry[];
+  experience: ExperienceEntry[];
+  projects: ProjectEntry[];
+  certifications: CertificationEntry[];
+  internships: InternshipEntry[];
+  achievements: AchievementEntry[];
   technicalSkills: string[];
   softSkills: string[];
   programmingLanguages: string[];
+  frontend: string[];
+  backend: string[];
   frameworks: string[];
-  libraries: string[];
   databases: string[];
-  cloudTechnologies: string[];
-  developerTools: string[];
-  achievements: string;
-  internships: string;
+  cloud: string[];
+  devops: string[];
+  testing: string[];
+  mobile: string[];
+  aiml: string[];
   verifiedSkills: string[]; // Autocomplete verified list
 }
 
@@ -104,20 +148,25 @@ const initialParsedResume: ParsedResume = {
   hackerrank: "",
   codechef: "",
   codeforces: "",
-  education: "",
-  experience: "",
-  projects: "",
-  certifications: "",
+  bio: "",
+  education: [],
+  experience: [],
+  projects: [],
+  certifications: [],
+  internships: [],
+  achievements: [],
   technicalSkills: [],
   softSkills: [],
   programmingLanguages: [],
+  frontend: [],
+  backend: [],
   frameworks: [],
-  libraries: [],
   databases: [],
-  cloudTechnologies: [],
-  developerTools: [],
-  achievements: "",
-  internships: "",
+  cloud: [],
+  devops: [],
+  testing: [],
+  mobile: [],
+  aiml: [],
   verifiedSkills: []
 };
 
@@ -143,7 +192,7 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; Max-Age=-99999999; path=/; SameSite=Lax`;
 }
 
-// Syncs details to secure client-side cookie database (split to avoid cookie size limit constraints)
+// Syncs details to secure client-side cookie database
 function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
   if (typeof window === "undefined") return;
   if (!profile) {
@@ -153,7 +202,7 @@ function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScor
     return;
   }
 
-  // Extract base64 image and save to sessionStorage (survives refreshes, doesn't bloat cookie limits)
+  // Extract base64 image and save to sessionStorage
   if (profile.profileImage) {
     sessionStorage.setItem("student_profile_image", profile.profileImage);
   } else {
