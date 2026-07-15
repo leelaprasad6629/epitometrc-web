@@ -7,7 +7,11 @@ import { useResumeStore } from "@/lib/ai/store/resumeStore";
 import Button from "@/components/common/Button";
 
 export default function AIMockInterviewWidget() {
-  const { fileName, parsedResumeDetails, selectedJobRole, verified } = useResumeStore();
+  const { fileName, parsedResumeDetails, selectedJobRole, verified, loadProfileFromServer } = useResumeStore();
+
+  useEffect(() => {
+    loadProfileFromServer();
+  }, [loadProfileFromServer]);
 
   const [sessionActive, setSessionActive] = useState(false);
   const [loading, setLoading] = useState(false);

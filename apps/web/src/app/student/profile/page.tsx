@@ -36,7 +36,11 @@ const isValidUrl = (url: string) => {
 };
 
 export default function StudentProfilePage() {
-  const { parsedResumeDetails, updateParsedDetails } = useResumeStore();
+  const { parsedResumeDetails, updateParsedDetails, loadProfileFromServer } = useResumeStore();
+
+  useEffect(() => {
+    loadProfileFromServer();
+  }, [loadProfileFromServer]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
