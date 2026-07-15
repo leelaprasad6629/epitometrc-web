@@ -121,17 +121,49 @@ const initialParsedResume: ParsedResume = {
   verifiedSkills: []
 };
 
-// Helper to save store state to backend API
-async function saveProfileToBackend(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
-  try {
-    await fetch("/api/student/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ profile, confidenceScores })
-    });
-  } catch (err) {
-    console.error("Failed to sync profile to server:", err);
+// Helper cookie read/write utilities
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return decodeURIComponent(parts.pop()?.split(";").shift() || "");
+  return null;
+}
+
+function setCookie(name: string, value: string, days = 365) {
+  if (typeof document === "undefined") return;
+  const date = new Date();
+  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+  const expires = `; expires=${date.toUTCString()}`;
+  document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Lax`;
+}
+
+function deleteCookie(name: string) {
+  if (typeof document === "undefined") return;
+  document.cookie = `${name}=; Max-Age=-99999999; path=/; SameSite=Lax`;
+}
+
+// Syncs details to secure client-side cookie database (split to avoid cookie size limit constraints)
+function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
+  if (typeof window === "undefined") return;
+  if (!profile) {
+    deleteCookie("student_profile_text");
+    deleteCookie("student_profile_confidence");
+    sessionStorage.removeItem("student_profile_image");
+    return;
   }
+
+  // Extract base64 image and save to sessionStorage (survives refreshes, doesn't bloat cookie limits)
+  if (profile.profileImage) {
+    sessionStorage.setItem("student_profile_image", profile.profileImage);
+  } else {
+    sessionStorage.removeItem("student_profile_image");
+  }
+
+  // Save the text fields to persistent 1-year cookies
+  const textProfile = { ...profile, profileImage: null };
+  setCookie("student_profile_text", JSON.stringify(textProfile));
+  setCookie("student_profile_confidence", JSON.stringify(confidenceScores));
 }
 
 export const useResumeStore = create<ResumeStore>((set, get) => ({
@@ -171,8 +203,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       const updatedVerified = Array.from(new Set([...currentVerified, ...parsedTech]));
       mergedDetails.verifiedSkills = updatedVerified;
 
-      // Sync updated data to server
-      saveProfileToBackend(mergedDetails, confidenceScores);
+      // Persist to browser storage
+      syncProfileToClientStorage(mergedDetails, confidenceScores);
 
       return {
         fileName,
@@ -191,8 +223,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         ? { ...state.parsedResumeDetails, ...details }
         : { ...initialParsedResume, ...details };
 
-      // Sync updated data to server
-      saveProfileToBackend(mergedDetails, get().confidenceScores);
+      // Persist to browser storage
+      syncProfileToClientStorage(mergedDetails, get().confidenceScores);
 
       return { parsedResumeDetails: mergedDetails };
     }),
@@ -203,8 +235,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   updateAnalysis: (analysis) => set({ ...analysis }),
 
   deleteResume: () => {
-    // Sync clear state to server
-    saveProfileToBackend(null, {});
+    syncProfileToClientStorage(null, {});
     set({
       fileName: null,
       fileBase64: null,
@@ -229,18 +260,29 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   },
 
   loadProfileFromServer: async () => {
+    if (typeof window === "undefined") return;
+
     try {
-      const res = await fetch("/api/student/profile");
-      const data = await res.json();
-      if (res.ok && data.success && data.profile) {
+      const textCookie = getCookie("student_profile_text");
+      const confidenceCookie = getCookie("student_profile_confidence");
+      const imageSession = sessionStorage.getItem("student_profile_image");
+
+      if (textCookie) {
+        const textProfile = JSON.parse(textCookie);
+        const confidence = confidenceCookie ? JSON.parse(confidenceCookie) : {};
+        
+        // Restore base64 image
+        textProfile.profileImage = imageSession || null;
+
         set({
-          parsedResumeDetails: data.profile,
-          confidenceScores: data.confidenceScores || {},
-          fileName: data.profile.fullName ? `${data.profile.fullName.replace(/\s+/g, "_")}_Profile` : null
+          parsedResumeDetails: textProfile,
+          confidenceScores: confidence,
+          fileName: textProfile.fullName ? `${textProfile.fullName.replace(/\s+/g, "_")}_Profile` : null,
+          verified: true
         });
       }
     } catch (err) {
-      console.error("Failed to load server profile:", err);
+      console.error("Failed to load local persistent cookies profile:", err);
     }
   }
 }));
