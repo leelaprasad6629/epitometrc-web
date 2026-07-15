@@ -32,11 +32,12 @@ export default function AIResumeCoachPage() {
 
     const roleName = selectedJobRole || "Software Developer";
     const userSkills = parsedResumeDetails.technicalSkills || [];
-    const summary = parsedResumeDetails.experience || "Dedicated software engineering student.";
+    const summary = parsedResumeDetails.bio || "Dedicated software engineering student.";
+    const projectsString = parsedResumeDetails.projects?.map(p => `${p.name}: ${p.description}`).join("\n\n") || "Worked on IT services dashboard configurations.";
 
     // Set initial optimized values
     setOptimizedSummary(summary);
-    setOptimizedProjects(parsedResumeDetails.projects || "Worked on IT services dashboard configurations.");
+    setOptimizedProjects(projectsString);
     setOptimizedSkills(userSkills);
 
     const initialSuggestions: CoachSuggestion[] = [
@@ -53,7 +54,7 @@ export default function AIResumeCoachPage() {
         id: "proj_01",
         category: "Project",
         title: "Quantify Accomplishments inside Projects",
-        original: parsedResumeDetails.projects || "Worked on IT services dashboard configurations.",
+        original: projectsString,
         suggested: "Architected a responsive data dashboard using Next.js and Tailwind CSS, reducing layout load latencies by 35% and streamlining candidate lead processing pipelines.",
         explanation: "Quantifying your impact ('reducing load latencies by 35%') makes the project description much more convincing to engineering managers.",
         status: "pending"
@@ -108,9 +109,10 @@ export default function AIResumeCoachPage() {
         if (s.id === id) {
           // Revert back to original state
           if (s.category === "Summary" && parsedResumeDetails) {
-            setOptimizedSummary(parsedResumeDetails.experience);
+            setOptimizedSummary(parsedResumeDetails.bio || "");
           } else if (s.category === "Project" && parsedResumeDetails) {
-            setOptimizedProjects(parsedResumeDetails.projects);
+            const formatted = parsedResumeDetails.projects?.map(p => `${p.name}: ${p.description}`).join("\n\n") || "";
+            setOptimizedProjects(formatted);
           } else if (s.category === "Skills" && parsedResumeDetails) {
             setOptimizedSkills(parsedResumeDetails.technicalSkills);
           }
@@ -126,10 +128,18 @@ export default function AIResumeCoachPage() {
     if (!parsedResumeDetails) return;
     setSaving(true);
 
+    const lines = optimizedProjects.split("\n\n").filter(Boolean);
+    const parsedProjectsList = lines.map(line => {
+      const parts = line.split(":");
+      const name = parts[0]?.trim() || "Project";
+      const description = parts.slice(1).join(":")?.trim() || "";
+      return { name, description, technologies: [] };
+    });
+
     setTimeout(() => {
       updateParsedDetails({
-        experience: optimizedSummary,
-        projects: optimizedProjects,
+        bio: optimizedSummary,
+        projects: parsedProjectsList,
         technicalSkills: optimizedSkills
       });
       setSaving(false);
@@ -336,7 +346,7 @@ ${optimizedSkills.join(", ")}
                 {parsedResumeDetails.fullName}
               </h3>
               <p className="text-[10.5px] text-slate-500 font-sans">
-                {parsedResumeDetails.email} • {parsedResumeDetails.phone} • {parsedResumeDetails.education}
+                {parsedResumeDetails.email} • {parsedResumeDetails.phone} • {parsedResumeDetails.education?.map(e => `${e.degree} (${e.institution})`).join(", ") || parsedResumeDetails.location}
               </p>
             </div>
 

@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Mail, Phone, MapPin, Globe, Edit3, Save, X, Camera, Plus, Trash, Check, AlertCircle, Info, Sparkles } from "lucide-react";
+import { User, Mail, Phone, MapPin, Globe, Edit3, Save, X, Camera, Plus, Trash, Check, AlertCircle, Info, Sparkles, BookOpen, Briefcase, Award, CheckCircle } from "lucide-react";
 import { FaLinkedin, FaGithub, FaHackerrank } from "react-icons/fa";
 import { SiLeetcode, SiCodechef, SiCodeforces } from "react-icons/si";
 import Image from "next/image";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
-import { useResumeStore, ParsedResume } from "@/lib/ai/store/resumeStore";
+import { useResumeStore, ParsedResume, EducationEntry, ExperienceEntry, ProjectEntry, CertificationEntry, InternshipEntry, AchievementEntry } from "@/lib/ai/store/resumeStore";
 import AIResumeMatchWidget from "@/components/ai/AIResumeMatchWidget";
 
 // Autocomplete dictionary of standard technical skills
@@ -64,11 +64,13 @@ export default function StudentProfilePage() {
   const [codechef, setCodechef] = useState("");
   const [codeforces, setCodeforces] = useState("");
 
-  const [education, setEducation] = useState("");
-  const [projects, setProjects] = useState("");
-  const [certifications, setCertifications] = useState("");
-  const [internships, setInternships] = useState("");
-  const [achievements, setAchievements] = useState("");
+  // Structured Lists States
+  const [educationList, setEducationList] = useState<EducationEntry[]>([]);
+  const [experienceList, setExperienceList] = useState<ExperienceEntry[]>([]);
+  const [projectsList, setProjectsList] = useState<ProjectEntry[]>([]);
+  const [certificationsList, setCertificationsList] = useState<CertificationEntry[]>([]);
+  const [internshipsList, setInternshipsList] = useState<InternshipEntry[]>([]);
+  const [achievementsList, setAchievementsList] = useState<AchievementEntry[]>([]);
 
   // Skills Autocomplete states
   const [skillSearch, setSkillSearch] = useState("");
@@ -80,7 +82,7 @@ export default function StudentProfilePage() {
     if (parsedResumeDetails) {
       setFullName(parsedResumeDetails.fullName || "");
       setHeadline(parsedResumeDetails.headline || "Apprentice Engineer");
-      setBio(parsedResumeDetails.experience || ""); // Biography
+      setBio(parsedResumeDetails.bio || ""); // Biography
       setEmail(parsedResumeDetails.email || "");
       setPhone(parsedResumeDetails.phone || "");
       setLocation(parsedResumeDetails.location || "");
@@ -95,19 +97,21 @@ export default function StudentProfilePage() {
       setCodechef(parsedResumeDetails.codechef || "");
       setCodeforces(parsedResumeDetails.codeforces || "");
 
-      setEducation(parsedResumeDetails.education || "");
-      setProjects(parsedResumeDetails.projects || "");
-      setCertifications(parsedResumeDetails.certifications || "");
-      setInternships(parsedResumeDetails.internships || "");
-      setAchievements(parsedResumeDetails.achievements || "");
+      // Initialize structured lists safely
+      setEducationList(parsedResumeDetails.education || []);
+      setExperienceList(parsedResumeDetails.experience || []);
+      setProjectsList(parsedResumeDetails.projects || []);
+      setCertificationsList(parsedResumeDetails.certifications || []);
+      setInternshipsList(parsedResumeDetails.internships || []);
+      setAchievementsList(parsedResumeDetails.achievements || []);
     }
   }, [parsedResumeDetails]);
 
-  // Highlight unsaved changes detection
+  // JSON string helper comparison to highlight unsaved changes accurately
   const hasChanges = parsedResumeDetails ? (
     fullName !== (parsedResumeDetails.fullName || "") ||
     headline !== (parsedResumeDetails.headline || "") ||
-    bio !== (parsedResumeDetails.experience || "") ||
+    bio !== (parsedResumeDetails.bio || "") ||
     email !== (parsedResumeDetails.email || "") ||
     phone !== (parsedResumeDetails.phone || "") ||
     location !== (parsedResumeDetails.location || "") ||
@@ -120,14 +124,15 @@ export default function StudentProfilePage() {
     hackerrank !== (parsedResumeDetails.hackerrank || "") ||
     codechef !== (parsedResumeDetails.codechef || "") ||
     codeforces !== (parsedResumeDetails.codeforces || "") ||
-    education !== (parsedResumeDetails.education || "") ||
-    projects !== (parsedResumeDetails.projects || "") ||
-    certifications !== (parsedResumeDetails.certifications || "") ||
-    internships !== (parsedResumeDetails.internships || "") ||
-    achievements !== (parsedResumeDetails.achievements || "")
+    JSON.stringify(educationList) !== JSON.stringify(parsedResumeDetails.education || []) ||
+    JSON.stringify(experienceList) !== JSON.stringify(parsedResumeDetails.experience || []) ||
+    JSON.stringify(projectsList) !== JSON.stringify(parsedResumeDetails.projects || []) ||
+    JSON.stringify(certificationsList) !== JSON.stringify(parsedResumeDetails.certifications || []) ||
+    JSON.stringify(internshipsList) !== JSON.stringify(parsedResumeDetails.internships || []) ||
+    JSON.stringify(achievementsList) !== JSON.stringify(parsedResumeDetails.achievements || [])
   ) : false;
 
-  // Prompt the user before leaving the page if there are unsaved edits
+  // Prompt before leaving the page if unsaved
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasChanges) {
@@ -155,7 +160,7 @@ export default function StudentProfilePage() {
     }
   }, [skillSearch, parsedResumeDetails?.verifiedSkills]);
 
-  // Profile Image Base64 Uploader Handler
+  // Profile Image Base64 Upload Handler
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -164,7 +169,6 @@ export default function StudentProfilePage() {
     reader.onload = (event) => {
       const base64 = event.target?.result?.toString() || null;
       setProfileImage(base64);
-      // Immediately save profile image to store
       updateParsedDetails({ profileImage: base64 });
       setSuccessMsg("Profile picture updated successfully!");
       setTimeout(() => setSuccessMsg(""), 3000);
@@ -196,7 +200,6 @@ export default function StudentProfilePage() {
     updateParsedDetails({ verifiedSkills: updated });
   };
 
-  // Add custom skill on Enter key
   const handleSkillKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && skillSearch.trim()) {
       e.preventDefault();
@@ -204,9 +207,69 @@ export default function StudentProfilePage() {
     }
   };
 
+  // Structured List Actions Helpers
+  const addEducationItem = () => {
+    setEducationList([...educationList, { institution: "", degree: "", year: "", location: "" }]);
+  };
+  const removeEducationItem = (idx: number) => {
+    setEducationList(educationList.filter((_, i) => i !== idx));
+  };
+  const updateEducationField = (idx: number, key: keyof EducationEntry, val: string) => {
+    setEducationList(educationList.map((item, i) => i === idx ? { ...item, [key]: val } : item));
+  };
+
+  const addExperienceItem = () => {
+    setExperienceList([...experienceList, { company: "", role: "", duration: "", description: "", location: "" }]);
+  };
+  const removeExperienceItem = (idx: number) => {
+    setExperienceList(experienceList.filter((_, i) => i !== idx));
+  };
+  const updateExperienceField = (idx: number, key: keyof ExperienceEntry, val: string) => {
+    setExperienceList(experienceList.map((item, i) => i === idx ? { ...item, [key]: val } : item));
+  };
+
+  const addProjectItem = () => {
+    setProjectsList([...projectsList, { name: "", description: "", technologies: [] }]);
+  };
+  const removeProjectItem = (idx: number) => {
+    setProjectsList(projectsList.filter((_, i) => i !== idx));
+  };
+  const updateProjectField = (idx: number, key: keyof ProjectEntry, val: any) => {
+    setProjectsList(projectsList.map((item, i) => i === idx ? { ...item, [key]: val } : item));
+  };
+
+  const addCertificationItem = () => {
+    setCertificationsList([...certificationsList, { name: "", issuer: "", year: "" }]);
+  };
+  const removeCertificationItem = (idx: number) => {
+    setCertificationsList(certificationsList.filter((_, i) => i !== idx));
+  };
+  const updateCertificationField = (idx: number, key: keyof CertificationEntry, val: string) => {
+    setCertificationsList(certificationsList.map((item, i) => i === idx ? { ...item, [key]: val } : item));
+  };
+
+  const addInternshipItem = () => {
+    setInternshipsList([...internshipsList, { company: "", role: "", duration: "", description: "" }]);
+  };
+  const removeInternshipItem = (idx: number) => {
+    setInternshipsList(internshipsList.filter((_, i) => i !== idx));
+  };
+  const updateInternshipField = (idx: number, key: keyof InternshipEntry, val: string) => {
+    setInternshipsList(internshipsList.map((item, i) => i === idx ? { ...item, [key]: val } : item));
+  };
+
+  const addAchievementItem = () => {
+    setAchievementsList([...achievementsList, { title: "", description: "" }]);
+  };
+  const removeAchievementItem = (idx: number) => {
+    setAchievementsList(achievementsList.filter((_, i) => i !== idx));
+  };
+  const updateAchievementField = (idx: number, key: keyof AchievementEntry, val: string) => {
+    setAchievementsList(achievementsList.map((item, i) => i === idx ? { ...item, [key]: val } : item));
+  };
+
   // Save profile modifications
   const handleSaveProfile = () => {
-    // 1. Validation checks
     const newErrors: Record<string, string> = {};
     if (!fullName.trim()) newErrors.fullName = "Full name is required.";
     if (!email.trim()) newErrors.email = "Email is required.";
@@ -233,11 +296,11 @@ export default function StudentProfilePage() {
       return;
     }
 
-    // 2. Commit to Zustand Store
+    // Save structured lists back to the store
     updateParsedDetails({
       fullName,
       headline,
-      experience: bio,
+      bio,
       email,
       phone,
       location,
@@ -249,11 +312,12 @@ export default function StudentProfilePage() {
       hackerrank,
       codechef,
       codeforces,
-      education,
-      projects,
-      certifications,
-      internships,
-      achievements
+      education: educationList,
+      experience: experienceList,
+      projects: projectsList,
+      certifications: certificationsList,
+      internships: internshipsList,
+      achievements: achievementsList
     });
 
     setErrors({});
@@ -267,7 +331,7 @@ export default function StudentProfilePage() {
     if (parsedResumeDetails) {
       setFullName(parsedResumeDetails.fullName || "");
       setHeadline(parsedResumeDetails.headline || "Apprentice Engineer");
-      setBio(parsedResumeDetails.experience || "");
+      setBio(parsedResumeDetails.bio || "");
       setEmail(parsedResumeDetails.email || "");
       setPhone(parsedResumeDetails.phone || "");
       setLocation(parsedResumeDetails.location || "");
@@ -282,11 +346,12 @@ export default function StudentProfilePage() {
       setCodechef(parsedResumeDetails.codechef || "");
       setCodeforces(parsedResumeDetails.codeforces || "");
 
-      setEducation(parsedResumeDetails.education || "");
-      setProjects(parsedResumeDetails.projects || "");
-      setCertifications(parsedResumeDetails.certifications || "");
-      setInternships(parsedResumeDetails.internships || "");
-      setAchievements(parsedResumeDetails.achievements || "");
+      setEducationList(parsedResumeDetails.education || []);
+      setExperienceList(parsedResumeDetails.experience || []);
+      setProjectsList(parsedResumeDetails.projects || []);
+      setCertificationsList(parsedResumeDetails.certifications || []);
+      setInternshipsList(parsedResumeDetails.internships || []);
+      setAchievementsList(parsedResumeDetails.achievements || []);
     }
     setErrors({});
     setIsEditing(false);
@@ -361,7 +426,7 @@ export default function StudentProfilePage() {
           {/* Main Info Card */}
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-6 relative overflow-hidden">
             <div className="flex flex-col sm:flex-row gap-5 items-center">
-              {/* Profile Image with Upload/Remove actions */}
+              {/* Profile Image */}
               <div className="relative h-20 w-20 rounded-full border-2 border-slate-100 overflow-hidden group">
                 <Image
                   src={activeAvatar}
@@ -371,7 +436,6 @@ export default function StudentProfilePage() {
                   sizes="80px"
                 />
                 
-                {/* Photo overlay triggers */}
                 <div className="absolute inset-0 bg-[#0b172a]/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 cursor-pointer">
                   <label className="cursor-pointer text-white flex flex-col items-center">
                     <Camera className="h-4 w-4" />
@@ -478,97 +542,335 @@ export default function StudentProfilePage() {
             </div>
           </div>
 
-          {/* Education, Experience & Projects Details */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-5">
+          {/* Education, Experience & Projects List Details */}
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-6">
             <h2 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider border-b border-slate-50 pb-2">
               Background & History Details
             </h2>
 
-            {isEditing ? (
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Education</label>
-                  <input
-                    type="text"
-                    value={education}
-                    onChange={(e) => setEducation(e.target.value)}
-                    className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 text-xs"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Projects Summary</label>
-                  <textarea
-                    value={projects}
-                    onChange={(e) => setProjects(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 p-2.5 text-slate-600 h-14 outline-none text-xs bg-white focus:border-orange-500 resize-none font-sans"
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Certifications</label>
-                    <input
-                      type="text"
-                      value={certifications}
-                      onChange={(e) => setCertifications(e.target.value)}
-                      className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Internships</label>
-                    <input
-                      type="text"
-                      value={internships}
-                      onChange={(e) => setInternships(e.target.value)}
-                      className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 text-xs"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Achievements</label>
-                  <input
-                    type="text"
-                    value={achievements}
-                    onChange={(e) => setAchievements(e.target.value)}
-                    className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 text-xs"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {education && (
-                  <div className="space-y-1 text-left">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Education</span>
-                    <p className="text-slate-600 font-sans font-medium">{education}</p>
-                  </div>
-                )}
-                {projects && (
-                  <div className="space-y-1 text-left">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Projects</span>
-                    <p className="text-slate-600 font-sans font-medium">{projects}</p>
-                  </div>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {certifications && (
-                    <div className="space-y-1 text-left">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Certifications</span>
-                      <p className="text-slate-600 font-sans font-medium">{certifications}</p>
-                    </div>
-                  )}
-                  {internships && (
-                    <div className="space-y-1 text-left">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Internships</span>
-                      <p className="text-slate-600 font-sans font-medium">{internships}</p>
-                    </div>
-                  )}
-                </div>
-                {achievements && (
-                  <div className="space-y-1 text-left">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Achievements</span>
-                    <p className="text-slate-600 font-sans font-medium">{achievements}</p>
-                  </div>
+            {/* Education Section */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-slate-700 flex items-center gap-1.5 uppercase text-[10px]">
+                  <BookOpen className="h-4 w-4 text-orange-500" /> Education History
+                </h3>
+                {isEditing && (
+                  <button onClick={addEducationItem} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5">
+                    <Plus className="h-3.5 w-3.5" /> Add
+                  </button>
                 )}
               </div>
-            )}
+
+              <div className="space-y-3">
+                {educationList.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-slate-50/50 border border-slate-100 rounded-xl space-y-2">
+                    {isEditing ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <Input
+                          placeholder="Institution Name"
+                          value={item.institution}
+                          onChange={(e) => updateEducationField(idx, "institution", e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                        <Input
+                          placeholder="Degree / Program"
+                          value={item.degree}
+                          onChange={(e) => updateEducationField(idx, "degree", e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                        <Input
+                          placeholder="Graduation Year"
+                          value={item.year}
+                          onChange={(e) => updateEducationField(idx, "year", e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                        <div className="flex gap-1.5 items-center">
+                          <Input
+                            placeholder="Location"
+                            value={item.location}
+                            onChange={(e) => updateEducationField(idx, "location", e.target.value)}
+                            className="h-8 text-xs flex-1"
+                          />
+                          <button onClick={() => removeEducationItem(idx)} className="text-red-500 hover:text-red-600 p-1">
+                            <Trash className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-0.5">
+                          <h4 className="font-bold text-slate-700 text-xs">{item.degree || "Degree Detail"}</h4>
+                          <p className="text-[10.5px] text-slate-500 font-medium font-sans">{item.institution}</p>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-bold font-sans">
+                          {item.year} {item.location && `• ${item.location}`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {educationList.length === 0 && (
+                  <p className="text-slate-400 italic text-[10px]">No education details listed.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Experience Section */}
+            <div className="space-y-3 pt-2">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-slate-700 flex items-center gap-1.5 uppercase text-[10px]">
+                  <Briefcase className="h-4 w-4 text-orange-500" /> Professional Experience
+                </h3>
+                {isEditing && (
+                  <button onClick={addExperienceItem} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5">
+                    <Plus className="h-3.5 w-3.5" /> Add
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {experienceList.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-slate-50/50 border border-slate-100 rounded-xl space-y-2">
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <Input
+                            placeholder="Company Name"
+                            value={item.company}
+                            onChange={(e) => updateExperienceField(idx, "company", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Job Role / Title"
+                            value={item.role}
+                            onChange={(e) => updateExperienceField(idx, "role", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Duration (e.g. 2022 - 2024)"
+                            value={item.duration}
+                            onChange={(e) => updateExperienceField(idx, "duration", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Location"
+                            value={item.location}
+                            onChange={(e) => updateExperienceField(idx, "location", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="flex gap-1.5 items-start">
+                          <textarea
+                            placeholder="Responsibilities / Accomplishments"
+                            value={item.description}
+                            onChange={(e) => updateExperienceField(idx, "description", e.target.value)}
+                            className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-600 h-14 resize-none outline-none font-sans"
+                          />
+                          <button onClick={() => removeExperienceItem(idx)} className="text-red-500 hover:text-red-600 p-1 mt-1">
+                            <Trash className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-0.5">
+                            <h4 className="font-bold text-slate-700 text-xs">{item.role || "Job Role"}</h4>
+                            <p className="text-[10.5px] text-slate-500 font-medium font-sans">{item.company}</p>
+                          </div>
+                          <span className="text-[10px] text-slate-400 font-bold font-sans">
+                            {item.duration} {item.location && `• ${item.location}`}
+                          </span>
+                        </div>
+                        <p className="text-slate-500 font-sans leading-relaxed text-[10.5px]">{item.description}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {experienceList.length === 0 && (
+                  <p className="text-slate-400 italic text-[10px]">No professional experience listed.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Projects Section */}
+            <div className="space-y-3 pt-2">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-slate-700 flex items-center gap-1.5 uppercase text-[10px]">
+                  <Globe className="h-4 w-4 text-orange-500" /> Projects Portfolio
+                </h3>
+                {isEditing && (
+                  <button onClick={addProjectItem} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5">
+                    <Plus className="h-3.5 w-3.5" /> Add
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {projectsList.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-slate-50/50 border border-slate-100 rounded-xl space-y-2">
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <Input
+                            placeholder="Project Name"
+                            value={item.name}
+                            onChange={(e) => updateProjectField(idx, "name", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Technologies (comma-separated)"
+                            value={item.technologies?.join(", ") || ""}
+                            onChange={(e) => updateProjectField(idx, "technologies", e.target.value.split(",").map(t => t.trim()).filter(Boolean))}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="flex gap-1.5 items-start">
+                          <textarea
+                            placeholder="Project Description"
+                            value={item.description}
+                            onChange={(e) => updateProjectField(idx, "description", e.target.value)}
+                            className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-600 h-14 resize-none outline-none font-sans"
+                          />
+                          <button onClick={() => removeProjectItem(idx)} className="text-red-500 hover:text-red-600 p-1 mt-1">
+                            <Trash className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-bold text-slate-700 text-xs">{item.name || "Project Name"}</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {item.technologies?.map((tech, i) => (
+                              <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 text-[8px] font-bold text-slate-500">
+                                {tech}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-slate-500 font-sans leading-relaxed text-[10.5px]">{item.description}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {projectsList.length === 0 && (
+                  <p className="text-slate-400 italic text-[10px]">No projects listed.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Certifications, Internships & Achievements Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              {/* Certifications */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center border-b border-slate-50 pb-1">
+                  <h3 className="font-bold text-slate-700 flex items-center gap-1.5 uppercase text-[9.5px]">
+                    <Award className="h-3.5 w-3.5 text-orange-500" /> Certifications
+                  </h3>
+                  {isEditing && (
+                    <button onClick={addCertificationItem} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5">
+                      <Plus className="h-3 w-3" /> Add
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  {certificationsList.map((item, idx) => (
+                    <div key={idx} className="p-2.5 bg-slate-50/50 border border-slate-100 rounded-lg">
+                      {isEditing ? (
+                        <div className="grid grid-cols-1 gap-1.5">
+                          <Input
+                            placeholder="Cert Name"
+                            value={item.name}
+                            onChange={(e) => updateCertificationField(idx, "name", e.target.value)}
+                            className="h-7 text-[10.5px]"
+                          />
+                          <Input
+                            placeholder="Issuer"
+                            value={item.issuer}
+                            onChange={(e) => updateCertificationField(idx, "issuer", e.target.value)}
+                            className="h-7 text-[10.5px]"
+                          />
+                          <div className="flex gap-1 items-center">
+                            <Input
+                              placeholder="Year"
+                              value={item.year}
+                              onChange={(e) => updateCertificationField(idx, "year", e.target.value)}
+                              className="h-7 text-[10.5px] flex-1"
+                            />
+                            <button onClick={() => removeCertificationItem(idx)} className="text-red-500 p-1">
+                              <Trash className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-start text-[10px]">
+                          <div className="space-y-0.5">
+                            <h5 className="font-bold text-slate-700">{item.name}</h5>
+                            <p className="text-slate-400 font-medium font-sans">{item.issuer}</p>
+                          </div>
+                          <span className="text-slate-400 font-bold font-sans">{item.year}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {certificationsList.length === 0 && (
+                    <p className="text-slate-400 italic text-[9px]">None listed.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Achievements */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center border-b border-slate-50 pb-1">
+                  <h3 className="font-bold text-slate-700 flex items-center gap-1.5 uppercase text-[9.5px]">
+                    <CheckCircle className="h-3.5 w-3.5 text-orange-500" /> Achievements
+                  </h3>
+                  {isEditing && (
+                    <button onClick={addAchievementItem} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5">
+                      <Plus className="h-3 w-3" /> Add
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  {achievementsList.map((item, idx) => (
+                    <div key={idx} className="p-2.5 bg-slate-50/50 border border-slate-100 rounded-lg">
+                      {isEditing ? (
+                        <div className="space-y-1.5">
+                          <Input
+                            placeholder="Title"
+                            value={item.title}
+                            onChange={(e) => updateAchievementField(idx, "title", e.target.value)}
+                            className="h-7 text-[10.5px]"
+                          />
+                          <div className="flex gap-1 items-start">
+                            <textarea
+                              placeholder="Description"
+                              value={item.description}
+                              onChange={(e) => updateAchievementField(idx, "description", e.target.value)}
+                              className="w-full rounded-lg border border-slate-200 p-1.5 text-[10.5px] text-slate-600 h-10 resize-none outline-none font-sans"
+                            />
+                            <button onClick={() => removeAchievementItem(idx)} className="text-red-500 p-1">
+                              <Trash className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-[10px]">
+                          <h5 className="font-bold text-slate-700">{item.title}</h5>
+                          <p className="text-slate-400 font-sans leading-normal">{item.description}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {achievementsList.length === 0 && (
+                    <p className="text-slate-400 italic text-[9px]">None listed.</p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* AI Resume Match Widget */}
@@ -605,7 +907,7 @@ export default function StudentProfilePage() {
               )}
             </div>
 
-            {/* Autocomplete Input dropdown wrapper */}
+            {/* Autocomplete Input */}
             <div className="relative pt-2 border-t border-slate-50 space-y-1">
               <div className="flex gap-2">
                 <Input
@@ -618,7 +920,6 @@ export default function StudentProfilePage() {
                 />
               </div>
 
-              {/* suggestions list overlay */}
               {showSuggestions && skillSuggestions.length > 0 && (
                 <div className="absolute left-0 right-0 z-20 mt-1 max-h-40 overflow-y-auto rounded-xl border border-slate-100 bg-white shadow-lg divide-y divide-slate-50">
                   {skillSuggestions.map((suggestion) => (
@@ -717,7 +1018,6 @@ export default function StudentProfilePage() {
               </div>
             ) : (
               <div className="space-y-2.5">
-                {/* LinkedIn */}
                 {linkedin && (
                   <a href={linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-xl border border-slate-50 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-2.5">
@@ -728,7 +1028,6 @@ export default function StudentProfilePage() {
                   </a>
                 )}
 
-                {/* GitHub */}
                 {github && (
                   <a href={github} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-xl border border-slate-50 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-2.5">
@@ -739,7 +1038,6 @@ export default function StudentProfilePage() {
                   </a>
                 )}
 
-                {/* Portfolio */}
                 {portfolioWebsite && (
                   <a href={portfolioWebsite} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-xl border border-slate-50 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-2.5">
@@ -750,7 +1048,6 @@ export default function StudentProfilePage() {
                   </a>
                 )}
 
-                {/* LeetCode */}
                 {leetcode && (
                   <a href={leetcode} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-xl border border-slate-50 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-2.5">
@@ -761,7 +1058,6 @@ export default function StudentProfilePage() {
                   </a>
                 )}
 
-                {/* HackerRank */}
                 {hackerrank && (
                   <a href={hackerrank} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-xl border border-slate-50 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-2.5">
@@ -772,7 +1068,6 @@ export default function StudentProfilePage() {
                   </a>
                 )}
 
-                {/* Codeforces */}
                 {codeforces && (
                   <a href={codeforces} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-xl border border-slate-50 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-2.5">

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, CheckCircle2, AlertTriangle, Lightbulb, FileText, Upload, User, Mail, Phone, BookOpen, Briefcase, Trash2, RefreshCw, Globe, Award, ShieldAlert, Check } from "lucide-react";
+import { Sparkles, CheckCircle2, AlertTriangle, Lightbulb, FileText, Upload, User, Mail, Phone, BookOpen, Briefcase, Trash2, RefreshCw, Globe, Award, ShieldAlert, Check, Plus, Trash, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useResumeStore, ParsedResume } from "@/lib/ai/store/resumeStore";
+import { useResumeStore, ParsedResume, EducationEntry, ExperienceEntry, ProjectEntry, CertificationEntry, InternshipEntry, AchievementEntry } from "@/lib/ai/store/resumeStore";
+import { Input } from "@/components/ui/input";
 
-// Role Skills Mapping Configuration (Must-Have vs Preferred)
+// Role Skills Mapping Configuration
 const ROLE_SKILLS_MAP: Record<string, { mustHave: string[]; preferred: string[] }> = {
   "Full Stack Developer": {
     mustHave: ["javascript", "react", "node.js", "express", "sql", "git"],
@@ -62,10 +63,6 @@ export default function AIResumeMatchWidget() {
     loadProfileFromServer
   } = useResumeStore();
 
-  useEffect(() => {
-    loadProfileFromServer();
-  }, [loadProfileFromServer]);
-
   const [activeTab, setActiveTab] = useState<"details" | "analytics">("details");
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -73,11 +70,14 @@ export default function AIResumeMatchWidget() {
   const [verifiedSaved, setVerifiedSaved] = useState(false);
   const [reviewingSkills, setReviewingSkills] = useState(false);
 
-  // Trigger Programmatic Deterministic Matching Analysis
+  useEffect(() => {
+    loadProfileFromServer();
+  }, [loadProfileFromServer]);
+
+  // Trigger Programmatic Matching Analysis
   const runProgrammaticAnalysis = async (currentDetails: ParsedResume, role: string) => {
     setAnalyzing(true);
     try {
-      // 1. Calculate section completeness metric (based on standard 21 sections)
       const fields = [
         currentDetails.fullName,
         currentDetails.email,
@@ -86,34 +86,43 @@ export default function AIResumeMatchWidget() {
         currentDetails.linkedin,
         currentDetails.github,
         currentDetails.portfolioWebsite,
-        currentDetails.education,
-        currentDetails.experience,
-        currentDetails.projects,
-        currentDetails.certifications,
+        currentDetails.education?.length > 0 ? "edu" : "",
+        currentDetails.experience?.length > 0 ? "exp" : "",
+        currentDetails.projects?.length > 0 ? "proj" : "",
+        currentDetails.certifications?.length > 0 ? "cert" : "",
         currentDetails.technicalSkills?.length > 0 ? "tech" : "",
         currentDetails.softSkills?.length > 0 ? "soft" : "",
+        currentDetails.bio ? "bio" : "",
         currentDetails.programmingLanguages?.length > 0 ? "langs" : "",
+        currentDetails.frontend?.length > 0 ? "front" : "",
+        currentDetails.backend?.length > 0 ? "back" : "",
         currentDetails.frameworks?.length > 0 ? "frames" : "",
-        currentDetails.libraries?.length > 0 ? "libs" : "",
         currentDetails.databases?.length > 0 ? "dbs" : "",
-        currentDetails.cloudTechnologies?.length > 0 ? "clouds" : "",
-        currentDetails.developerTools?.length > 0 ? "tools" : "",
-        currentDetails.achievements,
-        currentDetails.internships
+        currentDetails.cloud?.length > 0 ? "clouds" : "",
+        currentDetails.devops?.length > 0 ? "devops" : "",
+        currentDetails.testing?.length > 0 ? "test" : "",
+        currentDetails.mobile?.length > 0 ? "mobile" : "",
+        currentDetails.aiml?.length > 0 ? "aiml" : "",
+        currentDetails.achievements?.length > 0 ? "achieve" : "",
+        currentDetails.internships?.length > 0 ? "intern" : ""
       ].filter(Boolean);
       
-      const completenessVal = Math.round((fields.length / 21) * 100);
+      const completenessVal = Math.round((fields.length / 26) * 100);
 
-      // 2. Programmatic Skill Match
+      // Programmatic Skill Match
       const requirements = ROLE_SKILLS_MAP[role] || { mustHave: [], preferred: [] };
       const allUserSkills = [
         ...(currentDetails.technicalSkills || []),
         ...(currentDetails.programmingLanguages || []),
+        ...(currentDetails.frontend || []),
+        ...(currentDetails.backend || []),
         ...(currentDetails.frameworks || []),
-        ...(currentDetails.libraries || []),
         ...(currentDetails.databases || []),
-        ...(currentDetails.cloudTechnologies || []),
-        ...(currentDetails.developerTools || [])
+        ...(currentDetails.cloud || []),
+        ...(currentDetails.devops || []),
+        ...(currentDetails.testing || []),
+        ...(currentDetails.mobile || []),
+        ...(currentDetails.aiml || [])
       ].map(s => s.trim().toLowerCase());
 
       const matchedMustHave = requirements.mustHave.filter(s => allUserSkills.includes(s));
@@ -126,7 +135,6 @@ export default function AIResumeMatchWidget() {
         ? Math.round((totalMatched / totalRequired) * 100)
         : 0;
 
-      // 3. Programmatic Score Weights (Must-Have 70%, Preferred 30%, completeness modifier)
       const mustHaveScore = requirements.mustHave.length > 0 ? (matchedMustHave.length / requirements.mustHave.length) * 70 : 0;
       const preferredScore = requirements.preferred.length > 0 ? (matchedPreferred.length / requirements.preferred.length) * 30 : 0;
       
@@ -138,7 +146,7 @@ export default function AIResumeMatchWidget() {
         .filter(s => !allUserSkills.includes(s))
         .map(s => s.toUpperCase());
 
-      // 4. Fetch dynamic strategic insights from analysis API
+      // Fetch dynamic insights
       const res = await fetch("/api/ai/resume-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -178,7 +186,7 @@ export default function AIResumeMatchWidget() {
     }
   };
 
-  // Re-run matching analysis whenever selected job role changes (if already verified)
+  // Re-run matching analysis on selected job role changes (if verified)
   useEffect(() => {
     if (parsedResumeDetails && verified) {
       runProgrammaticAnalysis(parsedResumeDetails, selectedJobRole);
@@ -225,21 +233,18 @@ export default function AIResumeMatchWidget() {
     reader.readAsDataURL(file);
   };
 
-  // Student manual edits verification check & save details action
   const handleVerifyAndSave = () => {
     if (!parsedResumeDetails) return;
     setVerified(true);
     setVerifiedSaved(true);
     runProgrammaticAnalysis(parsedResumeDetails, selectedJobRole);
     
-    // Auto shift to analysis report tab to showcase the scores
     setTimeout(() => {
       setActiveTab("analytics");
       setVerifiedSaved(false);
     }, 1200);
   };
 
-  // Circular Score ring progress loader component
   const CircularProgress = ({ value, label, colorClass }: { value: number; label: string; colorClass: string }) => {
     const radius = 22;
     const circumference = 2 * Math.PI * radius;
@@ -266,26 +271,41 @@ export default function AIResumeMatchWidget() {
     );
   };
 
-  // Confidence Score badge helper
-  const renderConfidenceBadge = (field: string) => {
+  // Status Badge System Renderer based on type and score
+  const renderStatusBadge = (field: string, type: "deterministic" | "structured" | "ai") => {
+    if (type === "ai") {
+      return (
+        <span className="text-[9px] font-black text-blue-600 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
+          <Info className="h-3 w-3" /> AI Generated – Review Recommended
+        </span>
+      );
+    }
+
     const score = confidenceScores?.[field] ?? 0;
-    if (score === 0) {
+    
+    // Check if empty
+    const value = (parsedResumeDetails as any)?.[field];
+    const isEmpty = !value || (Array.isArray(value) && value.length === 0);
+    
+    if (score === 0 || isEmpty) {
       return (
         <span className="text-[9px] font-black text-red-500 bg-red-50 border border-red-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
-          <AlertTriangle className="h-3 w-3" /> low confidence review required
+          <ShieldAlert className="h-3 w-3" /> Missing Information
         </span>
       );
     }
-    if (score < 80) {
+    
+    if (score < 90) {
       return (
-        <span className="text-[9px] font-black text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5 ml-2 inline-flex">
-          {score}% Confidence
+        <span className="text-[9px] font-black text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
+          <AlertTriangle className="h-3 w-3" /> Needs Review ({score}%)
         </span>
       );
     }
+
     return (
-      <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 rounded px-1.5 py-0.5 ml-2 inline-flex">
-        {score}% Confidence
+      <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
+        <CheckCircle2 className="h-3 w-3" /> Verified
       </span>
     );
   };
@@ -300,6 +320,46 @@ export default function AIResumeMatchWidget() {
     const updated = Array.from(new Set([...verifiedSkillsList, ...missingSkillsInProfile]));
     updateParsedDetails({ verifiedSkills: updated });
     setReviewingSkills(false);
+  };
+
+  // List Modification Handlers
+  const addEducation = () => {
+    const list = parsedResumeDetails?.education || [];
+    updateParsedDetails({ education: [...list, { institution: "", degree: "", year: "", location: "" }] });
+  };
+  const removeEducation = (idx: number) => {
+    const list = parsedResumeDetails?.education || [];
+    updateParsedDetails({ education: list.filter((_, i) => i !== idx) });
+  };
+  const editEducation = (idx: number, key: keyof EducationEntry, val: string) => {
+    const list = parsedResumeDetails?.education || [];
+    updateParsedDetails({ education: list.map((item, i) => i === idx ? { ...item, [key]: val } : item) });
+  };
+
+  const addExperience = () => {
+    const list = parsedResumeDetails?.experience || [];
+    updateParsedDetails({ experience: [...list, { company: "", role: "", duration: "", description: "", location: "" }] });
+  };
+  const removeExperience = (idx: number) => {
+    const list = parsedResumeDetails?.experience || [];
+    updateParsedDetails({ experience: list.filter((_, i) => i !== idx) });
+  };
+  const editExperience = (idx: number, key: keyof ExperienceEntry, val: string) => {
+    const list = parsedResumeDetails?.experience || [];
+    updateParsedDetails({ experience: list.map((item, i) => i === idx ? { ...item, [key]: val } : item) });
+  };
+
+  const addProject = () => {
+    const list = parsedResumeDetails?.projects || [];
+    updateParsedDetails({ projects: [...list, { name: "", description: "", technologies: [] }] });
+  };
+  const removeProject = (idx: number) => {
+    const list = parsedResumeDetails?.projects || [];
+    updateParsedDetails({ projects: list.filter((_, i) => i !== idx) });
+  };
+  const editProject = (idx: number, key: keyof ProjectEntry, val: any) => {
+    const list = parsedResumeDetails?.projects || [];
+    updateParsedDetails({ projects: list.map((item, i) => i === idx ? { ...item, [key]: val } : item) });
   };
 
   return (
@@ -462,7 +522,7 @@ export default function AIResumeMatchWidget() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Full Name {renderConfidenceBadge("fullName")}
+                        Full Name {renderStatusBadge("fullName", "deterministic")}
                       </label>
                       <input
                         type="text"
@@ -473,7 +533,7 @@ export default function AIResumeMatchWidget() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Email Address {renderConfidenceBadge("email")}
+                        Email Address {renderStatusBadge("email", "deterministic")}
                       </label>
                       <input
                         type="email"
@@ -484,7 +544,7 @@ export default function AIResumeMatchWidget() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Phone Number {renderConfidenceBadge("phone")}
+                        Phone Number {renderStatusBadge("phone", "deterministic")}
                       </label>
                       <input
                         type="text"
@@ -495,7 +555,7 @@ export default function AIResumeMatchWidget() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Location {renderConfidenceBadge("location")}
+                        Location {renderStatusBadge("location", "deterministic")}
                       </label>
                       <input
                         type="text"
@@ -513,7 +573,7 @@ export default function AIResumeMatchWidget() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        LinkedIn {renderConfidenceBadge("linkedin")}
+                        LinkedIn {renderStatusBadge("linkedin", "deterministic")}
                       </label>
                       <input
                         type="text"
@@ -524,7 +584,7 @@ export default function AIResumeMatchWidget() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        GitHub {renderConfidenceBadge("github")}
+                        GitHub {renderStatusBadge("github", "deterministic")}
                       </label>
                       <input
                         type="text"
@@ -535,7 +595,7 @@ export default function AIResumeMatchWidget() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Portfolio URL {renderConfidenceBadge("portfolioWebsite")}
+                        Portfolio URL {renderStatusBadge("portfolioWebsite", "deterministic")}
                       </label>
                       <input
                         type="text"
@@ -546,83 +606,166 @@ export default function AIResumeMatchWidget() {
                     </div>
                   </div>
 
+                  {/* Summary Profile Bio */}
                   <h3 className="font-bold text-slate-700 flex items-center gap-1.5 border-b border-slate-50 pb-2 pt-2">
-                    <BookOpen className="h-4.5 w-4.5 text-orange-500" /> Resume Sections
+                    <BookOpen className="h-4.5 w-4.5 text-orange-500" /> Summary Biography
                   </h3>
-
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Education History {renderConfidenceBadge("education")}
-                      </label>
-                      <input
-                        type="text"
-                        value={parsedResumeDetails.education}
-                        onChange={(e) => updateParsedDetails({ education: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Experience Details {renderConfidenceBadge("experience")}
-                      </label>
-                      <textarea
-                        value={parsedResumeDetails.experience}
-                        onChange={(e) => updateParsedDetails({ experience: e.target.value })}
-                        className="w-full rounded-lg border border-slate-200 p-2.5 text-slate-600 h-14 outline-none text-xs bg-white focus:border-orange-500 resize-none font-sans"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Projects Summary {renderConfidenceBadge("projects")}
-                      </label>
-                      <textarea
-                        value={parsedResumeDetails.projects}
-                        onChange={(e) => updateParsedDetails({ projects: e.target.value })}
-                        className="w-full rounded-lg border border-slate-200 p-2.5 text-slate-600 h-14 outline-none text-xs bg-white focus:border-orange-500 resize-none font-sans"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                          Certifications {renderConfidenceBadge("certifications")}
-                        </label>
-                        <input
-                          type="text"
-                          value={parsedResumeDetails.certifications}
-                          onChange={(e) => updateParsedDetails({ certifications: e.target.value })}
-                          className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Internships</label>
-                        <input
-                          type="text"
-                          value={parsedResumeDetails.internships}
-                          onChange={(e) => updateParsedDetails({ internships: e.target.value })}
-                          className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Achievements</label>
-                        <input
-                          type="text"
-                          value={parsedResumeDetails.achievements}
-                          onChange={(e) => updateParsedDetails({ achievements: e.target.value })}
-                          className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-600 outline-none text-xs bg-white focus:border-orange-500"
-                        />
-                      </div>
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                      Summary Biography {renderStatusBadge("bio", "ai")}
+                    </label>
+                    <textarea
+                      value={parsedResumeDetails.bio}
+                      onChange={(e) => updateParsedDetails({ bio: e.target.value })}
+                      className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-600 h-16 resize-none outline-none font-sans bg-white focus:border-orange-500"
+                    />
                   </div>
 
-                  <h3 className="font-bold text-slate-700 flex items-center gap-1.5 border-b border-slate-50 pb-2 pt-2">
-                    <Award className="h-4.5 w-4.5 text-orange-500" /> Dynamic Technical Skills
+                  <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
+                    <span className="flex items-center gap-1.5">
+                      <BookOpen className="h-4.5 w-4.5 text-orange-500" /> Education History {renderStatusBadge("education", "structured")}
+                    </span>
+                    <button onClick={addEducation} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[10px]">
+                      <Plus className="h-3.5 w-3.5" /> Add
+                    </button>
+                  </h3>
+
+                  <div className="space-y-3.5">
+                    {parsedResumeDetails.education?.map((item, idx) => (
+                      <div key={idx} className="p-3 border border-slate-200 rounded-xl space-y-2 relative bg-white">
+                        <button onClick={() => removeEducation(idx)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">
+                          <Trash className="h-3.5 w-3.5" />
+                        </button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6">
+                          <Input
+                            placeholder="Institution"
+                            value={item.institution}
+                            onChange={(e) => editEducation(idx, "institution", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Degree"
+                            value={item.degree}
+                            onChange={(e) => editEducation(idx, "degree", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Year"
+                            value={item.year}
+                            onChange={(e) => editEducation(idx, "year", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Location"
+                            value={item.location}
+                            onChange={(e) => editEducation(idx, "location", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
+                    <span className="flex items-center gap-1.5">
+                      <Briefcase className="h-4.5 w-4.5 text-orange-500" /> Work Experience {renderStatusBadge("experience", "structured")}
+                    </span>
+                    <button onClick={addExperience} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[10px]">
+                      <Plus className="h-3.5 w-3.5" /> Add
+                    </button>
+                  </h3>
+
+                  <div className="space-y-3.5">
+                    {parsedResumeDetails.experience?.map((item, idx) => (
+                      <div key={idx} className="p-3 border border-slate-200 rounded-xl space-y-2 relative bg-white">
+                        <button onClick={() => removeExperience(idx)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">
+                          <Trash className="h-3.5 w-3.5" />
+                        </button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6">
+                          <Input
+                            placeholder="Company"
+                            value={item.company}
+                            onChange={(e) => editExperience(idx, "company", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Role"
+                            value={item.role}
+                            onChange={(e) => editExperience(idx, "role", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Duration"
+                            value={item.duration}
+                            onChange={(e) => editExperience(idx, "duration", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Location"
+                            value={item.location}
+                            onChange={(e) => editExperience(idx, "location", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <textarea
+                          placeholder="Accomplishments Description"
+                          value={item.description}
+                          onChange={(e) => editExperience(idx, "description", e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-600 h-14 resize-none outline-none font-sans"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
+                    <span className="flex items-center gap-1.5">
+                      <Globe className="h-4.5 w-4.5 text-orange-500" /> Projects Portfolio {renderStatusBadge("projects", "structured")}
+                    </span>
+                    <button onClick={addProject} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[10px]">
+                      <Plus className="h-3.5 w-3.5" /> Add
+                    </button>
+                  </h3>
+
+                  <div className="space-y-3.5">
+                    {parsedResumeDetails.projects?.map((item, idx) => (
+                      <div key={idx} className="p-3 border border-slate-200 rounded-xl space-y-2 relative bg-white">
+                        <button onClick={() => removeProject(idx)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">
+                          <Trash className="h-3.5 w-3.5" />
+                        </button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6">
+                          <Input
+                            placeholder="Project Name"
+                            value={item.name}
+                            onChange={(e) => editProject(idx, "name", e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Technologies (comma-separated)"
+                            value={item.technologies?.join(", ") || ""}
+                            onChange={(e) => editProject(idx, "technologies", e.target.value.split(",").map(t => t.trim()).filter(Boolean))}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <textarea
+                          placeholder="Project Description"
+                          value={item.description}
+                          onChange={(e) => editProject(idx, "description", e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-600 h-14 resize-none outline-none font-sans"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
+                    <span className="flex items-center gap-1.5">
+                      <Award className="h-4.5 w-4.5 text-orange-500" /> Technical Skills {renderStatusBadge("technicalSkills", "deterministic")}
+                    </span>
                   </h3>
 
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Technical Skills (comma-separated) {renderConfidenceBadge("technicalSkills")}
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        Technical Skills (comma-separated)
                       </label>
                       <input
                         type="text"
@@ -660,7 +803,6 @@ export default function AIResumeMatchWidget() {
                 exit={{ opacity: 0, y: -5 }}
                 className="space-y-5 text-left"
               >
-                {/* Target Role config */}
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-bold text-slate-700 uppercase tracking-wider block">
                     Select Target Job Role
@@ -676,14 +818,12 @@ export default function AIResumeMatchWidget() {
                   </select>
                 </div>
 
-                {/* Score Rings (Calculated Deterministically) */}
                 <div className="flex gap-3 justify-between items-center">
                   <CircularProgress value={atsScore} label="ATS Score" colorClass="stroke-red-500" />
                   <CircularProgress value={matchScore} label="Match Score" colorClass="stroke-orange-500" />
                   <CircularProgress value={skillMatchPercentage} label="Skills Match" colorClass="stroke-blue-500" />
                 </div>
 
-                {/* Completeness bar */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between text-[9px] font-bold text-slate-600">
                     <span>Profile Completeness (21 categories)</span>
@@ -701,7 +841,6 @@ export default function AIResumeMatchWidget() {
                   <p className="text-orange-500 text-center animate-pulse py-2">Recalculating programmatic metrics and AI analysis...</p>
                 ) : (
                   <>
-                    {/* Matched vs Missing Skills */}
                     <div className="border-t border-slate-100 pt-4 space-y-3">
                       <div className="space-y-1.5">
                         <span className="text-[9.5px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
@@ -738,7 +877,6 @@ export default function AIResumeMatchWidget() {
                       </div>
                     </div>
 
-                    {/* AI Suggestions generated contextually */}
                     <div className="border-t border-slate-100 pt-4 space-y-3">
                       <div className="space-y-1">
                         <span className="font-bold text-slate-700 block">AI Strategic Strengths</span>
