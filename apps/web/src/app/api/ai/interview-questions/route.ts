@@ -1,36 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildInterviewQuestionsPrompt } from "@/lib/ai/services/promptBuilder";
 import { getAICompletion } from "@/lib/ai/services/aiService";
-import { parseMarkdownJson } from "@/lib/ai/utils";
 
 export async function POST(req: NextRequest) {
   try {
-    const { courseTitle } = await req.json();
+    const { role, difficulty, skills, experience, interviewType } = await req.json();
 
-    if (!courseTitle || typeof courseTitle !== "string") {
-      return NextResponse.json(
-        { success: false, error: "Missing or invalid courseTitle." },
-        { status: 400 }
-      );
-    }
+    const prompt = `
+Act as an ATS Interview Question Generator. Generate a list of targeted interview questions matching:
+Target Job Role: ${role || "Software Developer"}
+Difficulty Level: ${difficulty || "Intermediate"}
+Verified Candidate Skills: ${JSON.stringify(skills)}
+Experience Level: ${experience || "Apprentice"}
+Preferred Interview Type: ${interviewType || "Technical"}
 
-    const prompt = buildInterviewQuestionsPrompt(courseTitle);
+Generate dynamic interview questions categorized into the following structure.
+Return strictly JSON with no comments:
+{
+  "technical": ["...", "..."],
+  "hr": ["...", "..."],
+  "behavioral": ["...", "..."],
+  "scenario": ["...", "..."],
+  "coding": ["...", "..."],
+  "project": ["...", "..."]
+}
+    `.trim();
+
     const aiResponse = await getAICompletion(prompt);
 
     if (!aiResponse.success || !aiResponse.text) {
       return NextResponse.json(aiResponse);
     }
 
-    const parsedResult = parseMarkdownJson<any>(aiResponse.text);
+    const cleanJson = aiResponse.text.replace(/```json|```/g, "").trim();
+    const parsedResult = JSON.parse(cleanJson);
+    
     return NextResponse.json({
       success: true,
-      result: parsedResult,
-      provider: aiResponse.provider,
+      result: parsedResult
     });
   } catch (error: any) {
     console.error("AI Interview Questions API error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to parse structured interview questions." },
+      { success: false, error: "Failed to generate structured interview questions." },
       { status: 500 }
     );
   }
