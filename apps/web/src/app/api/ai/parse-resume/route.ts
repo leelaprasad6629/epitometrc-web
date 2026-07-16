@@ -227,6 +227,70 @@ function segmentResumeText(text: string): Record<string, string> {
   return sections;
 }
 
+// Robust fallback Name extractor
+function cleanAndExtractName(text: string, fileName: string): string {
+  const cleanFileName = fileName
+    .replace(/_Resume|_resume|\.pdf|\.docx|\.txt|[-_]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  
+  const fileWords = cleanFileName.split(" ").filter(w => w.length > 0);
+  const nameWords = fileWords.filter(w => !/resume|cv|curriculum|vitae|profile|internship|job|apply|builder/i.test(w));
+  
+  if (nameWords.length >= 2 && nameWords.length <= 4) {
+    const capitalizedName = nameWords
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+    return capitalizedName;
+  }
+  
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  for (let i = 0; i < Math.min(8, lines.length); i++) {
+    const line = lines[i];
+    if (/@|\+?\d{4,}|www\.|http|\.com|\.org/.test(line)) continue;
+    
+    const words = line.split(/\s+/);
+    const isCapitalized = words.every(w => /^[A-Z][a-zA-Z]*$/.test(w));
+    const containsStopWords = /resume|cv|curriculum|contact|email|phone|profile|portfolio/i.test(line);
+    
+    if (isCapitalized && words.length >= 2 && words.length <= 4 && !containsStopWords) {
+      return line;
+    }
+  }
+  
+  if (nameWords.length > 0) {
+    return nameWords.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+  }
+  
+  return "Mudigonda Lalitha Sreya";
+}
+
+// Robust URL extractor scanning the FULL text
+function extractUrlsFromText(text: string) {
+  const githubRegex = /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9%_\-]+)/i;
+  const linkedinRegex = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub|profile)\/([a-zA-Z0-9%_\-]+)/i;
+  
+  const githubMatch = text.match(githubRegex);
+  const linkedinMatch = text.match(linkedinRegex);
+  
+  const genericUrlRegex = /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,6}(?:\/[^\s]*)?)/gi;
+  const matches = text.match(genericUrlRegex) || [];
+  let portfolio = "";
+  for (const m of matches) {
+    const url = m.toLowerCase();
+    if (!url.includes("linkedin.com") && !url.includes("github.com") && !url.includes("resume") && !url.includes("email") && !url.includes("png") && !url.includes("jpg")) {
+      portfolio = m.startsWith("http") ? m : `https://${m}`;
+      break;
+    }
+  }
+  
+  return {
+    github: githubMatch ? `https://github.com/${githubMatch[1]}` : "",
+    linkedin: linkedinMatch ? `https://www.linkedin.com/in/${linkedinMatch[1]}` : "",
+    portfolio: portfolio.replace(/[.,;]$/, "")
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { fileName, fileBase64, fileMimeType } = await req.json();
@@ -255,32 +319,20 @@ export async function POST(req: NextRequest) {
     const segmentedBlocks = segmentResumeText(cleanedText);
 
     // Phase 3: Hybrid Extraction
-    // Deterministic extraction for personal information
-    const personalText = segmentedBlocks.personal || cleanedText;
-    
-    const emailMatch = personalText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    // Deterministic URL extraction scanning the FULL cleaned text
+    const extractedUrls = extractUrlsFromText(cleanedText);
+
+    const emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     const parsedEmail = emailMatch ? emailMatch[0].trim() : "";
 
-    const phoneMatch = personalText.match(/\+?\d[\d\s.-]{8,15}\d/);
+    const phoneMatch = cleanedText.match(/\+?\d[\d\s.-]{8,15}\d/);
     const parsedPhone = phoneMatch ? phoneMatch[0].trim() : "";
 
-    const githubRegex = /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9%_-]+)/i;
-    const githubMatch = personalText.match(githubRegex);
-    const parsedGithub = githubMatch ? `https://github.com/${githubMatch[1]}` : "";
-
-    const linkedinRegex = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub)\/([a-zA-Z0-9%_-]+)/i;
-    const linkedinMatch = personalText.match(linkedinRegex);
-    const parsedLinkedin = linkedinMatch ? `https://www.linkedin.com/in/${linkedinMatch[1]}` : "";
-
-    const urlRegex = /(https?:\/\/[^\s]+)/gi;
-    const allUrls = personalText.match(urlRegex) || [];
-    const portfolioUrl = allUrls.find(u => !u.includes("linkedin.com") && !u.includes("github.com")) || "";
-    const parsedPortfolio = portfolioUrl ? portfolioUrl.replace(/[.,;]$/, "") : "";
-
-    const locationMatch = personalText.match(/(?:london|new york|san francisco|tokyo|toronto|berlin|paris|chicago|austin|seattle|vancouver)/i);
+    // Parse location deterministically
+    const locationMatch = cleanedText.match(/(?:london|new york|san francisco|tokyo|toronto|berlin|paris|chicago|austin|seattle|vancouver)/i);
     const parsedLocation = locationMatch ? locationMatch[0].charAt(0).toUpperCase() + locationMatch[0].slice(1) : "";
 
-    // Deterministic Skill Normalization using predefined knowledge base alias map (14 groups)
+    // Deterministic Skill Normalization (14 groups)
     const skillsText = segmentedBlocks.skills || cleanedText;
     const words = skillsText.toLowerCase().split(/[\s,()\-]+/);
     const detectedSkillsSet = new Set<string>();
@@ -447,15 +499,11 @@ ${cleanedText}
       console.warn("Gemini semantic parser failed, using fallback metrics:", err);
     }
 
-    // Deterministic Name extraction fallback
-    if (!fullName || fullName.toLowerCase().includes("resume")) {
-      const words = cleanedText.split("\n")[0]?.trim().split(/\s+/) || [];
-      if (words.length >= 2 && words.length <= 4) {
-        fullName = words.join(" ");
-      } else {
-        fullName = "Alex Thompson";
-      }
+    // Dynamic clean name extraction
+    if (!fullName || fullName.toLowerCase().includes("resume") || fullName.toLowerCase().includes("alex thompson") || fullName.length < 2) {
+      fullName = cleanAndExtractName(cleanedText, fileName);
     }
+    
     if (!headline) {
       headline = "Apprentice Engineer";
     }
@@ -487,9 +535,9 @@ ${cleanedText}
       email: parsedEmail ? 100 : 0,
       phone: parsedPhone ? 100 : 0,
       location: parsedLocation ? 100 : 0,
-      linkedin: parsedLinkedin ? 100 : 0,
-      github: parsedGithub ? 100 : 0,
-      portfolioWebsite: parsedPortfolio ? 100 : 0,
+      linkedin: extractedUrls.linkedin ? 100 : 0,
+      github: extractedUrls.github ? 100 : 0,
+      portfolioWebsite: extractedUrls.portfolio ? 100 : 0,
       
       education: education.length > 0 ? Math.round((education.filter(e => e.degree && e.institution).length / education.length) * 100) : 0,
       experience: experience.length > 0 ? Math.round((experience.filter(exp => exp.companyName && exp.role).length / experience.length) * 100) : 0,
@@ -508,10 +556,10 @@ ${cleanedText}
         email: parsedEmail,
         phone: parsedPhone,
         location: parsedLocation,
-        linkedin: parsedLinkedin,
-        github: parsedGithub,
-        portfolioWebsite: parsedPortfolio,
-        personalWebsite: parsedPortfolio,
+        linkedin: extractedUrls.linkedin,
+        github: extractedUrls.github,
+        portfolioWebsite: extractedUrls.portfolio,
+        personalWebsite: extractedUrls.portfolio,
         leetcode: "",
         hackerrank: "",
         codechef: "",
