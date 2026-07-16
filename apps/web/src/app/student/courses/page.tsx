@@ -5,6 +5,8 @@ import { BookOpen, Award, ArrowRight, PlayCircle, CheckCircle, FileText } from "
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/common/Button";
+import AIInterviewPrepWidget from "@/components/ai/AIInterviewPrepWidget";
+import AICourseAssistantWidget from "@/components/ai/AICourseAssistantWidget";
 
 export default function StudentCoursesPage() {
   const activeCourses = [
@@ -58,7 +60,7 @@ export default function StudentCoursesPage() {
       <div className="space-y-4">
         <h2 className="font-display text-lg font-bold text-[#0b172a] flex items-center gap-2">
           <PlayCircle className="h-5 w-5 text-orange-500" />
-          Active Courses ({activeCourses.length})
+          Active Tracks ({activeCourses.length})
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -69,30 +71,26 @@ export default function StudentCoursesPage() {
                   src={course.image}
                   alt={course.title}
                   fill
-                  className="object-cover group-hover:scale-103 transition-transform duration-300"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                   sizes="(max-width: 768px) 100vw, 20vw"
                 />
               </div>
               <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-1.5">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider font-sans">
-                    Instructor: {course.instructor}
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold text-orange-500 uppercase tracking-wider font-sans">
+                    Led by {course.instructor}
                   </span>
-                  <h3 className="font-display text-base font-bold text-[#0b172a] leading-snug group-hover:text-orange-500 transition-colors">
+                  <h3 className="font-display text-base font-bold text-[#0b172a] leading-snug">
                     {course.title}
                   </h3>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-600 font-sans">
-                    <span>Progress: {course.progress}%</span>
-                    <span>{course.modulesCompleted}/{course.totalModules} Modules</span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-orange-500 transition-all duration-500"
-                      style={{ width: `${course.progress}%` }}
-                    ></div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-500 font-sans">
+                      <span>Progress</span>
+                      <span>{course.progress}%</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-orange-500 rounded-full" style={{ width: `${course.progress}%` }}></div>
+                    </div>
                   </div>
                 </div>
 
@@ -109,6 +107,12 @@ export default function StudentCoursesPage() {
           ))}
         </div>
       </div>
+
+      {/* AI Interview Prep Generator */}
+      <AIInterviewPrepWidget courses={[...activeCourses, ...completedCourses]} />
+
+      {/* AI Course Tutor Assistant */}
+      <AICourseAssistantWidget courseTitle="Strategic Business Analyst" />
 
       {/* Completed Courses */}
       <div className="space-y-4 pt-4">

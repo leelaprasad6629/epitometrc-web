@@ -5,6 +5,9 @@ import { motion } from "framer-motion";
 import { Users, DollarSign, Award, CheckCircle2, TrendingUp, Download, Clock, Search, HelpCircle, ShieldCheck } from "lucide-react";
 import Button from "@/components/common/Button";
 
+import AICohortPlannerWidget from "@/components/ai/AICohortPlannerWidget";
+import AILeadQualifyWidget from "@/components/ai/AILeadQualifyWidget";
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any[]>([]);
   const [recentEnquiries, setRecentEnquiries] = useState<any[]>([]);
@@ -92,6 +95,12 @@ export default function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      {/* AI Cohort Planner */}
+      <AICohortPlannerWidget />
+
+      {/* AI Lead Qualification Assistant */}
+      <AILeadQualifyWidget enquiries={recentEnquiries} />
 
       {/* Charts & Tasks Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
