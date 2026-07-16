@@ -30,45 +30,162 @@ const isValidUrl = (url: string) => {
 export default function StudentProfilePage() {
   const { parsedResumeDetails, updateParsedDetails, loadProfileFromServer } = useResumeStore();
 
-  // Resume states
-  const [resumeName, setResumeName] = useState("Alex_Thompson_Resume.pdf");
-  const [resumeSize, setResumeSize] = useState("2.4 MB");
-  const [resumeUploadTime, setResumeUploadTime] = useState("Uploaded on 30 Nov 2026");
-  const [uploading, setUploading] = useState(false);
+  useEffect(() => {
+    loadProfileFromServer();
+  }, [loadProfileFromServer]);
 
-  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Local Form state
+  const [fullName, setFullName] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [bio, setBio] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  const [linkedin, setLinkedin] = useState("");
+  const [github, setGithub] = useState("");
+  const [portfolioWebsite, setPortfolioWebsite] = useState("");
+  const [personalWebsite, setPersonalWebsite] = useState("");
+  const [leetcode, setLeetcode] = useState("");
+  const [hackerrank, setHackerrank] = useState("");
+  const [codechef, setCodechef] = useState("");
+  const [codeforces, setCodeforces] = useState("");
+
+  // Structured Lists States
+  const [educationList, setEducationList] = useState<EducationEntry[]>([]);
+  const [experienceList, setExperienceList] = useState<ExperienceEntry[]>([]);
+  const [projectsList, setProjectsList] = useState<ProjectEntry[]>([]);
+  const [certificationsList, setCertificationsList] = useState<CertificationEntry[]>([]);
+  const [internshipsList, setInternshipsList] = useState<InternshipEntry[]>([]);
+  const [achievementsList, setAchievementsList] = useState<AchievementEntry[]>([]);
+
+  // Skills Autocomplete states
+  const [skillSearch, setSkillSearch] = useState("");
+  const [skillSuggestions, setSkillSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Initialize local states from store
+  useEffect(() => {
+    if (parsedResumeDetails) {
+      setFullName(parsedResumeDetails.fullName || "");
+      setHeadline(parsedResumeDetails.headline || "Apprentice Engineer");
+      setBio(parsedResumeDetails.bio || "");
+      setEmail(parsedResumeDetails.email || "");
+      setPhone(parsedResumeDetails.phone || "");
+      setLocation(parsedResumeDetails.location || "");
+      setProfileImage(parsedResumeDetails.profileImage || null);
+
+      setLinkedin(parsedResumeDetails.linkedin || "");
+      setGithub(parsedResumeDetails.github || "");
+      setPortfolioWebsite(parsedResumeDetails.portfolioWebsite || "");
+      setPersonalWebsite(parsedResumeDetails.personalWebsite || "");
+      setLeetcode(parsedResumeDetails.leetcode || "");
+      setHackerrank(parsedResumeDetails.hackerrank || "");
+      setCodechef(parsedResumeDetails.codechef || "");
+      setCodeforces(parsedResumeDetails.codeforces || "");
+
+      setEducationList(parsedResumeDetails.education || []);
+      setExperienceList(parsedResumeDetails.experience || []);
+      setProjectsList(parsedResumeDetails.projects || []);
+      setCertificationsList(parsedResumeDetails.certifications || []);
+      setInternshipsList(parsedResumeDetails.internships || []);
+      setAchievementsList(parsedResumeDetails.achievements || []);
+    }
+  }, [parsedResumeDetails]);
+
+  const hasChanges = parsedResumeDetails ? (
+    fullName !== (parsedResumeDetails.fullName || "") ||
+    headline !== (parsedResumeDetails.headline || "") ||
+    bio !== (parsedResumeDetails.bio || "") ||
+    email !== (parsedResumeDetails.email || "") ||
+    phone !== (parsedResumeDetails.phone || "") ||
+    location !== (parsedResumeDetails.location || "") ||
+    profileImage !== (parsedResumeDetails.profileImage || null) ||
+    linkedin !== (parsedResumeDetails.linkedin || "") ||
+    github !== (parsedResumeDetails.github || "") ||
+    portfolioWebsite !== (parsedResumeDetails.portfolioWebsite || "") ||
+    personalWebsite !== (parsedResumeDetails.personalWebsite || "") ||
+    leetcode !== (parsedResumeDetails.leetcode || "") ||
+    hackerrank !== (parsedResumeDetails.hackerrank || "") ||
+    codechef !== (parsedResumeDetails.codechef || "") ||
+    codeforces !== (parsedResumeDetails.codeforces || "") ||
+    JSON.stringify(educationList) !== JSON.stringify(parsedResumeDetails.education || []) ||
+    JSON.stringify(experienceList) !== JSON.stringify(parsedResumeDetails.experience || []) ||
+    JSON.stringify(projectsList) !== JSON.stringify(parsedResumeDetails.projects || []) ||
+    JSON.stringify(certificationsList) !== JSON.stringify(parsedResumeDetails.certifications || []) ||
+    JSON.stringify(internshipsList) !== JSON.stringify(parsedResumeDetails.internships || []) ||
+    JSON.stringify(achievementsList) !== JSON.stringify(parsedResumeDetails.achievements || [])
+  ) : false;
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved edits. Are you sure you want to leave?";
+        return e.returnValue;
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasChanges]);
+
+  useEffect(() => {
+    if (skillSearch.trim().length > 0) {
+      const filtered = SKILLS_DICTIONARY.filter(s =>
+        s.toLowerCase().includes(skillSearch.toLowerCase()) &&
+        !(parsedResumeDetails?.verifiedSkills || []).includes(s)
+      );
+      setSkillSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setSkillSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [skillSearch, parsedResumeDetails?.verifiedSkills]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/media/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setResumeName(data.fileName);
-        setResumeSize(data.fileSize);
-        setResumeUploadTime(`Uploaded today at ${new Date().toLocaleTimeString()}`);
-      } else {
-        alert(data.error || "Failed to upload file");
-      }
-    } catch {
-      alert("Failed to upload file due to a network error.");
-    } finally {
-      setUploading(false);
-    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result?.toString() || null;
+      setProfileImage(base64);
+      updateParsedDetails({ profileImage: base64 });
+      setSuccessMsg("Profile picture updated!");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleAddSkill = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      setSkills([...skills, newSkill.trim()]);
-      setNewSkill("");
+  const handleRemoveImage = () => {
+    setProfileImage(null);
+    updateParsedDetails({ profileImage: null });
+  };
+
+  const handleAddSkill = (skill: string) => {
+    const current = parsedResumeDetails?.verifiedSkills || [];
+    if (!current.includes(skill)) {
+      updateParsedDetails({ verifiedSkills: [...current, skill] });
+    }
+    setSkillSearch("");
+    setShowSuggestions(false);
+  };
+
+  const handleRemoveSkill = (skill: string) => {
+    const current = parsedResumeDetails?.verifiedSkills || [];
+    updateParsedDetails({ verifiedSkills: current.filter(s => s !== skill) });
+  };
+
+  const handleSkillKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && skillSearch.trim()) {
+      e.preventDefault();
+      handleAddSkill(skillSearch.trim());
     }
   };
 
@@ -836,28 +953,24 @@ export default function StudentProfilePage() {
             </div>
           )}
 
-            <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center space-y-3 bg-slate-50/20">
-              <FileText className="mx-auto h-8 w-8 text-slate-400" />
-              <div className="space-y-0.5">
-                <p className="text-xs font-bold text-slate-700">{resumeName}</p>
-                <p className="text-[10px] text-slate-400 font-medium font-sans">{resumeUploadTime} • {resumeSize}</p>
+          {/* Phase 6: Semantic Career Profile Card */}
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4 text-left">
+            <h2 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider border-b border-slate-50 pb-2">
+              Semantic Career Domain
+            </h2>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <span className="text-[8.5px] font-bold text-slate-400 uppercase block">Target AI Classification</span>
+                <span className="px-3 py-1 rounded-xl bg-orange-50 border border-orange-100 text-[10px] font-black text-orange-600 uppercase inline-block">
+                  {domainLabel}
+                </span>
               </div>
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                id="resume-file-input"
-                style={{ display: "none" }}
-                onChange={handleResumeUpload}
-              />
-              <button
-                type="button"
-                disabled={uploading}
-                onClick={() => document.getElementById("resume-file-input")?.click()}
-                className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors mt-2 disabled:text-slate-400"
-              >
-                <Upload className="h-3.5 w-3.5" />
-                {uploading ? "Uploading..." : "Upload New"}
-              </button>
+              <div className="space-y-1 border-t border-slate-50 pt-2">
+                <span className="text-[8.5px] font-bold text-slate-400 uppercase block">AI Candidate Profile Summary</span>
+                <p className="text-slate-500 font-sans leading-relaxed text-[10px]">
+                  "{semanticSummary}"
+                </p>
+              </div>
             </div>
           </div>
 

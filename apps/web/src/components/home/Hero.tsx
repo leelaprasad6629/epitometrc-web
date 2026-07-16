@@ -278,28 +278,26 @@ export default function Hero() {
           INTEGRATING PEOPLE STRATEGY WITH YOUR BUSINESS STRATEGY
         </motion.p>
 
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-4 sm:items-center"
-            >
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-white bg-orange-500 rounded-xl shadow-lg shadow-orange-500/20 hover:bg-orange-600 hover:shadow-orange-600/30 transition-all duration-200"
-              >
-                Keep in Touch
-                <ArrowUpRight className="ml-2 h-5 w-5" />
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-[#0b172a] shadow-sm transition-all duration-200"
-              >
-                <Play className="mr-2 h-4 w-4 fill-slate-700 text-slate-700" />
-                Meet with us
-              </Link>
-            </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="pt-4 flex flex-col sm:flex-row gap-4 items-center justify-center"
+        >
+          <Link
+            href="/consulting"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#0b172a] hover:bg-orange-500 transition-colors uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-md"
+          >
+            Explore AI Solutions <ArrowUpRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white/60 hover:bg-white transition-all uppercase tracking-wider px-5 py-2.5 rounded-xl border border-slate-200/80 shadow-sm"
+          >
+            Access Dashboards
+          </Link>
+        </motion.div>
+      </div>
 
       {/* Bottom Menu Items */}
       <div className="relative z-10 w-full bg-white/70 backdrop-blur-md border-t border-slate-100">
