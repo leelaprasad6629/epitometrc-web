@@ -63,6 +63,7 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
       { name: "Manage Courses", href: "/admin/courses", icon: BookOpen },
       { name: "Manage Blogs", href: "/admin/blog", icon: FileText },
       { name: "Manage Jobs", href: "/admin/jobs", icon: ClipboardList },
+      { name: "Credential Overrides", href: "/admin/users", icon: User },
       { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
       { name: "Settings", href: "/admin/settings", icon: Settings },
     ],

@@ -114,7 +114,7 @@ export default function AIResumeMatchWidget() {
         .filter(s => !allUserSkills.includes(s))
         .map(s => s.toUpperCase());
 
-      const res = await fetch("/api/ai/resume-analysis", {
+      const res = await fetch("/api/ai/resume-match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
