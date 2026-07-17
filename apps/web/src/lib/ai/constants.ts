@@ -1,4 +1,4 @@
-export const DEFAULT_GEMINI_MODEL = "gemini-1.5-flash";
+export const DEFAULT_GEMINI_MODEL = "gemini-2.0-flash";
 export const DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export const SYSTEM_PROMPT = `You are the Official AI Assistant of Epitome TRC.

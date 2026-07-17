@@ -10,6 +10,7 @@ export interface EducationEntry {
   startYear: string;
   endYear: string;
   cgpa: string;
+  relevantCoursework?: string;
 }
 
 export interface ExperienceEntry {
@@ -20,6 +21,8 @@ export interface ExperienceEntry {
   endDate: string;
   duration: string;
   responsibilities: string;
+  technologiesUsed?: string[];
+  achievements?: string[];
 }
 
 export interface ProjectEntry {
@@ -29,6 +32,9 @@ export interface ProjectEntry {
   githubLink: string;
   liveUrl: string;
   duration: string;
+  teamSize?: string;
+  contributions?: string;
+  outcomes?: string;
 }
 
 export interface CertificationEntry {
@@ -43,10 +49,43 @@ export interface InternshipEntry {
   role: string;
   duration: string;
   description: string;
+  technologies?: string[];
 }
 
 export interface AchievementEntry {
   title: string;
+  description: string;
+}
+
+export interface PublicationEntry {
+  title: string;
+  publisher: string;
+  date: string;
+  url: string;
+}
+
+export interface WorkshopEntry {
+  name: string;
+  organizer: string;
+  date: string;
+}
+
+export interface HackathonEntry {
+  name: string;
+  role: string;
+  date: string;
+  prize: string;
+}
+
+export interface LeadershipEntry {
+  role: string;
+  organization: string;
+  duration: string;
+}
+
+export interface VolunteerEntry {
+  role: string;
+  organization: string;
   description: string;
 }
 
@@ -65,17 +104,32 @@ export interface ParsedResume {
   hackerrank: string;
   codechef: string;
   codeforces: string;
-  bio: string; // Biography summary
+  kaggle: string;
+  medium: string;
+  stackoverflow: string;
+  behance: string;
+  dribbble: string;
+  bio: string;
   education: EducationEntry[];
   experience: ExperienceEntry[];
   projects: ProjectEntry[];
   certifications: CertificationEntry[];
   internships: InternshipEntry[];
   achievements: AchievementEntry[];
+  
+  // Extra structured arrays
+  publications: PublicationEntry[];
+  workshops: WorkshopEntry[];
+  hackathons: HackathonEntry[];
+  leadershipRoles: LeadershipEntry[];
+  volunteerExperience: VolunteerEntry[];
+  languagesKnown: string[];
+  professionalInterests: string[];
+
   technicalSkills: string[];
   softSkills: string[];
   
-  // Categorized Technical Skills (14 Groups)
+  // Categorized Technical Skills (17 Groups)
   programmingLanguages: string[];
   frameworks: string[];
   frontend: string[];
@@ -90,14 +144,20 @@ export interface ParsedResume {
   operatingSystems: string[];
   networking: string[];
   cyberSecurity: string[];
+  libraries: string[];
+  dataScience: string[];
+  versionControl: string[];
   
   verifiedSkills: string[];
   
-  // Semantic career insights (Phase 6)
+  // Semantic career insights
   candidateProfile: string;
   careerDomain: string;
+  experienceLevel: string;
+  suggestedRoles: string[];
+  suggestedTech: string[];
   
-  // Completeness metrics (Phase 5)
+  // Completeness metrics
   overallCompleteness: number;
   completenessMetrics: Record<string, number>;
 }
@@ -112,7 +172,7 @@ export interface ResumeStore {
   uploadTimestamp: string | null;
   confidenceScores: Record<string, number>;
 
-  // Scoring parameters (Calculated programmatically)
+  // Scoring parameters
   atsScore: number;
   matchScore: number;
   skillMatchPercentage: number;
@@ -172,6 +232,11 @@ const initialParsedResume: ParsedResume = {
   hackerrank: "",
   codechef: "",
   codeforces: "",
+  kaggle: "",
+  medium: "",
+  stackoverflow: "",
+  behance: "",
+  dribbble: "",
   bio: "",
   education: [],
   experience: [],
@@ -179,6 +244,15 @@ const initialParsedResume: ParsedResume = {
   certifications: [],
   internships: [],
   achievements: [],
+  
+  publications: [],
+  workshops: [],
+  hackathons: [],
+  leadershipRoles: [],
+  volunteerExperience: [],
+  languagesKnown: [],
+  professionalInterests: [],
+
   technicalSkills: [],
   softSkills: [],
   
@@ -196,11 +270,17 @@ const initialParsedResume: ParsedResume = {
   operatingSystems: [],
   networking: [],
   cyberSecurity: [],
+  libraries: [],
+  dataScience: [],
+  versionControl: [],
   
   verifiedSkills: [],
   
   candidateProfile: "",
   careerDomain: "",
+  experienceLevel: "Fresher",
+  suggestedRoles: [],
+  suggestedTech: [],
   
   overallCompleteness: 0,
   completenessMetrics: {}
@@ -228,26 +308,40 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; Max-Age=-99999999; path=/; SameSite=Lax`;
 }
 
-// Syncs details to secure client-side cookie database
+async function persistProfileToServer(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
+  if (typeof window === "undefined") return;
+  try {
+    await fetch("/api/student/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile, confidenceScores })
+    });
+  } catch (err) {
+    console.error("Failed to persist profile to server:", err);
+  }
+}
+
 function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
   if (typeof window === "undefined") return;
+  
+  // Persist to client storage
   if (!profile) {
     deleteCookie("student_profile_text");
     deleteCookie("student_profile_confidence");
     sessionStorage.removeItem("student_profile_image");
-    return;
-  }
-
-  // Extract base64 image and save to sessionStorage
-  if (profile.profileImage) {
-    sessionStorage.setItem("student_profile_image", profile.profileImage);
   } else {
-    sessionStorage.removeItem("student_profile_image");
+    if (profile.profileImage) {
+      sessionStorage.setItem("student_profile_image", profile.profileImage);
+    } else {
+      sessionStorage.removeItem("student_profile_image");
+    }
+    const textProfile = { ...profile, profileImage: null };
+    setCookie("student_profile_text", JSON.stringify(textProfile));
+    setCookie("student_profile_confidence", JSON.stringify(confidenceScores));
   }
 
-  const textProfile = { ...profile, profileImage: null };
-  setCookie("student_profile_text", JSON.stringify(textProfile));
-  setCookie("student_profile_confidence", JSON.stringify(confidenceScores));
+  // Persist to server database async
+  persistProfileToServer(profile, confidenceScores);
 }
 
 export const useResumeStore = create<ResumeStore>((set, get) => ({
@@ -287,7 +381,6 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       const updatedVerified = Array.from(new Set([...currentVerified, ...parsedTech]));
       mergedDetails.verifiedSkills = updatedVerified;
 
-      // Persist to browser storage
       syncProfileToClientStorage(mergedDetails, confidenceScores);
 
       return {
@@ -307,7 +400,6 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         ? { ...state.parsedResumeDetails, ...details }
         : { ...initialParsedResume, ...details };
 
-      // Calculate completeness programmatically on edit updates
       const metrics: Record<string, number> = {};
       
       // Personal Info (fullName, email, phone, location)
@@ -319,7 +411,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
       // Education List
       if (mergedDetails.education?.length > 0) {
-        let total = mergedDetails.education.length * 4; // degree, institution, branch, endYear
+        let total = mergedDetails.education.length * 4;
         let filled = 0;
         mergedDetails.education.forEach(e => {
           if (e.degree) filled++;
@@ -334,7 +426,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
       // Experience List
       if (mergedDetails.experience?.length > 0) {
-        let total = mergedDetails.experience.length * 3; // companyName, role, responsibilities
+        let total = mergedDetails.experience.length * 3;
         let filled = 0;
         mergedDetails.experience.forEach(exp => {
           if (exp.companyName) filled++;
@@ -348,7 +440,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
       // Projects List
       if (mergedDetails.projects?.length > 0) {
-        let total = mergedDetails.projects.length * 3; // projectTitle, description, technologiesUsed
+        let total = mergedDetails.projects.length * 3;
         let filled = 0;
         mergedDetails.projects.forEach(p => {
           if (p.projectTitle) filled++;
@@ -370,14 +462,17 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       // Achievements
       metrics["Achievements"] = mergedDetails.achievements?.length > 0 ? 100 : 0;
 
-      // Overall sum
+      // Extra activity metrics
+      metrics["Publications"] = mergedDetails.publications?.length > 0 ? 100 : 0;
+      metrics["Workshops & Hackathons"] = (mergedDetails.workshops?.length > 0 || mergedDetails.hackathons?.length > 0) ? 100 : 0;
+      metrics["Leadership & Volunteer"] = (mergedDetails.leadershipRoles?.length > 0 || mergedDetails.volunteerExperience?.length > 0) ? 100 : 0;
+
       const values = Object.values(metrics);
       const overall = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
 
       mergedDetails.completenessMetrics = metrics;
       mergedDetails.overallCompleteness = overall;
 
-      // Persist to browser storage
       syncProfileToClientStorage(mergedDetails, get().confidenceScores);
 
       return { parsedResumeDetails: mergedDetails };
@@ -417,6 +512,29 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     if (typeof window === "undefined") return;
 
     try {
+      // 1. Try to fetch from server database first
+      const response = await fetch("/api/student/profile");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.profile) {
+          const profile = data.profile;
+          const confidence = data.confidenceScores || {};
+          
+          set({
+            parsedResumeDetails: profile,
+            confidenceScores: confidence,
+            fileName: profile.fullName ? `${profile.fullName.replace(/\s+/g, "_")}_Profile` : null,
+            verified: true
+          });
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to load profile from server endpoint, falling back to cookies:", err);
+    }
+
+    try {
+      // 2. Fall back to local client cookies
       const textCookie = getCookie("student_profile_text");
       const confidenceCookie = getCookie("student_profile_confidence");
       const imageSession = sessionStorage.getItem("student_profile_image");
@@ -435,7 +553,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         });
       }
     } catch (err) {
-      console.error("Failed to load local persistent cookies profile:", err);
+      console.error("Failed to load persistent student profile:", err);
     }
   }
 }));
