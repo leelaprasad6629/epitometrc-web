@@ -10,6 +10,46 @@ export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newCategory, setNewCategory] = useState("Software Engineering");
+  const [newDescription, setNewDescription] = useState("");
+  const [newDuration, setNewDuration] = useState("12 Weeks");
+  const [newModules, setNewModules] = useState("8");
+  const [adding, setAdding] = useState(false);
+
+  const handleCreateCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    setAdding(true);
+    try {
+      const res = await fetch("/api/admin/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          category: newCategory,
+          description: newDescription,
+          duration: newDuration,
+          modules: newModules,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCourses((prev) => [data.course, ...prev]);
+        setNewTitle("");
+        setNewDescription("");
+        setShowAddModal(false);
+      } else {
+        alert(data.error || "Failed to create course");
+      }
+    } catch {
+      alert("Failed to create course due to a network error.");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   const loadCourses = (query = "") => {
     fetch(`/api/admin/courses?search=${encodeURIComponent(query)}`)
@@ -69,7 +109,7 @@ export default function AdminCoursesPage() {
             Control curriculum delivery, adjust pricing structures, and view course metrics.
           </p>
         </div>
-        <Button variant="primary" size="sm" className="h-9 px-4 rounded-xl font-bold shrink-0 self-start sm:self-auto">
+        <Button onClick={() => setShowAddModal(true)} variant="primary" size="sm" className="h-9 px-4 rounded-xl font-bold shrink-0 self-start sm:self-auto">
           <Plus className="mr-1 h-4 w-4" /> Add Course
         </Button>
       </div>
@@ -132,6 +172,105 @@ export default function AdminCoursesPage() {
           </table>
         </div>
       </div>
+
+      {/* Add Course Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0b172a]/40 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md bg-white rounded-2xl border border-slate-100 p-6 shadow-xl space-y-4"
+          >
+            <h3 className="font-display text-base font-bold text-slate-900">
+              Create New Course Curriculum
+            </h3>
+
+            <form onSubmit={handleCreateCourse} className="space-y-3.5 text-left">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Course Title</label>
+                <input
+                  type="text"
+                  required
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="e.g. Next.js App Router Masterclass"
+                  className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Category</label>
+                <select
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none bg-white"
+                >
+                  <option value="Software Engineering">Software Engineering</option>
+                  <option value="Cloud Computing & DevOps">Cloud Computing & DevOps</option>
+                  <option value="Product Strategy">Product Strategy</option>
+                  <option value="IT Services Management">IT Services Management</option>
+                  <option value="Corporate Training">Corporate Training</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Duration</label>
+                  <input
+                    type="text"
+                    required
+                    value={newDuration}
+                    onChange={(e) => setNewDuration(e.target.value)}
+                    placeholder="e.g. 12 Weeks"
+                    className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Modules Count</label>
+                  <input
+                    type="number"
+                    required
+                    value={newModules}
+                    onChange={(e) => setNewModules(e.target.value)}
+                    placeholder="e.g. 8"
+                    className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Description</label>
+                <textarea
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  placeholder="Summarize course goals and targeting syllabus skills..."
+                  rows={3}
+                  className="w-full p-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none bg-white resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2.5 justify-end pt-3 border-t border-slate-50">
+                <Button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  variant="outline"
+                  className="h-9 px-4 rounded-xl font-bold border-slate-200 hover:bg-slate-50 text-slate-700 text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={adding}
+                  variant="primary"
+                  className="h-9 px-4 rounded-xl font-bold bg-[#0b172a] hover:bg-slate-800 text-white text-xs disabled:opacity-50"
+                >
+                  {adding ? "Creating..." : "Create Course"}
+                </Button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 }
