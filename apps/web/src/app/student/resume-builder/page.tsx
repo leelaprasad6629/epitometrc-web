@@ -95,7 +95,9 @@ export default function AIResumeCoachPage() {
   const [interviewConfig, setInterviewConfig] = useState({
     difficulty: "Intermediate",
     type: "Technical",
-    mode: "Text"
+    mode: "Text",
+    company: "",
+    jobDescription: ""
   });
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [studentAnswer, setStudentAnswer] = useState("");
@@ -147,7 +149,13 @@ export default function AIResumeCoachPage() {
     setCurrentReport(null);
     setStudentAnswer("");
 
-    const initial = `Welcome to your ${interviewConfig.difficulty} level ${interviewConfig.type} mock interview for the ${selectedJobRole} role. Could you start by introducing yourself and detailing one major engineering project you deployed?`;
+    // Make initial question fully personalized based on the candidate's actual resume details if available
+    const primarySkill = parsedResumeDetails?.technicalSkills?.[0] || "Software Engineering";
+    const primaryProj = parsedResumeDetails?.projects?.[0]?.projectTitle || "key engineering project";
+    const companySegment = interviewConfig.company ? ` tailored for ${interviewConfig.company}` : "";
+
+    const initial = `Hello! Welcome to your ${interviewConfig.difficulty} level ${interviewConfig.type} mock interview for the ${selectedJobRole} role${companySegment}. Looking at your profile, I see you have experience with ${primarySkill} and built "${primaryProj}". Let's start by having you introduce yourself and explain how you built and optimized that project.`;
+
     setCurrentQuestion(initial);
     if (interviewConfig.mode === "Voice") {
       speakText(initial);
@@ -167,6 +175,15 @@ export default function AIResumeCoachPage() {
           role: selectedJobRole,
           interviewType: interviewConfig.type,
           difficulty: interviewConfig.difficulty,
+          company: interviewConfig.company,
+          jobDescription: interviewConfig.jobDescription,
+          resumeContext: {
+            skills: parsedResumeDetails?.technicalSkills,
+            projects: parsedResumeDetails?.projects,
+            experience: parsedResumeDetails?.experience,
+            education: parsedResumeDetails?.education,
+            certifications: parsedResumeDetails?.certifications
+          },
           question: currentQuestion,
           answer: studentAnswer,
           history: updatedHistory
@@ -178,7 +195,7 @@ export default function AIResumeCoachPage() {
           setCurrentReport(data.result.report);
           setInterviewActive(false);
           const newHist = [{
-            date: new Date().toLocaleDateString(),
+            date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             role: selectedJobRole,
             type: interviewConfig.type,
             score: data.result.report.overallScore,
@@ -615,7 +632,7 @@ export default function AIResumeCoachPage() {
                   {/* Setup parameters panel */}
                   <div className="lg:col-span-2 space-y-5 rounded-2xl border border-slate-100 p-5 bg-slate-50/30">
                     <h3 className="font-display text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Setup Simulator
+                      Setup Simulator Options
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -626,12 +643,14 @@ export default function AIResumeCoachPage() {
                         <select
                           value={interviewConfig.type}
                           onChange={(e) => setInterviewConfig({ ...interviewConfig, type: e.target.value })}
-                          className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none"
+                          className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none bg-white"
                         >
-                          <option value="Technical">Technical</option>
-                          <option value="HR">HR / General</option>
-                          <option value="Behavioral">Behavioral</option>
-                          <option value="Coding">Coding Logic</option>
+                          <option value="Technical">Technical Interview</option>
+                          <option value="HR">HR / Leadership Screen</option>
+                          <option value="Resume-Based">Resume-Based Deepdive</option>
+                          <option value="Project-Based">Project-Based Showcase</option>
+                          <option value="Behavioral">Behavioral (STAR method)</option>
+                          <option value="Coding">Coding Logic & Architecture</option>
                         </select>
                       </div>
 
@@ -642,11 +661,11 @@ export default function AIResumeCoachPage() {
                         <select
                           value={interviewConfig.difficulty}
                           onChange={(e) => setInterviewConfig({ ...interviewConfig, difficulty: e.target.value })}
-                          className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none"
+                          className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none bg-white"
                         >
-                          <option value="Beginner">Beginner</option>
-                          <option value="Intermediate">Intermediate</option>
-                          <option value="Advanced">Advanced</option>
+                          <option value="Beginner">Beginner / Graduate</option>
+                          <option value="Intermediate">Intermediate / Associate</option>
+                          <option value="Advanced">Advanced / Tech Lead</option>
                         </select>
                       </div>
 
@@ -657,7 +676,7 @@ export default function AIResumeCoachPage() {
                         <select
                           value={interviewConfig.mode}
                           onChange={(e) => setInterviewConfig({ ...interviewConfig, mode: e.target.value })}
-                          className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none"
+                          className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none bg-white"
                         >
                           <option value="Text">Text-Only Mode</option>
                           <option value="Voice">Voice Speech Mode</option>
@@ -665,10 +684,57 @@ export default function AIResumeCoachPage() {
                       </div>
                     </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Target Company (Optional)
+                        </label>
+                        <select
+                          value={interviewConfig.company}
+                          onChange={(e) => setInterviewConfig({ ...interviewConfig, company: e.target.value })}
+                          className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none bg-white"
+                        >
+                          <option value="">None (Generic Industry Standard)</option>
+                          <option value="Google">Google (System Design & DSA)</option>
+                          <option value="Amazon">Amazon (Leadership Principles)</option>
+                          <option value="Microsoft">Microsoft (Coding & Devops)</option>
+                          <option value="TCS">TCS (Tech Foundation)</option>
+                          <option value="Infosys">Infosys (Analytical & logic)</option>
+                          <option value="Accenture">Accenture (Enterprise Consulting)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Job Role
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedJobRole}
+                          onChange={(e) => setSelectedJobRole(e.target.value)}
+                          placeholder="e.g. Frontend Engineer"
+                          className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Custom Job Description (Optional)
+                      </label>
+                      <textarea
+                        value={interviewConfig.jobDescription}
+                        onChange={(e) => setInterviewConfig({ ...interviewConfig, jobDescription: e.target.value })}
+                        placeholder="Paste target job spec here to align the interviewer's focus questions..."
+                        rows={3}
+                        className="w-full p-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-655 focus:outline-none bg-white resize-none"
+                      />
+                    </div>
+
                     <Button
                       onClick={handleStartInterview}
                       variant="primary"
-                      className="w-full h-10 rounded-xl font-bold shrink-0"
+                      className="w-full h-10 rounded-xl font-bold shrink-0 bg-slate-900 hover:bg-slate-800 text-white"
                     >
                       <Play className="mr-1.5 h-4 w-4 fill-white" /> Start Mock Interview
                     </Button>
@@ -682,10 +748,14 @@ export default function AIResumeCoachPage() {
                     <div className="max-h-60 overflow-y-auto space-y-2.5 pr-1 divide-y divide-slate-50">
                       {interviewHistoryList.length > 0 ? (
                         interviewHistoryList.map((hist, idx) => (
-                          <div key={idx} className="pt-2 flex justify-between items-center text-xs">
+                          <div 
+                            key={idx} 
+                            onClick={() => setCurrentReport(hist.report)}
+                            className="pt-2 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-50 p-2 rounded-xl border border-transparent hover:border-slate-100 transition-all duration-200"
+                          >
                             <div>
-                              <p className="font-bold text-slate-700">{hist.role} ({hist.type})</p>
-                              <p className="text-[10px] text-slate-400 font-medium font-sans">{hist.date}</p>
+                              <p className="font-bold text-slate-750">{hist.role} ({hist.type})</p>
+                              <p className="text-[9.5px] text-slate-400 font-medium font-sans">{hist.date}</p>
                             </div>
                             <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-[10px] font-bold text-emerald-700 border border-emerald-100">
                               Score: {hist.score}%
@@ -772,27 +842,28 @@ export default function AIResumeCoachPage() {
 
               {/* Scorecard Report Screen */}
               {currentReport && (
-                <div className="rounded-2xl border border-slate-100 p-6 space-y-6 shadow-md max-w-3xl mx-auto">
+                <div className="rounded-2xl border border-slate-100 p-6 space-y-6 shadow-md max-w-3xl mx-auto bg-white">
                   <div className="text-center space-y-2 pb-4 border-b border-slate-50">
                     <div className="inline-flex items-center justify-center p-3.5 bg-emerald-50 rounded-full border border-emerald-100 text-emerald-500">
-                      <Award className="h-8 w-8" />
+                      <Award className="h-8 w-8 text-emerald-600" />
                     </div>
-                    <h3 className="font-display text-lg font-bold text-[#0b172a]">
-                      Interview Screen Completed!
+                    <h3 className="font-display text-lg font-bold text-slate-900">
+                      Interview Scorecard Completed!
                     </h3>
                     <p className="text-slate-400 text-xs font-sans">
-                      Overall evaluation scorecard generated dynamically.
+                      Overall evaluation metrics generated dynamically by the AI Interview Engine.
                     </p>
                   </div>
 
                   {/* Subscore metrics Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                     {[
-                      { label: "Overall Score", value: currentReport.overallScore, color: "text-orange-500 bg-orange-50 border-orange-100" },
-                      { label: "Technical", value: currentReport.technicalScore, color: "text-blue-500 bg-blue-50 border-blue-100" },
-                      { label: "Communication", value: currentReport.communicationScore, color: "text-indigo-500 bg-indigo-50 border-indigo-100" },
-                      { label: "Fluency", value: currentReport.fluencyScore, color: "text-pink-500 bg-pink-50 border-pink-100" },
-                      { label: "Confidence", value: currentReport.confidenceScore, color: "text-emerald-500 bg-emerald-50 border-emerald-100" }
+                      { label: "Overall Score", value: currentReport.overallScore || currentReport.score || 0, color: "text-orange-500 bg-orange-50 border-orange-100" },
+                      { label: "Technical", value: currentReport.technicalScore || 0, color: "text-blue-500 bg-blue-50 border-blue-100" },
+                      { label: "Communication", value: currentReport.communicationScore || 0, color: "text-indigo-500 bg-indigo-50 border-indigo-100" },
+                      { label: "Fluency", value: currentReport.fluencyScore || 0, color: "text-pink-500 bg-pink-50 border-pink-100" },
+                      { label: "Confidence", value: currentReport.confidenceScore || 0, color: "text-emerald-500 bg-emerald-50 border-emerald-100" },
+                      { label: "Problem Solving", value: currentReport.problemSolvingScore || 0, color: "text-cyan-500 bg-cyan-50 border-cyan-100" }
                     ].map((m, idx) => (
                       <div key={idx} className={`p-4 rounded-xl border text-center ${m.color}`}>
                         <span className="text-[9px] font-black uppercase tracking-wider block opacity-75">{m.label}</span>
@@ -800,6 +871,64 @@ export default function AIResumeCoachPage() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Recruiter Scorecard Panel */}
+                  {currentReport.recruiterScorecard && (
+                    <div className="rounded-2xl border border-slate-100 p-5 space-y-4 bg-slate-50/40 text-left">
+                      <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        Recruiter Scorecard Summary
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <span className="text-[10.5px] font-bold text-slate-400 block">Hiring Recommendation</span>
+                          <span className={`inline-block px-2.5 py-0.5 rounded-lg text-xs font-bold border ${
+                            currentReport.recruiterScorecard.hiringRecommendation?.includes("Strong") 
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-250" 
+                              : "bg-amber-50 text-amber-700 border-amber-250"
+                          }`}>
+                            {currentReport.recruiterScorecard.hiringRecommendation}
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10.5px] font-bold text-slate-400 block">Candidate Readiness</span>
+                          <span className="text-xs font-bold text-slate-700">
+                            {currentReport.recruiterScorecard.candidateReadiness}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1 pt-2 border-t border-slate-100/60">
+                        <span className="text-[10.5px] font-bold text-slate-400 block">Suitable Roles</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {currentReport.recruiterScorecard.suitableRoles?.map((r: string, i: number) => (
+                            <span key={i} className="px-2.5 py-0.5 rounded bg-white border border-slate-100 text-[10px] font-bold text-slate-655">
+                              {r}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1 pt-2 border-t border-slate-100/60">
+                        <span className="text-[10.5px] font-bold text-slate-400 block">Interview Summary & Impressions</span>
+                        <p className="text-[11px] font-bold text-slate-600 leading-relaxed font-sans">
+                          {currentReport.recruiterScorecard.interviewSummary || currentReport.feedback}
+                        </p>
+                      </div>
+
+                      {currentReport.recruiterScorecard.skillGaps?.length > 0 && (
+                        <div className="space-y-1 pt-2 border-t border-slate-100/60">
+                          <span className="text-[10.5px] font-bold text-slate-400 block">Skill Gaps Detected</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {currentReport.recruiterScorecard.skillGaps?.map((g: string, i: number) => (
+                              <span key={i} className="px-2.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100 text-[9.5px] font-bold">
+                                {g}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Strengths & Improvements */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3">
@@ -822,24 +951,79 @@ export default function AIResumeCoachPage() {
                     </div>
                   </div>
 
-                  {/* Recommended learning topics */}
-                  <div className="rounded-xl border border-dashed border-slate-200 p-4 space-y-2 bg-slate-50/20">
+                  {/* Detailed Q&A and Missed Concepts */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {currentReport.questionsAnsweredWell?.length > 0 && (
+                      <div className="rounded-xl border border-slate-100 p-4 space-y-2 text-left bg-slate-50/30">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Questions Answered Well</span>
+                        <ul className="list-disc pl-4 space-y-1 text-slate-655 font-sans text-[10.5px]">
+                          {currentReport.questionsAnsweredWell.map((q: string, idx: number) => <li key={idx}>{q}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                    {currentReport.questionsAnsweredPoorly?.length > 0 && (
+                      <div className="rounded-xl border border-slate-100 p-4 space-y-2 text-left bg-slate-50/30">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Questions Answered Weakly</span>
+                        <ul className="list-disc pl-4 space-y-1 text-slate-655 font-sans text-[10.5px]">
+                          {currentReport.questionsAnsweredPoorly.map((q: string, idx: number) => <li key={idx}>{q}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Missed Concepts & Recommendations */}
+                  <div className="rounded-xl border border-dashed border-slate-200 p-4 space-y-3 bg-slate-50/20 text-left">
                     <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                      <BookOpen className="h-4 w-4" /> Recommended Learning Topics
+                      <BookOpen className="h-4 w-4" /> Recommended Learning & Action Plan
                     </h4>
-                    <div className="flex flex-wrap gap-1.5">
-                      {currentReport.learningTopics?.map((t: string, i: number) => (
-                        <span key={i} className="px-2.5 py-0.5 rounded bg-white border border-slate-100 text-[10px] font-bold text-slate-655">
-                          {t}
-                        </span>
-                      ))}
+
+                    {currentReport.missedConcepts?.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 block">Missed Core Concepts</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {currentReport.missedConcepts?.map((c: string, i: number) => (
+                            <span key={i} className="px-2.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                      {currentReport.recommendedCertifications?.length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">Suggested Certifications</span>
+                          <ul className="list-disc pl-3 text-[10px] text-slate-600 font-medium">
+                            {currentReport.recommendedCertifications.map((c: string, i: number) => <li key={i}>{c}</li>)}
+                          </ul>
+                        </div>
+                      )}
+
+                      {currentReport.recommendedProjects?.length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">Suggested Practice Projects</span>
+                          <ul className="list-disc pl-3 text-[10px] text-slate-600 font-medium">
+                            {currentReport.recommendedProjects.map((p: string, i: number) => <li key={i}>{p}</li>)}
+                          </ul>
+                        </div>
+                      )}
+
+                      {currentReport.recommendedResources?.length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">Suggested Resources</span>
+                          <ul className="list-disc pl-3 text-[10px] text-slate-600 font-medium">
+                            {currentReport.recommendedResources.map((r: string, i: number) => <li key={i}>{r}</li>)}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <Button
                     onClick={() => setCurrentReport(null)}
                     variant="outline"
-                    className="w-full h-10 rounded-xl font-bold"
+                    className="w-full h-10 rounded-xl font-bold bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
                   >
                     Start Another Interview
                   </Button>
