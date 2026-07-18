@@ -353,12 +353,22 @@ export async function POST(req: NextRequest) {
     let rawText = "";
 
     if (fileMimeType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf")) {
-      rawText = await parsePdfBuffer(buffer);
+      try {
+        rawText = await parsePdfBuffer(buffer);
+      } catch (err) {
+        console.warn("PdfReader failed to parse buffer, falling back to string recovery:", err);
+        rawText = buffer.toString("binary").replace(/[^\x20-\x7E\n\r\t]/g, " ");
+      }
     } else if (
       fileMimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
       fileName.toLowerCase().endsWith(".docx")
     ) {
-      rawText = await parseDocxBuffer(buffer);
+      try {
+        rawText = await parseDocxBuffer(buffer);
+      } catch (err) {
+        console.warn("Mammoth failed to parse DOCX buffer, falling back to string recovery:", err);
+        rawText = buffer.toString("binary").replace(/[^\x20-\x7E\n\r\t]/g, " ");
+      }
     } else {
       rawText = buffer.toString("utf-8");
     }
