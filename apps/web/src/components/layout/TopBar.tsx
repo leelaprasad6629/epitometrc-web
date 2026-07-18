@@ -37,7 +37,10 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
   // Generate dynamic breadcrumb array
   const pathSegments = pathname.split("/").filter((seg) => seg);
   const breadcrumbs = pathSegments.map((segment, index) => {
-    const href = "/" + pathSegments.slice(0, index + 1).join("/");
+    let href = "/" + pathSegments.slice(0, index + 1).join("/");
+    if (href === "/admin") href = "/admin/dashboard";
+    if (href === "/employee") href = "/employee/dashboard";
+    if (href === "/student") href = "/student/dashboard";
     const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
     return { label, href };
   });
