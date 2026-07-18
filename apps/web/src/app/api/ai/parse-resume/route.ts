@@ -7,7 +7,8 @@ import {
   buildParseCareerDomainPrompt,
   buildUnifiedParsePrompt
 } from "@/lib/ai/services/promptBuilder";
-import { PdfReader } from "pdfreader";
+// @ts-ignore
+import pdfParse from "pdf-parse";
 import mammoth from "mammoth";
 
 // Extended predefined skills normalization alias database mapped to 17 groups
@@ -154,53 +155,10 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
   "owasp": { name: "OWASP", category: "cyberSecurity" }
 };
 
-// PDF Parser using page-aware coordinate-based sorting
-function parsePdfBuffer(buffer: Buffer): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let pages: Record<number, any[]> = {};
-    let currentPage = 1;
-
-    new PdfReader().parseBuffer(buffer, (err, item) => {
-      if (err) {
-        reject(err);
-      } else if (!item) {
-        let fullText = "";
-        const pageNumbers = Object.keys(pages).map(Number).sort((a, b) => a - b);
-        
-        for (const p of pageNumbers) {
-          const pageItems = pages[p];
-          pageItems.sort((a, b) => a.y - b.y);
-
-          let rows: { y: number; items: any[] }[] = [];
-          const yTolerance = 0.15; // baseline tolerance
-
-          for (const it of pageItems) {
-            let foundRow = rows.find(r => Math.abs(r.y - it.y) < yTolerance);
-            if (foundRow) {
-              foundRow.items.push(it);
-            } else {
-              rows.push({ y: it.y, items: [it] });
-            }
-          }
-
-          rows.sort((a, b) => a.y - b.y);
-
-          let pageText = "";
-          for (const row of rows) {
-            row.items.sort((a, b) => a.x - b.x);
-            pageText += row.items.map(it => it.text).join(" ") + "\n";
-          }
-          fullText += pageText + "\n\n";
-        }
-        resolve(fullText.trim());
-      } else if (item.page) {
-        currentPage = item.page;
-      } else if (item.text) {
-        if (!pages[currentPage]) pages[currentPage] = [];
-        pages[currentPage].push(item);
-      }
-    });
-  });
+// PDF Parser using in-memory pdf-parse
+async function parsePdfBuffer(buffer: Buffer): Promise<string> {
+  const data = await pdfParse(buffer);
+  return data.text || "";
 }
 
 // DOCX Parser using mammoth
@@ -571,15 +529,21 @@ export async function POST(req: NextRequest) {
       careerDomain = "Full Stack";
     }
 
+    const safeEducation = Array.isArray(education) ? education : [];
+    const safeExperience = Array.isArray(experience) ? experience : [];
+    const safeProjects = Array.isArray(projects) ? projects : [];
+    const safeCertifications = Array.isArray(certifications) ? certifications : [];
+    const safeAchievements = Array.isArray(achievements) ? achievements : [];
+
     // Dynamic field completeness metrics
     const completenessMetrics: Record<string, number> = {
       personal: (fullName ? 25 : 0) + (parsedEmail ? 25 : 0) + (parsedPhone ? 25 : 0) + (parsedLocation ? 25 : 0),
-      education: education.length > 0 ? Math.round((education.filter(e => e.degree && e.institution && e.endYear).length / education.length) * 100) : 0,
-      experience: experience.length > 0 ? Math.round((experience.filter(exp => exp.companyName && exp.role).length / experience.length) * 100) : 0,
-      projects: projects.length > 0 ? Math.round((projects.filter(p => p.projectTitle && p.description).length / projects.length) * 100) : 0,
+      education: safeEducation.length > 0 ? Math.round((safeEducation.filter(e => e && e.degree && e.institution && e.endYear).length / safeEducation.length) * 100) : 0,
+      experience: safeExperience.length > 0 ? Math.round((safeExperience.filter(exp => exp && exp.companyName && exp.role).length / safeExperience.length) * 100) : 0,
+      projects: safeProjects.length > 0 ? Math.round((safeProjects.filter(p => p && p.projectTitle && p.description).length / safeProjects.length) * 100) : 0,
       skills: combinedSkillsSet.size > 0 ? 100 : 0,
-      certifications: certifications.length > 0 ? 100 : 0,
-      achievements: achievements.length > 0 ? 100 : 0
+      certifications: safeCertifications.length > 0 ? 100 : 0,
+      achievements: safeAchievements.length > 0 ? 100 : 0
     };
 
     const overallCompleteness = Math.round(
@@ -596,10 +560,10 @@ export async function POST(req: NextRequest) {
       github: github ? 100 : 0,
       portfolioWebsite: portfolioWebsite ? 100 : 0,
       
-      education: education.length > 0 ? Math.round((education.filter(e => e.degree && e.institution).length / education.length) * 100) : 0,
-      experience: experience.length > 0 ? Math.round((experience.filter(exp => exp.companyName && exp.role).length / experience.length) * 100) : 0,
-      projects: projects.length > 0 ? Math.round((projects.filter(p => p.projectTitle && p.description).length / projects.length) * 100) : 0,
-      certifications: certifications.length > 0 ? 100 : 0,
+      education: safeEducation.length > 0 ? Math.round((safeEducation.filter(e => e && e.degree && e.institution).length / safeEducation.length) * 100) : 0,
+      experience: safeExperience.length > 0 ? Math.round((safeExperience.filter(exp => exp && exp.companyName && exp.role).length / safeExperience.length) * 100) : 0,
+      projects: safeProjects.length > 0 ? Math.round((safeProjects.filter(p => p && p.projectTitle && p.description).length / safeProjects.length) * 100) : 0,
+      certifications: safeCertifications.length > 0 ? 100 : 0,
       
       bio: -1,
       softSkills: -1
