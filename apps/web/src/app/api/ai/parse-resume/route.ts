@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAICompletion } from "@/lib/ai/services/aiService";
+
+export const maxDuration = 60; // 60s Vercel serverless function timeout extension
 import { PdfReader } from "pdfreader";
 import mammoth from "mammoth";
 
