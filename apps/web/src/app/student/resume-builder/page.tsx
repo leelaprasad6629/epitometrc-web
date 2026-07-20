@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
+import AudioVisualizer from "@/components/ai/AudioVisualizer";
 import { useResumeStore } from "@/lib/ai/store/resumeStore";
 
 type TabId = "resume" | "interview" | "questions" | "career" | "jobs" | "learning";
@@ -812,6 +813,9 @@ export default function AIResumeCoachPage() {
                         </button>
                       )}
                     </div>
+                    {interviewConfig.mode === "Voice" && (
+                      <AudioVisualizer isListening={isListening} />
+                    )}
                     <textarea
                       value={studentAnswer}
                       onChange={(e) => setStudentAnswer(e.target.value)}

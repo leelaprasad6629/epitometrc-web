@@ -8,7 +8,7 @@ import {
   buildUnifiedParsePrompt
 } from "@/lib/ai/services/promptBuilder";
 // @ts-ignore
-import pdfParse from "pdf-parse";
+import * as pdfParse from "pdf-parse";
 import mammoth from "mammoth";
 
 // Extended predefined skills normalization alias database mapped to 17 groups
@@ -157,7 +157,9 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
 
 // PDF Parser using in-memory pdf-parse
 async function parsePdfBuffer(buffer: Buffer): Promise<string> {
-  const data = await pdfParse(buffer);
+  // @ts-ignore
+  const parseFn = typeof pdfParse === "function" ? pdfParse : (pdfParse.default || pdfParse);
+  const data = await parseFn(buffer);
   return data.text || "";
 }
 
