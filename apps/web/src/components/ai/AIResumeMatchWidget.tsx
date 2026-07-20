@@ -181,15 +181,20 @@ export default function AIResumeMatchWidget() {
           })
         });
 
+        if (!res.ok) {
+          setError(`Server busy (${res.status}): Please try uploading again.`);
+          return;
+        }
+
         const data = await res.json();
-        if (res.ok && data.success) {
+        if (data.success) {
           setResumeData(file.name, base64Data, file.type || "application/pdf", data.result, data.confidenceScores);
           setActiveTab("details");
         } else {
           setError(data.error || "Failed to parse resume.");
         }
-      } catch {
-        setError("Connection timeout parsing file.");
+      } catch (err: any) {
+        setError(err?.message || "Connection timeout parsing file.");
       } finally {
         setLoading(false);
       }
