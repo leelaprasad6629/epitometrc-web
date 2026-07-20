@@ -7,6 +7,9 @@ import {
   buildParseCareerDomainPrompt,
   buildUnifiedParsePrompt
 } from "@/lib/ai/services/promptBuilder";
+
+export const maxDuration = 60; // 60s Vercel serverless function timeout extension
+
 // @ts-ignore
 import * as pdfParse from "pdf-parse";
 import mammoth from "mammoth";

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAICompletion } from "@/lib/ai/services/aiService";
 
+export const maxDuration = 60; // 60s Vercel serverless function timeout extension
+
 export async function POST(req: NextRequest) {
   try {
     const { role, interviewType, difficulty, question, answer, history, company, jobDescription, resumeContext } = await req.json();
