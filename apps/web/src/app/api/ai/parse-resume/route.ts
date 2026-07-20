@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAICompletion } from "@/lib/ai/services/aiService";
+// @ts-ignore
+import * as pdfParse from "pdf-parse";
+import mammoth from "mammoth";
 
 export const maxDuration = 60; // 60s Vercel serverless function timeout extension
-import { PdfReader } from "pdfreader";
-import mammoth from "mammoth";
 
 // Extended predefined skills normalization alias database mapped to 14 groups
 const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
@@ -93,8 +94,8 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
   "kubernetes": { name: "Kubernetes", category: "devops" },
   "k8s": { name: "Kubernetes", category: "devops" },
   "git": { name: "Git", category: "devops" },
-  "github": { name: "GitHub", category: "devops" },
-  "gitlab": { name: "GitHub", category: "devops" },
+  "github": { name: "Git", category: "devops" },
+  "gitlab": { name: "Git", category: "devops" },
   "terraform": { name: "Terraform", category: "devops" },
   "ci/cd": { name: "CI/CD", category: "devops" },
   
