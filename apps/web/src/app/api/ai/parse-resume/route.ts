@@ -8,7 +8,7 @@ import {
   buildUnifiedParsePrompt
 } from "@/lib/ai/services/promptBuilder";
 // @ts-ignore
-import { PDFParse } from "pdf-parse";
+import * as pdfParse from "pdf-parse";
 import mammoth from "mammoth";
 
 
@@ -158,9 +158,10 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
 
 // PDF Parser using in-memory pdf-parse
 async function parsePdfBuffer(buffer: Buffer): Promise<string> {
-  const parser = new PDFParse({ data: buffer });
-  const result = await parser.getText();
-  return result.text || "";
+  // @ts-ignore
+  const parseFn = typeof pdfParse === "function" ? pdfParse : (pdfParse.default || pdfParse);
+  const data = await parseFn(buffer);
+  return data.text || "";
 }
 
 // DOCX Parser using mammoth

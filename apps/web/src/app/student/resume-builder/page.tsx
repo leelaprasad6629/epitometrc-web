@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
+import AudioVisualizer from "@/components/ai/AudioVisualizer";
 import { useResumeStore } from "@/lib/ai/store/resumeStore";
 
 type TabId = "resume" | "interview" | "questions" | "career" | "jobs" | "learning";
@@ -812,6 +813,9 @@ export default function AIResumeCoachPage() {
                         </button>
                       )}
                     </div>
+                    {interviewConfig.mode === "Voice" && (
+                      <AudioVisualizer isListening={isListening} />
+                    )}
                     <textarea
                       value={studentAnswer}
                       onChange={(e) => setStudentAnswer(e.target.value)}
@@ -1020,10 +1024,27 @@ export default function AIResumeCoachPage() {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Button
+                      onClick={() => setActiveTab("learning")}
+                      variant="primary"
+                      className="w-full h-10 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-white"
+                    >
+                      <Map className="mr-1.5 h-4 w-4" /> Review Learning Roadmap
+                    </Button>
+                    <Button
+                      onClick={() => setActiveTab("jobs")}
+                      variant="outline"
+                      className="w-full h-10 rounded-xl font-bold bg-white hover:bg-slate-50 border border-slate-200 text-slate-700"
+                    >
+                      <Briefcase className="mr-1.5 h-4 w-4" /> View Matching Jobs
+                    </Button>
+                  </div>
+
                   <Button
                     onClick={() => setCurrentReport(null)}
                     variant="outline"
-                    className="w-full h-10 rounded-xl font-bold bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
+                    className="w-full h-10 rounded-xl font-bold bg-white hover:bg-slate-50 border border-slate-200 text-slate-700"
                   >
                     Start Another Interview
                   </Button>
