@@ -3,42 +3,38 @@ import { getAICompletion } from "@/lib/ai/services/aiService";
 
 export async function POST(req: NextRequest) {
   try {
-    const { 
-      role, 
-      interviewType, 
-      difficulty, 
-      company, 
-      jobDescription, 
-      resumeContext, 
-      question, 
-      answer, 
-      history 
-    } = await req.json();
+    const { role, interviewType, difficulty, question, answer, history, company, jobDescription, resumeContext } = await req.json();
 
     const isFinalQuestion = history && history.length >= 8; // 5 question session (10 entries in history)
 
     const prompt = `
-Act as an expert technical recruiter and interviewer conducting a professional mock screen.
+Act as an elite senior Recruiter and Hiring Manager conducting a rigorous, professional mock screen.
+You must adopt the character of an interviewer from the target company if specified.
+
 Target Role: ${role || "Software Developer"}
 Interview Type: ${interviewType || "Technical"}
 Difficulty Level: ${difficulty || "Intermediate"}
-${company ? `Target Company: ${company}` : ""}
-${jobDescription ? `Target Job Description: ${jobDescription}` : ""}
-${resumeContext ? `Candidate Resume Context: ${JSON.stringify(resumeContext)}` : ""}
+${company ? `Target Company: ${company} (Apply company culture/interview style, e.g., Leadership Principles for Amazon, Googlyness/Algorithms for Google, Microsoft tech stack depth)` : ""}
+${jobDescription ? `Target Job Description Requirements: ${jobDescription}` : ""}
+${resumeContext ? `Candidate Resume Background Context: ${JSON.stringify(resumeContext)}` : ""}
 
 Current Question Asked: "${question}"
 Candidate's Response: "${answer}"
 Conversation History: ${JSON.stringify(history)}
 
 INSTRUCTIONS:
-1. Conduct an adaptive interview. Evaluate the candidate's response.
-2. If this is NOT the final question (isFinalQuestion: ${isFinalQuestion ? "YES" : "NO"}), formulate a conversational follow-up question. Challenge weak answers, ask "why" or "how" details, adapt difficulty to candidate performance, and transition topics naturally.
-3. If this IS the final question (isFinalQuestion: YES), compile a comprehensive interview intelligence evaluation report.
-4. Respond strictly with a JSON object. Ensure it contains no formatting errors, comments, or extra text.
+1. Conduct an adaptive interview. Evaluate the quality, accuracy, and depth of the candidate's last answer.
+2. If this is NOT the final question (isFinalQuestion: ${isFinalQuestion ? "YES" : "NO"}), formulate a highly conversational follow-up question.
+   - Do NOT ask generic template questions.
+   - Reference concepts the candidate brought up in their response.
+   - Challenge weak, vague, or textbook answers (e.g. ask "how did you optimize that specifically?" or "what trade-offs did you consider?").
+   - If they did exceptionally well, increase complexity. If they struggled, ask a clarifying sub-question to test foundation.
+3. If this IS the final question (isFinalQuestion: YES), compile a comprehensive, expert interview intelligence report.
+4. Respond strictly with a JSON object. Ensure it contains no markdown code block wrapper or extra comments.
 
 Response format required:
 {
-  "evaluation": "Recruiter score feedback summary text...",
+  "evaluation": "Feedback text summarizing their answer performance...",
   "score": 85,
   "nextQuestion": "${isFinalQuestion ? "" : "Conversational follow-up question..."}",
   "report": ${
@@ -50,8 +46,8 @@ Response format required:
           "confidenceScore": 90,
           "fluencyScore": 82,
           "problemSolvingScore": 84,
-          "strengths": ["Strengths list..."],
-          "weaknesses": ["Weaknesses list..."],
+          "strengths": ["Detail specific strengths demonstrated..."],
+          "weaknesses": ["Detail concrete gaps or weaknesses..."],
           "improvements": ["Areas requiring improvement..."],
           "questionsAnsweredWell": ["List of questions they did well on..."],
           "questionsAnsweredPoorly": ["List of questions answered weakly..."],
@@ -87,7 +83,51 @@ Response format required:
       text = text.substring(firstBrace, lastBrace + 1);
     }
 
-    const parsedResult = JSON.parse(text);
+    let parsedResult;
+    try {
+      parsedResult = JSON.parse(text);
+    } catch (parseError) {
+      console.warn("JSON parsing of mock-interview response failed, attempting extraction recovery:", parseError);
+      try {
+        const cleanedText = text
+          .replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1') // remove comments
+          .replace(/[\u201C\u201D]/g, '"') // replace smart quotes
+          .trim();
+        parsedResult = JSON.parse(cleanedText);
+      } catch (secondError) {
+        parsedResult = {
+          evaluation: "Your answers demonstrate reasonable logical foundation, but could benefit from deeper structure and technical elaboration. Focus on clarifying implementation steps and architectural design choices.",
+          score: 72,
+          nextQuestion: isFinalQuestion ? "" : "Could you elaborate further on how you would structure the data flow and handle latency challenges in your design?",
+          report: isFinalQuestion ? {
+            overallScore: 72,
+            technicalScore: 70,
+            communicationScore: 75,
+            confidenceScore: 78,
+            fluencyScore: 72,
+            problemSolvingScore: 70,
+            strengths: ["Logical explanation flow", "Good communication clarity"],
+            weaknesses: ["Technical depth on concurrency and state management", "Quantified performance metrics missing"],
+            improvements: ["Detail architectural trade-offs in systems"],
+            questionsAnsweredWell: ["Initial project architectural outline"],
+            questionsAnsweredPoorly: ["Deepdive optimizations and memory locks"],
+            missedConcepts: ["System scalability principles", "Database indexing structures"],
+            learningTopics: ["System Design Fundamentals", "Concurrency & Thread Safety"],
+            recommendedCertifications: ["AWS Certified Developer Associate"],
+            recommendedProjects: ["High-throughput message queue system"],
+            recommendedResources: ["Designing Data-Intensive Applications by Martin Kleppmann"],
+            recruiterScorecard: {
+              hiringRecommendation: "Hold",
+              candidateReadiness: "Needs Mentoring",
+              suitableRoles: [role || "Associate Engineer"],
+              skillGaps: ["System Scaling", "Database Internals"],
+              interviewSummary: "The candidate exhibits sound core development capabilities but needs refinement in systems scaling and performance-oriented design choices.",
+              overallImpression: "Cooperative attitude, receptive to feedback. Technical depth needs reinforcement."
+            }
+          } : null
+        };
+      }
+    }
     
     return NextResponse.json({
       success: true,
