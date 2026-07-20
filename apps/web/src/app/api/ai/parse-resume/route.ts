@@ -138,28 +138,19 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
   "owasp": { name: "OWASP", category: "cyberSecurity" }
 };
 
-// PDF Parser using coordinate-based sorting
-function parsePdfBuffer(buffer: Buffer): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let rows: Record<number, any[]> = {};
-    new PdfReader().parseBuffer(buffer, (err, item) => {
-      if (err) {
-        reject(err);
-      } else if (!item) {
-        let text = "";
-        const yCoords = Object.keys(rows).map(Number).sort((a, b) => a - b);
-        for (const y of yCoords) {
-          const rowItems = rows[y].sort((a, b) => a.x - b.x);
-          text += rowItems.map(it => it.text).join(" ") + "\n";
-        }
-        resolve(text);
-      } else if (item.text) {
-        const y = Math.round(item.y * 100);
-        if (!rows[y]) rows[y] = [];
-        rows[y].push(item);
-      }
-    });
-  });
+// PDF Parser using in-memory pdf-parse
+async function parsePdfBuffer(buffer: Buffer): Promise<string> {
+  try {
+    // @ts-ignore
+    const parseFn = typeof pdfParse === "function" ? pdfParse : (pdfParse.default || pdfParse);
+    if (typeof parseFn === "function") {
+      const data = await parseFn(buffer);
+      if (data && data.text) return data.text;
+    }
+  } catch (e) {
+    console.warn("pdf-parse failed on buffer, engaging string fallback:", e);
+  }
+  return buffer.toString("utf-8").replace(/[^\x20-\x7E\n\r\t]/g, " ");
 }
 
 // DOCX Parser using mammoth
@@ -264,7 +255,7 @@ function cleanAndExtractName(text: string, fileName: string): string {
     return nameWords.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
   }
   
-  return "Mudigonda Lalitha Sreya";
+  return "Candidate";
 }
 
 // Robust URL extractor scanning the FULL text
@@ -321,7 +312,6 @@ export async function POST(req: NextRequest) {
     const segmentedBlocks = segmentResumeText(cleanedText);
 
     // Phase 3: Hybrid Extraction
-    // Deterministic URL extraction scanning the FULL cleaned text
     const extractedUrls = extractUrlsFromText(cleanedText);
 
     const emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
@@ -330,14 +320,13 @@ export async function POST(req: NextRequest) {
     const phoneMatch = cleanedText.match(/\+?\d[\d\s.-]{8,15}\d/);
     const parsedPhone = phoneMatch ? phoneMatch[0].trim() : "";
 
-    // Parse location deterministically
     const locationMatch = cleanedText.match(/(?:london|new york|san francisco|tokyo|toronto|berlin|paris|chicago|austin|seattle|vancouver)/i);
     const parsedLocation = locationMatch ? locationMatch[0].charAt(0).toUpperCase() + locationMatch[0].slice(1) : "";
 
-    // Deterministic Skill Normalization (14 groups)
+    // Deterministic Skill Normalization
     const skillsText = segmentedBlocks.skills || cleanedText;
     const words = skillsText.toLowerCase().split(/[\s,()\-]+/);
-    const detectedSkillsSet = new Set<string>();
+    const combinedSkillsSet = new Set<string>();
 
     const categorizedSkills: Record<string, string[]> = {
       programmingLanguages: [],
@@ -359,179 +348,100 @@ export async function POST(req: NextRequest) {
     for (const word of words) {
       if (SKILL_ALIASES[word]) {
         const item = SKILL_ALIASES[word];
-        detectedSkillsSet.add(item.name);
+        combinedSkillsSet.add(item.name);
+        if (!categorizedSkills[item.category]) {
+          categorizedSkills[item.category] = [];
+        }
         if (!categorizedSkills[item.category].includes(item.name)) {
           categorizedSkills[item.category].push(item.name);
         }
       }
     }
 
-    const aliasList = Object.keys(SKILL_ALIASES);
-    for (const alias of aliasList) {
-      if (alias.includes(" ") && skillsText.toLowerCase().includes(alias)) {
-        const item = SKILL_ALIASES[alias];
-        detectedSkillsSet.add(item.name);
-        if (!categorizedSkills[item.category].includes(item.name)) {
-          categorizedSkills[item.category].push(item.name);
-        }
-      }
-    }
-
-    // Semantic AI extraction passes on specific segment blocks (with fallbacks)
+    // AI Semantic Extraction
     let fullName = "";
     let headline = "";
     let bio = "";
-    let education: any[] = [];
-    let experience: any[] = [];
-    let projects: any[] = [];
-    let certifications: any[] = [];
-    let internships: any[] = [];
-    let achievements: any[] = [];
+    let safeEducation: any[] = [];
+    let safeExperience: any[] = [];
+    let safeProjects: any[] = [];
+    let safeCertifications: any[] = [];
+    let safeInternships: any[] = [];
+    let safeAchievements: any[] = [];
     let softSkills: string[] = [];
     let candidateProfile = "";
     let careerDomain = "";
+    let aiSkills: string[] = [];
 
-    // Pass 1: Personal profile & summary
-    const promptPass1 = `
-Act as an ATS resume parser. Extract full name, professional headline, and summary biography from this text.
-Do not guess or hallucinate. Return strictly JSON:
+    const promptPass = `
+Act as an ATS parser. Return strict JSON.
 {
-  "fullName": "Extracted name or empty",
-  "headline": "Title or empty",
-  "bio": "Summary bio or empty"
+  "fullName": "Name", "headline": "Title", "bio": "Summary", "aiSkills": ["List of skills"],
+  "education": [], "experience": [], "projects": [], "certifications": [], "internships": [], "achievements": [], "softSkills": [],
+  "candidateProfile": "Summary", "careerDomain": "Domain"
 }
-Text:
-${segmentedBlocks.personal || cleanedText}
-${segmentedBlocks.bio || ""}
-    `.trim();
-
-    // Pass 2: Education & Certifications
-    const promptPass2 = `
-Act as an ATS resume parser. Extract education and certifications records from this text.
-Return strictly JSON:
-{
-  "education": [
-    { "degree": "e.g. B.Sc.", "branch": "e.g. Computer Science", "institution": "University Name", "university": "Affiliated University Name", "startYear": "Year", "endYear": "Year", "cgpa": "e.g. 3.8/4.0" }
-  ],
-  "certifications": [
-    { "certificationName": "Name", "organization": "Issuer Name", "date": "Date/Year", "credentialId": "ID or empty" }
-  ]
-}
-Text:
-${segmentedBlocks.education || ""}
-${segmentedBlocks.certifications || ""}
-    `.trim();
-
-    // Pass 3: Work Experience, Projects, Internships & Achievements
-    const promptPass3 = `
-Act as an ATS resume parser. Extract experiences, projects, internships, achievements, and soft skills lists.
-Return strictly JSON:
-{
-  "experience": [
-    { "companyName": "Company", "role": "Role", "employmentType": "Full-time/Part-time/Apprentice", "startDate": "Date", "endDate": "Date", "duration": "Duration", "responsibilities": "Bullet points summary text" }
-  ],
-  "projects": [
-    { "projectTitle": "Title", "description": "Details", "technologiesUsed": ["React", "TypeScript"], "githubLink": "URL", "liveUrl": "URL", "duration": "Duration" }
-  ],
-  "internships": [
-    { "company": "Company", "role": "Role", "duration": "Duration", "description": "Responsibilities text" }
-  ],
-  "achievements": [
-    { "title": "Achievement title", "description": "Description detail" }
-  ],
-  "softSkills": ["Leadership", "Communication"]
-}
-Text:
-${segmentedBlocks.experience || ""}
-${segmentedBlocks.projects || ""}
-${segmentedBlocks.internships || ""}
-${segmentedBlocks.achievements || ""}
-    `.trim();
-
-    // Pass 4: Semantic candidate understanding (Phase 6)
-    const promptPass4 = `
-Act as an ATS recruiting assistant. Generate a semantic candiate profile summary sentence and select a career domain classification.
-Domains: Frontend Development, Backend, AI/ML, Full Stack, Cybersecurity, Data Science, Cloud.
-Return strictly JSON:
-{
-  "candidateProfile": "Semantic candiate summary sentence",
-  "careerDomain": "Selected Domain"
-}
-Text:
-${cleanedText}
+Text: ${cleanedText.substring(0, 8000)}
     `.trim();
 
     try {
-      const [res1, res2, res3, res4] = await Promise.all([
-        getAICompletion(promptPass1),
-        getAICompletion(promptPass2),
-        getAICompletion(promptPass3),
-        getAICompletion(promptPass4)
-      ]);
-
-      if (res1.success && res1.text) {
-        const cleanJson = res1.text.replace(/```json|```/g, "").trim();
+      const aiRes = await getAICompletion(promptPass);
+      if (aiRes.success && aiRes.text) {
+        const cleanJson = aiRes.text.replace(/```json|```/g, "").trim();
         const obj = JSON.parse(cleanJson);
         fullName = obj.fullName || "";
         headline = obj.headline || "";
         bio = obj.bio || "";
-      }
-      if (res2.success && res2.text) {
-        const cleanJson = res2.text.replace(/```json|```/g, "").trim();
-        const obj = JSON.parse(cleanJson);
-        education = obj.education || [];
-        certifications = obj.certifications || [];
-      }
-      if (res3.success && res3.text) {
-        const cleanJson = res3.text.replace(/```json|```/g, "").trim();
-        const obj = JSON.parse(cleanJson);
-        experience = obj.experience || [];
-        projects = obj.projects || [];
-        internships = obj.internships || [];
-        achievements = obj.achievements || [];
-        softSkills = obj.softSkills || [];
-      }
-      if (res4.success && res4.text) {
-        const cleanJson = res4.text.replace(/```json|```/g, "").trim();
-        const obj = JSON.parse(cleanJson);
+        aiSkills = Array.isArray(obj.aiSkills) ? obj.aiSkills : [];
+        safeEducation = Array.isArray(obj.education) ? obj.education : [];
+        safeExperience = Array.isArray(obj.experience) ? obj.experience : [];
+        safeProjects = Array.isArray(obj.projects) ? obj.projects : [];
+        safeCertifications = Array.isArray(obj.certifications) ? obj.certifications : [];
+        safeInternships = Array.isArray(obj.internships) ? obj.internships : [];
+        safeAchievements = Array.isArray(obj.achievements) ? obj.achievements : [];
+        softSkills = Array.isArray(obj.softSkills) ? obj.softSkills : [];
         candidateProfile = obj.candidateProfile || "";
         careerDomain = obj.careerDomain || "";
       }
     } catch (err) {
-      console.warn("Gemini semantic parser failed, using fallback metrics:", err);
+      console.warn("AI parsing failed:", err);
     }
 
-    // Dynamic clean name extraction
-    if (!fullName || fullName.toLowerCase().includes("resume") || fullName.toLowerCase().includes("alex thompson") || fullName.length < 2) {
+    for (const skill of aiSkills) {
+      if (!skill) continue;
+      const skillClean = skill.trim();
+      const skillLower = skillClean.toLowerCase();
+      if (SKILL_ALIASES[skillLower]) {
+        const item = SKILL_ALIASES[skillLower];
+        combinedSkillsSet.add(item.name);
+        if (!categorizedSkills[item.category]) categorizedSkills[item.category] = [];
+        if (!categorizedSkills[item.category].includes(item.name)) categorizedSkills[item.category].push(item.name);
+      } else {
+        combinedSkillsSet.add(skillClean);
+        if (!categorizedSkills.tools) categorizedSkills.tools = [];
+        if (!categorizedSkills.tools.includes(skillClean)) categorizedSkills.tools.push(skillClean);
+      }
+    }
+
+    if (!fullName || fullName.toLowerCase().includes("resume")) {
       fullName = cleanAndExtractName(cleanedText, fileName);
     }
     
-    if (!headline) {
-      headline = "Apprentice Engineer";
-    }
-    if (!candidateProfile) {
-      candidateProfile = `${fullName} is an engineering student focusing on ${careerDomain || "Software Engineering"}.`;
-    }
-    if (!careerDomain) {
-      careerDomain = "Full Stack";
-    }
+    if (!candidateProfile) candidateProfile = `${fullName} is a ${careerDomain || "Professional"}.`;
 
-    // Dynamic field completeness metrics
     const completenessMetrics: Record<string, number> = {
       personal: (fullName ? 25 : 0) + (parsedEmail ? 25 : 0) + (parsedPhone ? 25 : 0) + (parsedLocation ? 25 : 0),
-      education: education.length > 0 ? Math.round((education.filter(e => e.degree && e.institution && e.endYear).length / education.length) * 100) : 0,
-      experience: experience.length > 0 ? Math.round((experience.filter(exp => exp.companyName && exp.role).length / experience.length) * 100) : 0,
-      projects: projects.length > 0 ? Math.round((projects.filter(p => p.projectTitle && p.description).length / projects.length) * 100) : 0,
-      skills: detectedSkillsSet.size > 0 ? 100 : 0,
-      certifications: certifications.length > 0 ? 100 : 0,
-      achievements: achievements.length > 0 ? 100 : 0
+      education: safeEducation.length > 0 ? Math.round((safeEducation.filter(e => e && typeof e === 'object' && e.degree && e.institution && e.endYear).length / safeEducation.length) * 100) : 0,
+      experience: safeExperience.length > 0 ? Math.round((safeExperience.filter(exp => exp && typeof exp === 'object' && exp.companyName && exp.role).length / safeExperience.length) * 100) : 0,
+      projects: safeProjects.length > 0 ? Math.round((safeProjects.filter(p => p && typeof p === 'object' && p.projectTitle && p.description).length / safeProjects.length) * 100) : 0,
+      skills: combinedSkillsSet.size > 0 ? 100 : 0,
+      certifications: safeCertifications.length > 0 ? 100 : 0,
+      achievements: safeAchievements.length > 0 ? 100 : 0
     };
 
     const overallCompleteness = Math.round(
-      Object.values(completenessMetrics).reduce((a, b) => a + b, 0) / Object.values(completenessMetrics).length
+      Object.values(completenessMetrics).reduce((a, b) => a + b, 0) / (Object.values(completenessMetrics).length || 1)
     );
 
-    // Confidence mapping values
     const confidenceScores: Record<string, number> = {
       fullName: fullName ? 100 : 0,
       email: parsedEmail ? 100 : 0,
@@ -540,12 +450,10 @@ ${cleanedText}
       linkedin: extractedUrls.linkedin ? 100 : 0,
       github: extractedUrls.github ? 100 : 0,
       portfolioWebsite: extractedUrls.portfolio ? 100 : 0,
-      
-      education: education.length > 0 ? Math.round((education.filter(e => e.degree && e.institution).length / education.length) * 100) : 0,
-      experience: experience.length > 0 ? Math.round((experience.filter(exp => exp.companyName && exp.role).length / experience.length) * 100) : 0,
-      projects: projects.length > 0 ? Math.round((projects.filter(p => p.projectTitle && p.description).length / projects.length) * 100) : 0,
-      certifications: certifications.length > 0 ? 100 : 0,
-      
+      education: safeEducation.length > 0 ? Math.round((safeEducation.filter(e => e && typeof e === 'object' && e.degree && e.institution).length / safeEducation.length) * 100) : 0,
+      experience: safeExperience.length > 0 ? Math.round((safeExperience.filter(exp => exp && typeof exp === 'object' && exp.companyName && exp.role).length / safeExperience.length) * 100) : 0,
+      projects: safeProjects.length > 0 ? Math.round((safeProjects.filter(p => p && typeof p === 'object' && p.projectTitle && p.description).length / safeProjects.length) * 100) : 0,
+      certifications: safeCertifications.length > 0 ? 100 : 0,
       bio: -1,
       softSkills: -1
     };
@@ -561,38 +469,16 @@ ${cleanedText}
         linkedin: extractedUrls.linkedin,
         github: extractedUrls.github,
         portfolioWebsite: extractedUrls.portfolio,
-        personalWebsite: extractedUrls.portfolio,
-        leetcode: "",
-        hackerrank: "",
-        codechef: "",
-        codeforces: "",
-        bio: bio || "Professional profile summary.",
-        education,
-        experience,
-        projects,
-        certifications,
-        internships,
-        achievements,
-        technicalSkills: Array.from(detectedSkillsSet),
-        softSkills: softSkills.length > 0 ? softSkills : ["Communication", "Problem Solving", "Teamwork"],
-        
-        programmingLanguages: categorizedSkills.programmingLanguages,
-        frameworks: categorizedSkills.frameworks,
-        frontend: categorizedSkills.frontend,
-        backend: categorizedSkills.backend,
-        databases: categorizedSkills.databases,
-        cloud: categorizedSkills.cloud,
-        devops: categorizedSkills.devops,
-        testing: categorizedSkills.testing,
-        aiml: categorizedSkills.aiml,
-        mobile: categorizedSkills.mobile,
-        tools: categorizedSkills.tools,
-        operatingSystems: categorizedSkills.operatingSystems,
-        networking: categorizedSkills.networking,
-        cyberSecurity: categorizedSkills.cyberSecurity,
-        
-        verifiedSkills: Array.from(detectedSkillsSet),
-        
+        bio,
+        education: safeEducation,
+        experience: safeExperience,
+        projects: safeProjects,
+        certifications: safeCertifications,
+        internships: safeInternships,
+        achievements: safeAchievements,
+        technicalSkills: Array.from(combinedSkillsSet),
+        softSkills,
+        ...categorizedSkills,
         candidateProfile,
         careerDomain,
         overallCompleteness,
@@ -602,7 +488,10 @@ ${cleanedText}
     });
 
   } catch (error: any) {
-    console.error("10-Phase Parser Route Error:", error);
-    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    console.error("AI Parser Endpoint error:", error);
+    return NextResponse.json(
+      { success: false, error: "Parser error: " + (error?.message || "Failed to segment text.") },
+      { status: 500 }
+    );
   }
 }
