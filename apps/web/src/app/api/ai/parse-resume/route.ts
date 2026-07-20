@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAICompletion } from "@/lib/ai/services/aiService";
-import { 
-  buildParsePersonalPrompt, 
-  buildParseEducationPrompt, 
-  buildParseExperiencePrompt, 
-  buildParseCareerDomainPrompt,
-  buildUnifiedParsePrompt
-} from "@/lib/ai/services/promptBuilder";
 
 export const maxDuration = 60; // 60s Vercel serverless function timeout extension
-
-// @ts-ignore
-import * as pdfParse from "pdf-parse";
+import { PdfReader } from "pdfreader";
 import mammoth from "mammoth";
 
-
-// Extended predefined skills normalization alias database mapped to 17 groups
+// Extended predefined skills normalization alias database mapped to 14 groups
 const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
   // Programming Languages
   "js": { name: "JavaScript", category: "programmingLanguages" },
@@ -102,6 +92,9 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
   "docker": { name: "Docker", category: "devops" },
   "kubernetes": { name: "Kubernetes", category: "devops" },
   "k8s": { name: "Kubernetes", category: "devops" },
+  "git": { name: "Git", category: "devops" },
+  "github": { name: "GitHub", category: "devops" },
+  "gitlab": { name: "GitHub", category: "devops" },
   "terraform": { name: "Terraform", category: "devops" },
   "ci/cd": { name: "CI/CD", category: "devops" },
   
@@ -112,27 +105,13 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
   "playwright": { name: "Playwright", category: "testing" },
   
   // AI/ML
+  "pytorch": { name: "PyTorch", category: "aiml" },
+  "tensorflow": { name: "TensorFlow", category: "aiml" },
+  "pandas": { name: "Pandas", category: "aiml" },
+  "numpy": { name: "NumPy", category: "aiml" },
+  "scikit-learn": { name: "Scikit-learn", category: "aiml" },
   "nlp": { name: "NLP", category: "aiml" },
-  "cv": { name: "Computer Vision", category: "aiml" },
-  "llm": { name: "Large Language Models", category: "aiml" },
   
-  // Data Science
-  "pytorch": { name: "PyTorch", category: "dataScience" },
-  "tensorflow": { name: "TensorFlow", category: "dataScience" },
-  "pandas": { name: "Pandas", category: "dataScience" },
-  "numpy": { name: "NumPy", category: "dataScience" },
-  "scikit-learn": { name: "Scikit-learn", category: "dataScience" },
-
-  // Version Control
-  "git": { name: "Git", category: "versionControl" },
-  "github": { name: "GitHub", category: "versionControl" },
-  "gitlab": { name: "GitLab", category: "versionControl" },
-
-  // Libraries
-  "lodash": { name: "Lodash", category: "libraries" },
-  "jquery": { name: "jQuery", category: "libraries" },
-  "axios": { name: "Axios", category: "libraries" },
-
   // Mobile
   "react native": { name: "React Native", category: "mobile" },
   "flutter": { name: "Flutter", category: "mobile" },
@@ -161,122 +140,122 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
 
 // PDF Parser using in-memory pdf-parse
 async function parsePdfBuffer(buffer: Buffer): Promise<string> {
-  // @ts-ignore
-  const parseFn = typeof pdfParse === "function" ? pdfParse : (pdfParse.default || pdfParse);
-  const data = await parseFn(buffer);
-  return data.text || "";
+  try {
+    // @ts-ignore
+    const parseFn = typeof pdfParse === "function" ? pdfParse : (pdfParse.default || pdfParse);
+    if (typeof parseFn === "function") {
+      const data = await parseFn(buffer);
+      if (data && data.text) return data.text;
+    }
+  } catch (e) {
+    console.warn("pdf-parse failed on buffer, engaging string fallback:", e);
+  }
+  return buffer.toString("utf-8").replace(/[^\x20-\x7E\n\r\t]/g, " ");
 }
 
 // DOCX Parser using mammoth
 async function parseDocxBuffer(buffer: Buffer): Promise<string> {
-  const result = await mammoth.extractRawText({ buffer });
-  return result.value;
+  try {
+    const result = await mammoth.extractRawText({ buffer });
+    return result.value;
+  } catch (err) {
+    console.error("docx parsing failed:", err);
+    return "";
+  }
 }
 
-// Standardizes whitespaces while keeping newlines for layout structure
 function cleanText(text: string): string {
   return text
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
     .replace(/[ \t]+/g, " ")
+    .replace(/\r\n/g, "\n")
     .replace(/\n\s*\n+/g, "\n")
     .trim();
 }
 
-// Phase 1: Logic section segmenter with synonym mapping
-function segmentResumeText(text: string): Record<string, string> {
-  const headingsRegex = /^(?:professional\s+summary|about|career\s+objective|education|academic\s+background|qualifications|experience|work\s+experience|professional\s+experience|projects|personal\s+projects|academic\s+projects|certifications|internships|achievements|publications|workshops|hackathons|leadership|volunteer|skills|technical\s+skills|languages|interests|extracurricular\s+activities)/im;
+// Phase 1 — Resume Segmentation Scanner
+interface SectionRegex {
+  key: string;
+  regex: RegExp;
+}
 
-  const lines = text.split("\n");
-  const segments: Record<string, string[]> = {
-    personal: [],
-    bio: [],
-    education: [],
-    experience: [],
-    projects: [],
-    certifications: [],
-    internships: [],
-    achievements: [],
-    skills: [],
-    publications: [],
-    workshops: [],
-    hackathons: [],
-    leadership: [],
-    volunteer: [],
-    languages: [],
-    interests: []
+const SECTION_RULES: SectionRegex[] = [
+  { key: "bio", regex: /^(?:professional\s+summary|summary|career\s+objective|about\s+me|about|profile)/i },
+  { key: "education", regex: /^(?:education|academic\s+background|qualifications|educational\s+qualifications|academic\s+history|academic\s+info)/i },
+  { key: "experience", regex: /^(?:experience|work\s+experience|professional\s+experience|employment\s+history|employment|work\s+history)/i },
+  { key: "projects", regex: /^(?:projects|personal\s+projects|academic\s+projects|portfolio\s+projects|key\s+projects)/i },
+  { key: "certifications", regex: /^(?:certifications|courses|licenses|credentials|certifications\s+&\s+courses)/i },
+  { key: "internships", regex: /^(?:internships|internship\s+experience|internship\s+history)/i },
+  { key: "achievements", regex: /^(?:achievements|awards|honors|awards\s+&\s+achievements)/i },
+  { key: "skills", regex: /^(?:skills|technical\s+skills|core\s+competencies|expertise|technologies)/i }
+];
+
+function segmentResumeText(text: string): Record<string, string> {
+  const sections: Record<string, string> = {
+    personal: "" // Default personal information section
   };
 
-  let currentKey = "personal";
+  const lines = text.split("\n");
+  let currentSection = "personal";
 
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
 
-    if (headingsRegex.test(trimmed)) {
-      const match = trimmed.toLowerCase();
-      if (match.includes("summary") || match.includes("about") || match.includes("objective")) {
-        currentKey = "bio";
-      } else if (match.includes("education") || match.includes("academic background") || match.includes("qualification")) {
-        currentKey = "education";
-      } else if (match.includes("experience") || match.includes("work")) {
-        currentKey = "experience";
-      } else if (match.includes("projects")) {
-        currentKey = "projects";
-      } else if (match.includes("certifications")) {
-        currentKey = "certifications";
-      } else if (match.includes("internships")) {
-        currentKey = "internships";
-      } else if (match.includes("achievements")) {
-        currentKey = "achievements";
-      } else if (match.includes("skills") || match.includes("technical")) {
-        currentKey = "skills";
-      } else if (match.includes("publications")) {
-        currentKey = "publications";
-      } else if (match.includes("workshops")) {
-        currentKey = "workshops";
-      } else if (match.includes("hackathons")) {
-        currentKey = "hackathons";
-      } else if (match.includes("leadership")) {
-        currentKey = "leadership";
-      } else if (match.includes("volunteer")) {
-        currentKey = "volunteer";
-      } else if (match.includes("languages")) {
-        currentKey = "languages";
-      } else if (match.includes("interests")) {
-        currentKey = "interests";
+    // Check if line matches any section heading rule
+    let headingMatched = false;
+    for (const rule of SECTION_RULES) {
+      if (rule.regex.test(trimmed)) {
+        currentSection = rule.key;
+        sections[currentSection] = (sections[currentSection] || "") + line + "\n";
+        headingMatched = true;
+        break;
       }
-    } else {
-      segments[currentKey].push(trimmed);
+    }
+
+    if (!headingMatched) {
+      sections[currentSection] = (sections[currentSection] || "") + line + "\n";
     }
   }
 
-  const result: Record<string, string> = {};
-  for (const k of Object.keys(segments)) {
-    result[k] = segments[k].join("\n");
-  }
-  return result;
+  return sections;
 }
 
-// cleanAndExtractName pulls name based on regex and filename
-function cleanAndExtractName(text: string, filename: string): string {
-  const cleanFilename = filename
-    .replace(/\.[^/.]+$/, "")
-    .replace(/[_\-]+/g, " ")
-    .replace(/(?:resume|cv|parsed|profile|student|latest|updated|edit|draft)/gi, "")
+// Robust fallback Name extractor
+function cleanAndExtractName(text: string, fileName: string): string {
+  const cleanFileName = fileName
+    .replace(/_Resume|_resume|\.pdf|\.docx|\.txt|[-_]/gi, " ")
+    .replace(/\s+/g, " ")
     .trim();
-
-  if (cleanFilename.length > 2) {
-    return cleanFilename.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
-  }
-
-  const nameRegex = /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}/;
-  const match = text.match(nameRegex);
-  if (match) {
-    return match[0].trim();
+  
+  const fileWords = cleanFileName.split(" ").filter(w => w.length > 0);
+  const nameWords = fileWords.filter(w => !/resume|cv|curriculum|vitae|profile|internship|job|apply|builder/i.test(w));
+  
+  if (nameWords.length >= 2 && nameWords.length <= 4) {
+    const capitalizedName = nameWords
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+    return capitalizedName;
   }
   
-  return "Mudigonda Lalitha Sreya";
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  for (let i = 0; i < Math.min(8, lines.length); i++) {
+    const line = lines[i];
+    if (/@|\+?\d{4,}|www\.|http|\.com|\.org/.test(line)) continue;
+    
+    const words = line.split(/\s+/);
+    const isCapitalized = words.every(w => /^[A-Z][a-zA-Z]*$/.test(w));
+    const containsStopWords = /resume|cv|curriculum|contact|email|phone|profile|portfolio/i.test(line);
+    
+    if (isCapitalized && words.length >= 2 && words.length <= 4 && !containsStopWords) {
+      return line;
+    }
+  }
+  
+  if (nameWords.length > 0) {
+    return nameWords.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+  }
+  
+  return "Candidate";
 }
 
 // Robust URL extractor scanning the FULL text
@@ -317,22 +296,12 @@ export async function POST(req: NextRequest) {
     let rawText = "";
 
     if (fileMimeType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf")) {
-      try {
-        rawText = await parsePdfBuffer(buffer);
-      } catch (err) {
-        console.warn("PdfReader failed to parse buffer, falling back to string recovery:", err);
-        rawText = buffer.toString("binary").replace(/[^\x20-\x7E\n\r\t]/g, " ");
-      }
+      rawText = await parsePdfBuffer(buffer);
     } else if (
       fileMimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
       fileName.toLowerCase().endsWith(".docx")
     ) {
-      try {
-        rawText = await parseDocxBuffer(buffer);
-      } catch (err) {
-        console.warn("Mammoth failed to parse DOCX buffer, falling back to string recovery:", err);
-        rawText = buffer.toString("binary").replace(/[^\x20-\x7E\n\r\t]/g, " ");
-      }
+      rawText = await parseDocxBuffer(buffer);
     } else {
       rawText = buffer.toString("utf-8");
     }
@@ -351,17 +320,13 @@ export async function POST(req: NextRequest) {
     const phoneMatch = cleanedText.match(/\+?\d[\d\s.-]{8,15}\d/);
     const parsedPhone = phoneMatch ? phoneMatch[0].trim() : "";
 
-    // Parse location deterministically with fallback
-    let parsedLocation = "";
     const locationMatch = cleanedText.match(/(?:london|new york|san francisco|tokyo|toronto|berlin|paris|chicago|austin|seattle|vancouver)/i);
-    if (locationMatch) {
-      parsedLocation = locationMatch[0].charAt(0).toUpperCase() + locationMatch[0].slice(1);
-    }
+    const parsedLocation = locationMatch ? locationMatch[0].charAt(0).toUpperCase() + locationMatch[0].slice(1) : "";
 
-    // Deterministic Skill Normalization (17 groups)
+    // Deterministic Skill Normalization
     const skillsText = segmentedBlocks.skills || cleanedText;
     const words = skillsText.toLowerCase().split(/[\s,()\-]+/);
-    const detectedSkillsSet = new Set<string>();
+    const combinedSkillsSet = new Set<string>();
 
     const categorizedSkills: Record<string, string[]> = {
       programmingLanguages: [],
@@ -377,125 +342,70 @@ export async function POST(req: NextRequest) {
       tools: [],
       operatingSystems: [],
       networking: [],
-      cyberSecurity: [],
-      libraries: [],
-      dataScience: [],
-      versionControl: []
+      cyberSecurity: []
     };
 
     for (const word of words) {
       if (SKILL_ALIASES[word]) {
         const item = SKILL_ALIASES[word];
-        detectedSkillsSet.add(item.name);
+        combinedSkillsSet.add(item.name);
+        if (!categorizedSkills[item.category]) {
+          categorizedSkills[item.category] = [];
+        }
         if (!categorizedSkills[item.category].includes(item.name)) {
           categorizedSkills[item.category].push(item.name);
         }
       }
     }
 
-    // Semantic AI extraction in a single, robust unified pass to respect token limits
+    // AI Semantic Extraction
     let fullName = "";
     let headline = "";
     let bio = "";
-    let education: any[] = [];
-    let experience: any[] = [];
-    let projects: any[] = [];
-    let certifications: any[] = [];
-    let internships: any[] = [];
-    let achievements: any[] = [];
+    let safeEducation: any[] = [];
+    let safeExperience: any[] = [];
+    let safeProjects: any[] = [];
+    let safeCertifications: any[] = [];
+    let safeInternships: any[] = [];
+    let safeAchievements: any[] = [];
     let softSkills: string[] = [];
-    let aiSkills: string[] = [];
-    
-    // Links
-    let linkedin = "";
-    let github = "";
-    let portfolioWebsite = "";
-    let personalWebsite = "";
-    let leetcode = "";
-    let hackerrank = "";
-    let codechef = "";
-    let codeforces = "";
-    let kaggle = "";
-    let medium = "";
-    let stackoverflow = "";
-    let behance = "";
-    let dribbble = "";
-
-    // New section arrays
-    let publications: any[] = [];
-    let workshops: any[] = [];
-    let hackathons: any[] = [];
-    let leadershipRoles: any[] = [];
-    let volunteerExperience: any[] = [];
-    let languagesKnown: string[] = [];
-    let professionalInterests: string[] = [];
-
-    // Semantic career insights
     let candidateProfile = "";
     let careerDomain = "";
-    let experienceLevel = "Fresher";
-    let suggestedRoles: string[] = [];
-    let suggestedTech: string[] = [];
+    let aiSkills: string[] = [];
 
-    const parsePrompt = buildUnifiedParsePrompt(cleanedText);
+    const promptPass = `
+Act as an ATS parser. Return strict JSON.
+{
+  "fullName": "Name", "headline": "Title", "bio": "Summary", "aiSkills": ["List of skills"],
+  "education": [], "experience": [], "projects": [], "certifications": [], "internships": [], "achievements": [], "softSkills": [],
+  "candidateProfile": "Summary", "careerDomain": "Domain"
+}
+Text: ${cleanedText.substring(0, 8000)}
+    `.trim();
 
     try {
-      const res = await getAICompletion(parsePrompt, { maxTokens: 4000 });
-      if (res.success && res.text) {
-        const cleanJson = res.text.replace(/```json|```/g, "").trim();
+      const aiRes = await getAICompletion(promptPass);
+      if (aiRes.success && aiRes.text) {
+        const cleanJson = aiRes.text.replace(/```json|```/g, "").trim();
         const obj = JSON.parse(cleanJson);
-
         fullName = obj.fullName || "";
         headline = obj.headline || "";
         bio = obj.bio || "";
-        if (obj.location && obj.location.trim().length > 2) {
-          parsedLocation = obj.location.trim();
-        }
-
-        // Links
-        linkedin = obj.linkedin || "";
-        github = obj.github || "";
-        portfolioWebsite = obj.portfolioWebsite || "";
-        personalWebsite = obj.personalWebsite || "";
-        leetcode = obj.leetcode || "";
-        hackerrank = obj.hackerrank || "";
-        codechef = obj.codechef || "";
-        codeforces = obj.codeforces || "";
-        kaggle = obj.kaggle || "";
-        medium = obj.medium || "";
-        stackoverflow = obj.stackoverflow || "";
-        behance = obj.behance || "";
-        dribbble = obj.dribbble || "";
-
-        education = obj.education || [];
-        experience = obj.experience || [];
-        projects = obj.projects || [];
-        certifications = obj.certifications || [];
-        internships = obj.internships || [];
-        achievements = obj.achievements || [];
-        softSkills = obj.softSkills || [];
-        aiSkills = obj.technicalSkills || [];
-        
-        publications = obj.publications || [];
-        workshops = obj.workshops || [];
-        hackathons = obj.hackathons || [];
-        leadershipRoles = obj.leadershipRoles || [];
-        volunteerExperience = obj.volunteerExperience || [];
-        languagesKnown = obj.languagesKnown || [];
-        professionalInterests = obj.professionalInterests || [];
-
+        aiSkills = Array.isArray(obj.aiSkills) ? obj.aiSkills : [];
+        safeEducation = Array.isArray(obj.education) ? obj.education : [];
+        safeExperience = Array.isArray(obj.experience) ? obj.experience : [];
+        safeProjects = Array.isArray(obj.projects) ? obj.projects : [];
+        safeCertifications = Array.isArray(obj.certifications) ? obj.certifications : [];
+        safeInternships = Array.isArray(obj.internships) ? obj.internships : [];
+        safeAchievements = Array.isArray(obj.achievements) ? obj.achievements : [];
+        softSkills = Array.isArray(obj.softSkills) ? obj.softSkills : [];
         candidateProfile = obj.candidateProfile || "";
         careerDomain = obj.careerDomain || "";
-        experienceLevel = obj.experienceLevel || "Fresher";
-        suggestedRoles = obj.suggestedRoles || [];
-        suggestedTech = obj.suggestedTech || [];
       }
     } catch (err) {
-      console.warn("Unified AI resume parser call failed, parsing manually:", err);
+      console.warn("AI parsing failed:", err);
     }
 
-    // Combine deterministic skills and AI-extracted skills
-    const combinedSkillsSet = new Set<string>(detectedSkillsSet);
     for (const skill of aiSkills) {
       if (!skill) continue;
       const skillClean = skill.trim();
@@ -503,74 +413,47 @@ export async function POST(req: NextRequest) {
       if (SKILL_ALIASES[skillLower]) {
         const item = SKILL_ALIASES[skillLower];
         combinedSkillsSet.add(item.name);
-        if (!categorizedSkills[item.category].includes(item.name)) {
-          categorizedSkills[item.category].push(item.name);
-        }
+        if (!categorizedSkills[item.category]) categorizedSkills[item.category] = [];
+        if (!categorizedSkills[item.category].includes(item.name)) categorizedSkills[item.category].push(item.name);
       } else {
         combinedSkillsSet.add(skillClean);
-        if (!categorizedSkills.tools.includes(skillClean)) {
-          categorizedSkills.tools.push(skillClean);
-        }
+        if (!categorizedSkills.tools) categorizedSkills.tools = [];
+        if (!categorizedSkills.tools.includes(skillClean)) categorizedSkills.tools.push(skillClean);
       }
     }
 
-    // Hybrid Links Recovery
-    if (!linkedin) linkedin = extractedUrls.linkedin || "";
-    if (!github) github = extractedUrls.github || "";
-    if (!portfolioWebsite) portfolioWebsite = extractedUrls.portfolio || "";
-    if (!personalWebsite) personalWebsite = extractedUrls.portfolio || "";
-
-    // Dynamic clean name extraction
-    if (!fullName || fullName.toLowerCase().includes("resume") || fullName.toLowerCase().includes("alex thompson") || fullName.length < 2) {
+    if (!fullName || fullName.toLowerCase().includes("resume")) {
       fullName = cleanAndExtractName(cleanedText, fileName);
     }
     
-    if (!headline) {
-      headline = "Apprentice Engineer";
-    }
-    if (!candidateProfile) {
-      candidateProfile = `${fullName} is an engineering student focusing on ${careerDomain || "Software Engineering"}.`;
-    }
-    if (!careerDomain) {
-      careerDomain = "Full Stack";
-    }
+    if (!candidateProfile) candidateProfile = `${fullName} is a ${careerDomain || "Professional"}.`;
 
-    const safeEducation = Array.isArray(education) ? education : [];
-    const safeExperience = Array.isArray(experience) ? experience : [];
-    const safeProjects = Array.isArray(projects) ? projects : [];
-    const safeCertifications = Array.isArray(certifications) ? certifications : [];
-    const safeAchievements = Array.isArray(achievements) ? achievements : [];
-
-    // Dynamic field completeness metrics
     const completenessMetrics: Record<string, number> = {
       personal: (fullName ? 25 : 0) + (parsedEmail ? 25 : 0) + (parsedPhone ? 25 : 0) + (parsedLocation ? 25 : 0),
-      education: safeEducation.length > 0 ? Math.round((safeEducation.filter(e => e && e.degree && e.institution && e.endYear).length / safeEducation.length) * 100) : 0,
-      experience: safeExperience.length > 0 ? Math.round((safeExperience.filter(exp => exp && exp.companyName && exp.role).length / safeExperience.length) * 100) : 0,
-      projects: safeProjects.length > 0 ? Math.round((safeProjects.filter(p => p && p.projectTitle && p.description).length / safeProjects.length) * 100) : 0,
+      education: safeEducation.length > 0 ? Math.round((safeEducation.filter(e => e && typeof e === 'object' && e.degree && e.institution && e.endYear).length / safeEducation.length) * 100) : 0,
+      experience: safeExperience.length > 0 ? Math.round((safeExperience.filter(exp => exp && typeof exp === 'object' && exp.companyName && exp.role).length / safeExperience.length) * 100) : 0,
+      projects: safeProjects.length > 0 ? Math.round((safeProjects.filter(p => p && typeof p === 'object' && p.projectTitle && p.description).length / safeProjects.length) * 100) : 0,
       skills: combinedSkillsSet.size > 0 ? 100 : 0,
       certifications: safeCertifications.length > 0 ? 100 : 0,
       achievements: safeAchievements.length > 0 ? 100 : 0
     };
 
     const overallCompleteness = Math.round(
-      Object.values(completenessMetrics).reduce((a, b) => a + b, 0) / Object.values(completenessMetrics).length
+      Object.values(completenessMetrics).reduce((a, b) => a + b, 0) / (Object.values(completenessMetrics).length || 1)
     );
 
-    // Confidence mapping values
     const confidenceScores: Record<string, number> = {
       fullName: fullName ? 100 : 0,
       email: parsedEmail ? 100 : 0,
       phone: parsedPhone ? 100 : 0,
       location: parsedLocation ? 100 : 0,
-      linkedin: linkedin ? 100 : 0,
-      github: github ? 100 : 0,
-      portfolioWebsite: portfolioWebsite ? 100 : 0,
-      
-      education: safeEducation.length > 0 ? Math.round((safeEducation.filter(e => e && e.degree && e.institution).length / safeEducation.length) * 100) : 0,
-      experience: safeExperience.length > 0 ? Math.round((safeExperience.filter(exp => exp && exp.companyName && exp.role).length / safeExperience.length) * 100) : 0,
-      projects: safeProjects.length > 0 ? Math.round((safeProjects.filter(p => p && p.projectTitle && p.description).length / safeProjects.length) * 100) : 0,
+      linkedin: extractedUrls.linkedin ? 100 : 0,
+      github: extractedUrls.github ? 100 : 0,
+      portfolioWebsite: extractedUrls.portfolio ? 100 : 0,
+      education: safeEducation.length > 0 ? Math.round((safeEducation.filter(e => e && typeof e === 'object' && e.degree && e.institution).length / safeEducation.length) * 100) : 0,
+      experience: safeExperience.length > 0 ? Math.round((safeExperience.filter(exp => exp && typeof exp === 'object' && exp.companyName && exp.role).length / safeExperience.length) * 100) : 0,
+      projects: safeProjects.length > 0 ? Math.round((safeProjects.filter(p => p && typeof p === 'object' && p.projectTitle && p.description).length / safeProjects.length) * 100) : 0,
       certifications: safeCertifications.length > 0 ? 100 : 0,
-      
       bio: -1,
       softSkills: -1
     };
@@ -583,64 +466,21 @@ export async function POST(req: NextRequest) {
         email: parsedEmail,
         phone: parsedPhone,
         location: parsedLocation,
-        linkedin: linkedin,
-        github: github,
-        portfolioWebsite: portfolioWebsite,
-        personalWebsite: personalWebsite,
-        leetcode: leetcode,
-        hackerrank: hackerrank,
-        codechef: codechef,
-        codeforces: codeforces,
-        kaggle: kaggle,
-        medium: medium,
-        stackoverflow: stackoverflow,
-        behance: behance,
-        dribbble: dribbble,
-        bio: bio || "Professional profile summary.",
-        education,
-        experience,
-        projects,
-        certifications,
-        internships,
-        achievements,
-        
-        publications,
-        workshops,
-        hackathons,
-        leadershipRoles,
-        volunteerExperience,
-        languagesKnown,
-        professionalInterests,
-
+        linkedin: extractedUrls.linkedin,
+        github: extractedUrls.github,
+        portfolioWebsite: extractedUrls.portfolio,
+        bio,
+        education: safeEducation,
+        experience: safeExperience,
+        projects: safeProjects,
+        certifications: safeCertifications,
+        internships: safeInternships,
+        achievements: safeAchievements,
         technicalSkills: Array.from(combinedSkillsSet),
-        softSkills: softSkills.length > 0 ? softSkills : ["Communication", "Problem Solving", "Teamwork"],
-        
-        programmingLanguages: categorizedSkills.programmingLanguages,
-        frameworks: categorizedSkills.frameworks,
-        frontend: categorizedSkills.frontend,
-        backend: categorizedSkills.backend,
-        databases: categorizedSkills.databases,
-        cloud: categorizedSkills.cloud,
-        devops: categorizedSkills.devops,
-        testing: categorizedSkills.testing,
-        aiml: categorizedSkills.aiml,
-        mobile: categorizedSkills.mobile,
-        tools: categorizedSkills.tools,
-        operatingSystems: categorizedSkills.operatingSystems,
-        networking: categorizedSkills.networking,
-        cyberSecurity: categorizedSkills.cyberSecurity,
-        libraries: categorizedSkills.libraries,
-        dataScience: categorizedSkills.dataScience,
-        versionControl: categorizedSkills.versionControl,
-        
-        verifiedSkills: Array.from(combinedSkillsSet),
-        
+        softSkills,
+        ...categorizedSkills,
         candidateProfile,
         careerDomain,
-        experienceLevel,
-        suggestedRoles,
-        suggestedTech,
-
         overallCompleteness,
         completenessMetrics
       },
@@ -650,7 +490,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("AI Parser Endpoint error:", error);
     return NextResponse.json(
-      { success: false, error: "Parser failed to segment text." },
+      { success: false, error: "Parser error: " + (error?.message || "Failed to segment text.") },
       { status: 500 }
     );
   }
