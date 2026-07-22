@@ -84,24 +84,32 @@ export async function POST(req: NextRequest) {
 
     const { title, category, description, duration, modules, image } = await req.json();
 
-    if (!title || !category || !description) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ error: "Missing cohort title parameter" }, { status: 400 });
     }
 
     const course = await prisma.course.create({
       data: {
         title,
-        category,
-        description,
+        category: category || "Corporate Training",
+        description: description || "Corporate learning cohort program.",
         duration: duration || "8 Weeks",
         modules: Number(modules) || 6,
-        image: image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80",
+        image: image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&auto=format&fit=crop&q=80",
       },
     });
 
     return NextResponse.json({
       success: true,
-      course,
+      batch: {
+        id: course.id,
+        title: course.title,
+        client: "New Corporate Partner",
+        startDate: "15 Oct 2026",
+        endDate: "17 Dec 2026",
+        studentsCount: 0,
+        status: "In Progress",
+      },
     });
   } catch (error: any) {
     console.error("Create course error:", error);
