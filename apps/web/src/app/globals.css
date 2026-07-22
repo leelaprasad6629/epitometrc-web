@@ -121,11 +121,33 @@
   animation: float-anim 4s ease-in-out infinite;
 }
 
+@utility hover-elevation {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
+}
+
+@utility hover-scale-card {
+  @apply transition-all duration-300 hover:scale-[1.025] hover:shadow-lg;
+}
+
+@utility ai-card-glow {
+  @apply hover:border-violet-300 hover:shadow-[0_0_20px_-3px_rgba(139,92,246,0.15)] transition-all duration-300;
+}
+
 @keyframes float-anim {
   0%, 100% {
     transform: translateY(0);
   }
   50% {
     transform: translateY(-5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: 0s !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
   }
 }
