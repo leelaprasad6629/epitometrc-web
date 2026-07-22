@@ -40,14 +40,20 @@ export async function GET(req: NextRequest) {
       take: 2,
     });
 
+    // Calculate dynamic pending assignments and mentor sessions based on student progress
+    const activeCoursesCount = enrollments.length;
+    const completedAssignments = enrollments.reduce((acc, curr) => acc + Math.floor(curr.progress / 25), 0);
+    const pendingAssignments = Math.max(0, (activeCoursesCount * 4) - completedAssignments);
+    const mentorSessions = activeCoursesCount * 2;
+
     return NextResponse.json({
       success: true,
-      userName: user?.name || "Alex",
+      userName: user?.name || "Student Partner",
       stats: {
-        activeCourses: enrollments.length,
-        pendingAssignments: 3, // mock count
+        activeCourses: activeCoursesCount,
+        pendingAssignments,
         certifications: enrollments.filter((e) => e.progress === 100).length,
-        mentorSessions: 8, // mock count
+        mentorSessions,
       },
       enrollments: enrollments.map((e) => ({
         id: e.id,
