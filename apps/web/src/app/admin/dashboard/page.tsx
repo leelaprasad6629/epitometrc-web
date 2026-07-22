@@ -2,16 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, DollarSign, Award, CheckCircle2, TrendingUp, Download, Clock, Search, HelpCircle, ShieldCheck } from "lucide-react";
+import { Users, DollarSign, Award, CheckCircle2, TrendingUp, Download, Sparkles, ShieldCheck, Mail, FileText, ClipboardList } from "lucide-react";
 import Button from "@/components/common/Button";
 
 import AICohortPlannerWidget from "@/components/ai/AICohortPlannerWidget";
 import AILeadQualifyWidget from "@/components/ai/AILeadQualifyWidget";
+import AICRMAssistantWidget from "@/components/ai/AICRMAssistantWidget";
+import AIProposalGeneratorWidget from "@/components/ai/AIProposalGeneratorWidget";
+import AIEmailGeneratorWidget from "@/components/ai/AIEmailGeneratorWidget";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any[]>([]);
   const [recentEnquiries, setRecentEnquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("lead-qualify");
 
   useEffect(() => {
     fetch("/api/admin/dashboard")
@@ -47,12 +51,19 @@ export default function AdminDashboard() {
     );
   }
 
+  // Pre-load candidates parameter for Email generator based on enquiries
+  const emailCandidates = recentEnquiries.map((e, idx) => ({
+    id: idx + 1,
+    name: `${e.entity} Contact`,
+    role: e.type
+  }));
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="space-y-6 font-sans"
+      className="space-y-6 font-sans text-xs"
     >
       {/* Top Header Row */}
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -60,8 +71,8 @@ export default function AdminDashboard() {
           <h1 className="font-display text-2xl font-bold text-[#0b172a] sm:text-3xl">
             Executive Overview
           </h1>
-          <p className="text-slate-500 text-sm">
-            Real-time performance tracking for EpitomeTRC verticals.
+          <p className="text-slate-500 text-sm font-sans">
+            Real-time B2B performance telemetry and enterprise AI workspace.
           </p>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -96,11 +107,63 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* AI Cohort Planner */}
-      <AICohortPlannerWidget />
+      {/* Unified Enterprise AI Workspace Panel */}
+      <div className="rounded-2xl border border-slate-150 bg-white shadow-sm overflow-hidden space-y-0">
+        <div className="bg-[#0b172a] p-4 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-orange-500 rounded-xl">
+              <Sparkles className="h-5 w-5 text-white animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-wider">Epitome Einstein AI Workspace</h2>
+              <p className="text-[10px] text-slate-300 font-sans">Enterprise-grade sales, CRM, email templates, and proposal builders</p>
+            </div>
+          </div>
+          
+          {/* Workspace Tabs */}
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { id: "lead-qualify", label: "Lead Qualification", icon: Sparkles },
+              { id: "crm-assistant", label: "CRM Assistant", icon: ClipboardList },
+              { id: "email-generator", label: "Email Writer", icon: Mail },
+              { id: "proposal-generator", label: "Proposal Builder", icon: FileText }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10.5px] font-bold transition-all ${
+                    activeTab === tab.id
+                      ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                      : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" /> {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-      {/* AI Lead Qualification Assistant */}
-      <AILeadQualifyWidget enquiries={recentEnquiries} />
+        <div className="p-6 bg-slate-50/30">
+          {activeTab === "lead-qualify" && (
+            <AILeadQualifyWidget enquiries={recentEnquiries} />
+          )}
+          {activeTab === "crm-assistant" && (
+            <AICRMAssistantWidget />
+          )}
+          {activeTab === "email-generator" && (
+            <AIEmailGeneratorWidget candidates={emailCandidates.length > 0 ? emailCandidates : undefined} />
+          )}
+          {activeTab === "proposal-generator" && (
+            <AIProposalGeneratorWidget />
+          )}
+        </div>
+      </div>
+
+      {/* Cohort planner for curriculum managers */}
+      <AICohortPlannerWidget />
 
       {/* Charts & Tasks Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
