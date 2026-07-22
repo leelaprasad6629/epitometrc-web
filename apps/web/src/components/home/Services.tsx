@@ -15,12 +15,24 @@ import {
   ExternalLink
 } from "lucide-react";
 
-export default function Services() {
-  const stats = [
+interface ServicesProps {
+  persona: "student" | "corporate";
+}
+
+export default function Services({ persona }: ServicesProps) {
+  const studentStats = [
+    { value: "12k+", label: "Resumes Audited", icon: Globe },
+    { value: "94.8%", label: "First-Attempt Pass Rate", icon: Award },
+    { value: "450+", label: "Active Tech Partners", icon: Users },
+  ];
+
+  const corporateStats = [
     { value: "25+", label: "Global Client Countries", icon: Globe },
     { value: "1,200+", label: "Projects Completed", icon: Award },
     { value: "150+", label: "Lead Consultants", icon: Users },
   ];
+
+  const stats = persona === "student" ? studentStats : corporateStats;
 
   return (
     <div id="services-parent-container">
