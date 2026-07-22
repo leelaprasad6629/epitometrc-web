@@ -7,9 +7,10 @@ import Button from "@/components/common/Button";
 
 interface AILeadQualifyWidgetProps {
   enquiries: { type: string; entity: string; date: string; status: string; color: string }[];
+  onExecuteAction?: (action: string, leadName: string, businessNeed: string) => void;
 }
 
-export default function AILeadQualifyWidget({ enquiries }: AILeadQualifyWidgetProps) {
+export default function AILeadQualifyWidget({ enquiries, onExecuteAction }: AILeadQualifyWidgetProps) {
   const activeEnquiries = enquiries && enquiries.length > 0 ? enquiries : [
     { type: "React Web Dashboard Development", entity: "Acme Corp", date: "2026-07-22", status: "Pending", color: "blue" },
     { type: "AWS Cloud Infrastructure Migration", entity: "Global Health Solutions", date: "2026-07-21", status: "In Progress", color: "amber" },
@@ -272,7 +273,16 @@ export default function AILeadQualifyWidget({ enquiries }: AILeadQualifyWidgetPr
                   <span className="font-bold text-blue-600 text-xs">{result.recommendedNextAction}</span>
                 </div>
               </div>
-              <Button size="sm" className="h-8 rounded-lg text-[10px] font-bold">
+              <Button
+                size="sm"
+                className="h-8 rounded-lg text-[10px] font-bold"
+                onClick={() => {
+                  if (onExecuteAction) {
+                    const lead = activeEnquiries.find((item) => item.entity === selectedLead) || activeEnquiries[0];
+                    onExecuteAction(result.recommendedNextAction, lead.entity, result.businessNeed || lead.type);
+                  }
+                }}
+              >
                 Execute Action
               </Button>
             </div>

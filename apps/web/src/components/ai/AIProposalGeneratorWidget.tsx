@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, FileText, Download, Printer, RefreshCw, Plus, Trash2, Edit2, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
@@ -18,11 +18,21 @@ interface ProposalData {
   termsAndConditions: string;
 }
 
-export default function AIProposalGeneratorWidget() {
-  const [clientName, setClientName] = useState("");
-  const [requirements, setRequirements] = useState("");
+interface AIProposalGeneratorWidgetProps {
+  initialClientName?: string;
+  initialRequirements?: string;
+}
+
+export default function AIProposalGeneratorWidget({ initialClientName = "", initialRequirements = "" }: AIProposalGeneratorWidgetProps) {
+  const [clientName, setClientName] = useState(initialClientName);
+  const [requirements, setRequirements] = useState(initialRequirements);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ProposalData | null>(null);
+
+  useEffect(() => {
+    if (initialClientName) setClientName(initialClientName);
+    if (initialRequirements) setRequirements(initialRequirements);
+  }, [initialClientName, initialRequirements]);
   const [error, setError] = useState("");
 
   // Edit State

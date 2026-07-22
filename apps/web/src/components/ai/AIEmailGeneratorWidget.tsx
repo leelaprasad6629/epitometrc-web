@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, Mail, Clipboard, Check, RefreshCw, Edit2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
 
 interface AIEmailGeneratorWidgetProps {
   candidates?: { id: number | string; name: string; role: string }[];
+  initialRecipient?: string;
+  initialTemplate?: string;
+  initialContext?: string;
 }
 
 const DEFAULT_RECIPIENTS = [
@@ -15,17 +18,35 @@ const DEFAULT_RECIPIENTS = [
   { id: 3, name: "Robert Downey (Candidate)", role: "Senior Next.js Developer" }
 ];
 
-export default function AIEmailGeneratorWidget({ candidates = DEFAULT_RECIPIENTS }: AIEmailGeneratorWidgetProps) {
-  const [selectedRecipient, setSelectedRecipient] = useState(candidates[0]?.name || "");
+export default function AIEmailGeneratorWidget({
+  candidates = DEFAULT_RECIPIENTS,
+  initialRecipient = "",
+  initialTemplate = "",
+  initialContext = ""
+}: AIEmailGeneratorWidgetProps) {
+  const [selectedRecipient, setSelectedRecipient] = useState(initialRecipient || (candidates[0]?.name || ""));
   const [emailTone, setEmailTone] = useState("Professional");
-  const [templateType, setTemplateType] = useState("Recruitment");
-  const [additionalContext, setAdditionalContext] = useState("");
+  const [templateType, setTemplateType] = useState(initialTemplate || "Recruitment");
+  const [additionalContext, setAdditionalContext] = useState(initialContext || "");
   
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (initialRecipient) {
+      // Ensure the recipient is added to candidates list temporarily if not exists
+      const exists = candidates.some(c => c.name === initialRecipient);
+      if (!exists) {
+        candidates.push({ id: `temp-${Date.now()}`, name: initialRecipient, role: "Client Advisory" });
+      }
+      setSelectedRecipient(initialRecipient);
+    }
+    if (initialTemplate) setTemplateType(initialTemplate);
+    if (initialContext) setAdditionalContext(initialContext);
+  }, [initialRecipient, initialTemplate, initialContext, candidates]);
 
   const tones = ["Professional", "Formal", "Friendly"];
   

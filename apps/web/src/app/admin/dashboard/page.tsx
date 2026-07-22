@@ -17,6 +17,34 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("lead-qualify");
 
+  // Lifted workflow state variables
+  const [proposalClient, setProposalClient] = useState("");
+  const [proposalNeed, setProposalNeed] = useState("");
+
+  const [emailRecipient, setEmailRecipient] = useState("");
+  const [emailTemplate, setEmailTemplate] = useState("");
+  const [emailContext, setEmailContext] = useState("");
+
+  const handleExecuteAction = (action: string, leadName: string, businessNeed: string) => {
+    if (action === "Send Proposal") {
+      setProposalClient(leadName);
+      setProposalNeed(businessNeed);
+      setActiveTab("proposal-generator");
+    } else {
+      // e.g. "Schedule Discovery Call", "Follow-up", "Assign Representative", etc.
+      setEmailRecipient(`${leadName} Contact`);
+      setEmailTemplate(
+        action === "Schedule Discovery Call" 
+          ? "Interview Invitation" 
+          : action === "Follow-up" 
+          ? "Follow-up" 
+          : "General"
+      );
+      setEmailContext(`Next action: ${action}. Project B2B requirement details: ${businessNeed}`);
+      setActiveTab("email-generator");
+    }
+  };
+
   useEffect(() => {
     fetch("/api/admin/dashboard")
       .then((res) => res.json())
@@ -148,16 +176,24 @@ export default function AdminDashboard() {
 
         <div className="p-6 bg-slate-50/30">
           {activeTab === "lead-qualify" && (
-            <AILeadQualifyWidget enquiries={recentEnquiries} />
+            <AILeadQualifyWidget enquiries={recentEnquiries} onExecuteAction={handleExecuteAction} />
           )}
           {activeTab === "crm-assistant" && (
             <AICRMAssistantWidget />
           )}
           {activeTab === "email-generator" && (
-            <AIEmailGeneratorWidget candidates={emailCandidates.length > 0 ? emailCandidates : undefined} />
+            <AIEmailGeneratorWidget
+              candidates={emailCandidates.length > 0 ? emailCandidates : undefined}
+              initialRecipient={emailRecipient}
+              initialTemplate={emailTemplate}
+              initialContext={emailContext}
+            />
           )}
           {activeTab === "proposal-generator" && (
-            <AIProposalGeneratorWidget />
+            <AIProposalGeneratorWidget
+              initialClientName={proposalClient}
+              initialRequirements={proposalNeed}
+            />
           )}
         </div>
       </div>
