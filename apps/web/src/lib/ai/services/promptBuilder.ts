@@ -194,21 +194,34 @@ Respond strictly in JSON format. The response must match this structure exactly:
   `.trim();
 }
 
-export function buildEmailGeneratorPrompt(candidateName: string, targetJob: string, emailTone: string): string {
+export function buildEmailGeneratorPrompt(
+  recipientName: string,
+  targetRoleOrJob: string,
+  emailTone: string,
+  templateType: string,
+  additionalContext: string
+): string {
   return `
 ${SYSTEM_PROMPT}
 
 ${EPITOME_KNOWLEDGE_BASE}
 
-Generate a professional candidate outreach email.
-Candidate Name: ${candidateName}
-Target Job: ${targetJob}
-Email Tone/Type: ${emailTone} (e.g. "Invite for interview", "Offer pitch", "Follow-up")
+You are an elite Business Email Copywriter. Write a highly polished, professional, and contextually rich email.
+Recipient: ${recipientName}
+Target Role/Job/Topic: ${targetRoleOrJob}
+Email Tone: ${emailTone} (Formal, Professional, Friendly)
+Template Type: ${templateType} (Recruitment, Client Communication, Sales, Follow-up, Interview Invitation, Training Invitation, Proposal Sharing, General)
+Additional Context/Details to include: "${additionalContext}"
+
+Guidelines:
+- Incorporate the recipient's name, target job or topic, and any additional context naturally.
+- Adopt the requested tone perfectly.
+- Ensure the email has clear calls to action, an engaging subject line, and standard business formatting.
 
 Respond strictly in JSON format. The response must match this structure exactly:
 {
   "subject": "Email Subject Line...",
-  "body": "Dear ${candidateName},\n\n[Polished professional email body matching the requested tone...]\n\nBest regards,\nEpitome Recruitment Team"
+  "body": "Dear ${recipientName},\n\n[Polished body text matching the template and tone...]\n\nBest regards,\nEpitome Team"
 }
   `.trim();
 }
@@ -219,19 +232,122 @@ ${SYSTEM_PROMPT}
 
 ${EPITOME_KNOWLEDGE_BASE}
 
-You are an AI Lead Qualification Assistant. Qualify this B2B consulting lead:
-Lead Name: ${leadName}
+You are an elite B2B Sales & Lead Qualification Engine. Qualify the following business lead:
+Lead Entity Name: ${leadName}
 Email: ${email}
-Requirements: "${requirements}"
+Project Requirements: "${requirements}"
 
-Calculate a qualification score from 1 to 100, identify key corporate pain points, and recommend matching Epitome service categories.
+Analyze the lead and extract:
+- leadScore: 0 to 100 based on budget strength, urgency, and alignment with EpitomeTRC services.
+- priority: "Hot" (urgent + high budget), "Warm" (moderate budget or timeline), or "Cold" (unclear requirements/low interest).
+- industry: The detected vertical (e.g. Healthcare, Fintech, Logistics, Retail, E-Commerce, etc.).
+- companySize: Estimated company size based on project scale ("Startup", "Mid-Market", "Enterprise").
+- businessNeed: Concise description of their primary business pain point or technological need.
+- conversionProbability: Estimated probability of successful conversion (percentage as number, e.g. 75).
+- explanation: A concise summary explaining the lead assessment criteria.
+- opportunities: Top 2 opportunities or upsell tracks for this client.
+- risks: Top 2 potential risks or blockers in closing this deal.
+- recommendedNextAction: The next best action ("Schedule Discovery Call", "Send Proposal", "Follow-up", "Assign Representative", "Send Invoice").
 
 Respond strictly in JSON format. The response must match this structure exactly:
 {
   "leadScore": 85,
+  "priority": "Hot",
+  "industry": "Fintech",
+  "companySize": "Mid-Market",
+  "businessNeed": "Cloud migration and secure API gateway scaling",
+  "conversionProbability": 75,
+  "explanation": "Brief explanation summarizing why this lead is Hot/Warm/Cold...",
   "painPoints": ["Legacy database locks", "Slow deployment speed"],
+  "opportunities": ["Cross-sell React/TypeScript staff training program", "Introduce corporate infrastructure audit package"],
+  "risks": ["Tight execution timeline", "Multi-cloud authentication compliance rules"],
   "recommendedServices": ["IT Services & Development", "Corporate Consulting"],
-  "verdict": "Hot Lead. High budget potential."
+  "recommendedNextAction": "Send Proposal"
+}
+  `.trim();
+}
+
+export function buildCRMAssistantPrompt(clientName: string, interactionHistory: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+You are an expert CRM Intelligence Assistant. Process the client interaction history below to extract key relationship metrics and generate a structured executive dashboard summary.
+Client Entity Name: ${clientName}
+Interaction Log:
+\"\"\"
+${interactionHistory}
+\"\"\"
+
+Generate a JSON object containing:
+- timelineSummary: A timeline array of the last 3-4 interactions, each with date, type ("Email", "Meeting", "Call", "Support Ticket"), description, and participant.
+- clientHealth: "Active" (recent contact, positive updates) or "Inactive" (no contact > 30 days, unresolved complaints).
+- relationshipSummary: A 2-sentence executive brief of the account status.
+- pendingActions: A list of immediate actions that need resolution, including priority ("High", "Medium", "Low") and description.
+- reminders: Suggested reminders for follow-ups (dates or intervals).
+- upsellingOpportunities: Specific cross-selling or upselling suggestions aligned with their history (e.g. proposing staff training or system security audits).
+
+Respond strictly in JSON format matching this structure:
+{
+  "timelineSummary": [
+    { "date": "2026-07-15", "type": "Meeting", "description": "Discussed dashboard scale limits and AWS architecture.", "participant": "Sales Lead" }
+  ],
+  "clientHealth": "Active",
+  "relationshipSummary": "Summary of current relationship status...",
+  "pendingActions": [
+    { "description": "Send technical blueprint draft.", "priority": "High" }
+  ],
+  "reminders": [
+    "Schedule 2-week check-in meeting regarding AWS migration budget."
+  ],
+  "upsellingOpportunities": [
+    "Introduce React/Next.js corporate training cohort for their frontend team."
+  ]
+}
+  `.trim();
+}
+
+export function buildProposalPrompt(clientName: string, requirements: string): string {
+  return `
+${SYSTEM_PROMPT}
+
+${EPITOME_KNOWLEDGE_BASE}
+
+You are a senior Business Architect and Consultant. Generate a structured B2B business proposal for a prospective client.
+Client Entity Name: ${clientName}
+Client Requirements: "${requirements}"
+
+Generate a comprehensive proposal with the following sections:
+- companyOverview: EpitomeTRC's profile as an industry-leading placement and IT consultancy.
+- projectScope: Summary of the client's problem statement and our proposed technical solution.
+- services: A list of 2-3 specific services (e.g. Cloud Migrations, Next.js Development, Training Cohorts) with descriptions.
+- timeline: Timeline roadmap detailing milestones (e.g., Week 1-2 Discovery, Week 3-4 Setup, etc.).
+- deliverables: A list of 4 concrete deliverables we will hand over.
+- estimatedPricing: A professional pricing breakdown (flat fees, modular rates, or retainer terms) total estimating between $20k to $150k depending on complexity.
+- termsAndConditions: Brief standard service level agreement terms.
+
+Respond strictly in JSON format matching this structure:
+{
+  "companyOverview": "EpitomeTRC overview text...",
+  "projectScope": "Scope details...",
+  "services": [
+    { "name": "Service Name", "description": "Service description..." }
+  ],
+  "timeline": [
+    { "milestone": "Phase 1: Architecture Review", "duration": "Weeks 1-2", "description": "Detailing database design models." }
+  ],
+  "deliverables": [
+    "Production-ready Next.js Dashboard codebase hosted on Vercel"
+  ],
+  "estimatedPricing": {
+    "total": "$45,000",
+    "breakdown": [
+      { "item": "Cloud Provisioning & Database Setup", "cost": "$15,000" },
+      { "item": "Frontend Tailwind Dashboard & App router integration", "cost": "$30,000" }
+    ]
+  },
+  "termsAndConditions": "Payment terms are 50% upfront, 50% upon successful verification and handover..."
 }
   `.trim();
 }

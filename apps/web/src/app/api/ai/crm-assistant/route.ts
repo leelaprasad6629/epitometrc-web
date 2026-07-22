@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildLeadQualifyPrompt } from "@/lib/ai/services/promptBuilder";
+import { buildCRMAssistantPrompt } from "@/lib/ai/services/promptBuilder";
 import { getAICompletion } from "@/lib/ai/services/aiService";
 import { parseMarkdownJson } from "@/lib/ai/utils";
 
@@ -7,16 +7,16 @@ export const maxDuration = 60; // 60s Vercel serverless function timeout extensi
 
 export async function POST(req: NextRequest) {
   try {
-    const { leadName, email, requirements } = await req.json();
+    const { clientName, interactionHistory } = await req.json();
 
-    if (!leadName || !email || !requirements) {
+    if (!clientName || !interactionHistory) {
       return NextResponse.json(
         { success: false, error: "Missing required parameters." },
         { status: 400 }
       );
     }
 
-    const prompt = buildLeadQualifyPrompt(leadName, email, requirements);
+    const prompt = buildCRMAssistantPrompt(clientName, interactionHistory);
     const aiResponse = await getAICompletion(prompt);
 
     if (!aiResponse.success || !aiResponse.text) {
@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
       provider: aiResponse.provider,
     });
   } catch (error: any) {
-    console.error("AI Lead Qualify API error:", error);
+    console.error("AI CRM Assistant API error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to parse structured lead qualification." },
+      { success: false, error: "Failed to parse CRM assistant insights: " + error.message },
       { status: 500 }
     );
   }

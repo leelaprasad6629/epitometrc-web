@@ -210,7 +210,7 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
   }
 
   // 5e. AI Lead Qualification Assistant
-  if (lowercasePrompt.includes("lead qualification") || lowercasePrompt.includes("leadscore\":")) {
+  if (lowercasePrompt.includes("lead qualification") || lowercasePrompt.includes("leadscore\":") || lowercasePrompt.includes("lead analysis tool")) {
     const entityMatch = prompt.match(/Lead Name:\s*([^\n]+)/i);
     const leadName = entityMatch ? entityMatch[1].trim() : "Prospective Client";
 
@@ -218,18 +218,30 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
     const requirements = reqMatch ? reqMatch[1].trim() : "";
 
     let leadScore = 75;
-    let verdict = "Warm Lead. Showing strong B2B interest.";
+    let priority = "Warm";
+    let explanation = "Warm Lead. Showing strong B2B interest in cloud development and platform consulting.";
+    let conversionProbability = 60;
 
-    if (requirements.toLowerCase().includes("urgent") || requirements.toLowerCase().includes("budget")) {
+    if (requirements.toLowerCase().includes("urgent") || requirements.toLowerCase().includes("budget") || requirements.toLowerCase().includes("hot")) {
       leadScore = 95;
-      verdict = "Extremely Hot Lead. Mentions high budget/urgent timeline. Flagged for immediate sales priority contact.";
+      priority = "Hot";
+      conversionProbability = 88;
+      explanation = "Extremely Hot Lead. Mentions high budget and urgent execution timeline. Flagged for immediate sales priority contact.";
     }
 
     return JSON.stringify({
       leadScore,
+      priority,
+      industry: "Fintech",
+      companySize: "Mid-Market",
+      businessNeed: "Scaling backend database and cloud migration",
+      conversionProbability,
+      explanation,
       painPoints: ["Scaling database concurrency", `Resolving operational details for ${leadName}`, "Modernizing legacy structures"],
+      opportunities: ["Upsell React/TypeScript custom staff bootcamp", "Offer full cybersecurity penetration testing audit"],
+      risks: ["Aggressive client onboarding deadline", "Strict regulatory data lock compliance rules"],
       recommendedServices: ["IT Services & Development", "Corporate Consulting Advisory"],
-      verdict
+      recommendedNextAction: "Send Proposal"
     });
   }
 
@@ -302,6 +314,61 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
       softSkills: ["Collaboration", "Agile Sprints", "Communication"],
       programmingLanguages: isCooper ? ["Python", "Go", "SQL"] : ["JavaScript", "TypeScript", "SQL"],
       toolsFrameworks: isCooper ? ["Docker", "Terraform", "Git"] : ["Git", "Prisma", "Framer Motion"]
+    });
+  }
+
+  // 5i. AI CRM Assistant
+  if (lowercasePrompt.includes("crm intelligence assistant") || lowercasePrompt.includes("timelinesummary\":")) {
+    return JSON.stringify({
+      timelineSummary: [
+        { date: "2026-07-20", type: "Meeting", description: "Discovery call completed. Defined AWS cloud budget and React components scope.", participant: "Lead Account Manager" },
+        { date: "2026-07-15", type: "Email", description: "Follow-up email sent with initial consulting corporate deck.", participant: "Sales Executive" },
+        { date: "2026-07-10", type: "Call", description: "Introductory phone screen about custom placement services.", participant: "Staff Recruiter" }
+      ],
+      clientHealth: "Active",
+      relationshipSummary: "The client accounts show high engagement. They are motivated to initiate cloud migration and team training bootcamps within the next quarter.",
+      pendingActions: [
+        { description: "Prepare and transmit structured pricing proposal.", priority: "High" },
+        { description: "Schedule architect call regarding PostgreSQL scaling.", priority: "Medium" }
+      ],
+      reminders: [
+        "Follow up with technical lead regarding team size constraints next Tuesday."
+      ],
+      upsellingOpportunities: [
+        "Propose Next.js & Tailwind training bootcamp for their frontend engineering team."
+      ]
+    });
+  }
+
+  // 5j. AI Proposal Generator
+  if (lowercasePrompt.includes("business architect and consultant") || lowercasePrompt.includes("companyoverview\":")) {
+    return JSON.stringify({
+      companyOverview: "EpitomeTRC is an industry-leading strategic recruitment and full-stack IT development consultancy, specializing in scaling enterprise dashboards, database performance tuning, and upskilling talent.",
+      projectScope: "Provide strategic consulting and technical development to modernize client infrastructure, scale backend database concurrency, and build state-of-the-art Web interfaces.",
+      services: [
+        { name: "Full-Stack Development", description: "Constructing modern Next.js and Tailwind CSS dashboards with clean data sync parameters." },
+        { name: "Database Engineering", description: "PostgreSQL query tuning, indexing, and Prisma Client query optimizations." },
+        { name: "Corporate Training", description: "Upskilling developer groups on React hooks, TypeScript schemas, and AWS operations." }
+      ],
+      timeline: [
+        { milestone: "Discovery & Architecture Blueprinting", duration: "Weeks 1-2", description: "Map out system requirements and review local locks." },
+        { milestone: "Core Implementation Phase", duration: "Weeks 3-6", description: "Build Next.js layouts, server actions, and deploy staging." },
+        { milestone: "Security Audit & Production Launch", duration: "Weeks 7-8", description: "End-to-end integration verification, scaling tests, and Vercel launch." }
+      ],
+      deliverables: [
+        "Interactive Next.js Dashboard hosted on Vercel Node",
+        "Optimized Prisma & PostgreSQL database schema layouts",
+        "Comprehensive API documentation and developer handbook"
+      ],
+      estimatedPricing: {
+        total: "$35,000",
+        breakdown: [
+          { item: "Technical Discovery & Architecture Design", cost: "$5,000" },
+          { item: "Frontend Layout & API Router Integrations", cost: "$20,000" },
+          { item: "Database Tuning & Production Release Setup", cost: "$10,000" }
+        ]
+      },
+      termsAndConditions: "Proposal pricing valid for 30 days. Standard terms call for 50% payment upfront upon contract signature, and 50% upon successful system verification and launch."
     });
   }
 
