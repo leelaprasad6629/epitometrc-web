@@ -14,6 +14,8 @@ export default function EmployeeTrainingsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [creating, setCreating] = useState(false);
+  const [selectedScheduleBatch, setSelectedScheduleBatch] = useState<any | null>(null);
+  const [selectedMaterialsBatch, setSelectedMaterialsBatch] = useState<any | null>(null);
 
   useEffect(() => {
     fetch("/api/employee/trainings")
@@ -119,10 +121,20 @@ export default function EmployeeTrainingsPage() {
               </div>
 
               <div className="flex gap-2 pt-1.5">
-                <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs font-bold px-4">
+                <Button
+                  onClick={() => setSelectedScheduleBatch(batch)}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg text-xs font-bold px-4"
+                >
                   View Schedule
                 </Button>
-                <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs font-bold px-3">
+                <Button
+                  onClick={() => setSelectedMaterialsBatch(batch)}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg text-xs font-bold px-3"
+                >
                   Materials
                 </Button>
               </div>
@@ -180,6 +192,110 @@ export default function EmployeeTrainingsPage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* View Schedule Modal */}
+      {selectedScheduleBatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a]/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <div>
+                <h3 className="font-display text-base font-bold text-[#0b172a]">
+                  Training Schedule
+                </h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{selectedScheduleBatch.title}</p>
+              </div>
+              <button
+                onClick={() => setSelectedScheduleBatch(null)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+              {[
+                { title: "Week 1-2: Foundation & Alignment", desc: "Introduction to business requirements, tech stack setup, and client spec scoping." },
+                { title: "Week 3-4: System Blueprint Design", desc: "Database schema modeling, API structures configuration, and architectural mapping." },
+                { title: "Week 5-6: Sprint Execution", desc: "Core business logic programming, UI layouts validation, and state hook integration." },
+                { title: "Week 7-8: Testing & Staging Deployment", desc: "Rigorous quality check tests, type safety audits, and production staging releases." }
+              ].map((step, idx) => (
+                <div key={idx} className="flex gap-4 items-start text-xs font-sans">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-50 font-bold text-orange-600 text-[10.5px] border border-orange-100">
+                    {idx + 1}
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-slate-700">{step.title}</p>
+                    <p className="text-slate-500 font-medium leading-relaxed">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <Button
+                onClick={() => setSelectedScheduleBatch(null)}
+                className="h-9 rounded-xl px-4 font-bold text-xs"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Materials Modal */}
+      {selectedMaterialsBatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a]/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <div>
+                <h3 className="font-display text-base font-bold text-[#0b172a]">
+                  Training Materials
+                </h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{selectedMaterialsBatch.title}</p>
+              </div>
+              <button
+                onClick={() => setSelectedMaterialsBatch(null)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-[10.5px] text-slate-400 font-bold uppercase tracking-wider">Available Resources</p>
+              
+              {[
+                { name: "Syllabus_Overview.pdf", size: "2.4 MB", type: "Document" },
+                { name: "Tech_Architecture_Spec.docx", size: "1.8 MB", type: "Specification" },
+                { name: "Weekly_Feedback_Template.xlsx", size: "850 KB", type: "Template" }
+              ].map((res, idx) => (
+                <div key={idx} className="flex justify-between items-center rounded-xl border border-slate-100 p-3 bg-slate-50/50 hover:bg-slate-100/30 transition-colors text-xs font-sans">
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-slate-700">{res.name}</p>
+                    <p className="text-slate-400 font-semibold text-[9.5px] uppercase tracking-wider">{res.type} • {res.size}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => alert(`Downloading ${res.name}...`)}
+                    className="h-8 px-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-white text-slate-600 font-bold transition-all"
+                  >
+                    Download
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <Button
+                onClick={() => setSelectedMaterialsBatch(null)}
+                className="h-9 rounded-xl px-4 font-bold text-xs"
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </div>
       )}
