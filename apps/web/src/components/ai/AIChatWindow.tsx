@@ -73,10 +73,29 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
 
       const data = await response.json();
       if (response.ok && data.success) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.text || "No response generated." },
-        ]);
+        const text = data.text || "No response generated.";
+        
+        // Add an empty assistant message first
+        setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+        
+        // Simulate streaming typing effect word-by-word
+        const words = text.split(" ");
+        let currentText = "";
+        let wordIndex = 0;
+        
+        const interval = setInterval(() => {
+          if (wordIndex < words.length) {
+            currentText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+            setMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1] = { role: "assistant", content: currentText };
+              return updated;
+            });
+            wordIndex++;
+          } else {
+            clearInterval(interval);
+          }
+        }, 20); // 20ms delay per word for a fast typing effect
       } else {
         showToast(data.error || "Failed to query AI assistant.");
       }
