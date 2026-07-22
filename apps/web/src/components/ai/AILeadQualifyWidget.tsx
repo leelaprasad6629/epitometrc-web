@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, AlertTriangle, CheckCircle, Building, TrendingUp, UserCheck, AlertCircle, Edit2, Save } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
@@ -10,7 +10,13 @@ interface AILeadQualifyWidgetProps {
 }
 
 export default function AILeadQualifyWidget({ enquiries }: AILeadQualifyWidgetProps) {
-  const [selectedLead, setSelectedLead] = useState(enquiries[0]?.entity || "");
+  const activeEnquiries = enquiries && enquiries.length > 0 ? enquiries : [
+    { type: "React Web Dashboard Development", entity: "Acme Corp", date: "2026-07-22", status: "Pending", color: "blue" },
+    { type: "AWS Cloud Infrastructure Migration", entity: "Global Health Solutions", date: "2026-07-21", status: "In Progress", color: "amber" },
+    { type: "Next.js Consulting & Developer Upskilling", entity: "TechStart Inc", date: "2026-07-19", status: "Completed", color: "emerald" }
+  ];
+
+  const [selectedLead, setSelectedLead] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any | null>(null);
   const [error, setError] = useState("");
@@ -19,6 +25,13 @@ export default function AILeadQualifyWidget({ enquiries }: AILeadQualifyWidgetPr
   const [isOverrideMode, setIsOverrideMode] = useState(false);
   const [overriddenScore, setOverriddenScore] = useState(85);
   const [overriddenPriority, setOverriddenPriority] = useState("Hot");
+
+  // Sync selectedLead state when activeEnquiries updates
+  useEffect(() => {
+    if (activeEnquiries.length > 0 && (!selectedLead || !activeEnquiries.some(ae => ae.entity === selectedLead))) {
+      setSelectedLead(activeEnquiries[0].entity);
+    }
+  }, [activeEnquiries]);
 
   const handleQualify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +42,7 @@ export default function AILeadQualifyWidget({ enquiries }: AILeadQualifyWidgetPr
     setResult(null);
     setIsOverrideMode(false);
 
-    const lead = enquiries.find((item) => item.entity === selectedLead) || enquiries[0];
+    const lead = activeEnquiries.find((item) => item.entity === selectedLead) || activeEnquiries[0];
     const requirements = `Inquiry received for ${lead.type} from ${lead.entity} dated ${lead.date}. Current status: ${lead.status}.`;
 
     try {
@@ -99,7 +112,7 @@ export default function AILeadQualifyWidget({ enquiries }: AILeadQualifyWidgetPr
             onChange={(e) => setSelectedLead(e.target.value)}
             className="w-full h-10 rounded-xl border border-slate-200 px-3 py-1.5 outline-none bg-white text-slate-600 font-semibold"
           >
-            {enquiries.map((e, idx) => (
+            {activeEnquiries.map((e, idx) => (
               <option key={idx} value={e.entity}>{e.entity} ({e.type})</option>
             ))}
           </select>
