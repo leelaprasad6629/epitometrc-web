@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
 
+// GET: list or seed attendance records
 export async function GET(req: NextRequest) {
   try {
     const token = req.cookies.get("token")?.value;
@@ -29,25 +30,47 @@ export async function GET(req: NextRequest) {
       include: {
         user: { select: { name: true } },
         course: { select: { title: true } },
+        attendances: {
+          where: { date: "Today" }
+        }
       },
     });
 
+    // Populate missing attendance records for "Today" persistently in DB
+    const records = await Promise.all(
+      enrollments.map(async (e, idx) => {
+        let att = e.attendances[0];
+        if (!att) {
+          att = await prisma.attendance.create({
+            data: {
+              enrollmentId: e.id,
+              status: idx % 2 === 0 ? "Present" : "Absent",
+              date: "Today",
+            }
+          });
+        }
+        return {
+          id: att.id, // We return the attendance record ID so we can PATCH it directly!
+          enrollmentId: e.id,
+          name: e.user.name,
+          course: e.course.title,
+          status: att.status,
+          date: att.date,
+        };
+      })
+    );
+
     return NextResponse.json({
       success: true,
-      records: enrollments.map((e, idx) => ({
-        id: e.id,
-        name: e.user.name,
-        course: e.course.title,
-        status: idx % 2 === 0 ? "Present" : "Absent", // Simulate initial distribution
-        date: "Today",
-      })),
+      records,
     });
   } catch (error: any) {
     console.error("Employee attendance API error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error: " + error.message }, { status: 500 });
   }
 }
 
+// PATCH: toggle attendance status in DB
 export async function PATCH(req: NextRequest) {
   try {
     const token = req.cookies.get("token")?.value;
@@ -65,14 +88,39 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Attendance toggling logic (simulated response since schema does not store attendance records)
+    // Look for attendance record by enrollmentId or direct attendance record ID
+    let att = await prisma.attendance.findFirst({
+      where: {
+        OR: [
+          { id: enrollmentId },
+          { enrollmentId: enrollmentId, date: "Today" }
+        ]
+      }
+    });
+
+    if (att) {
+      att = await prisma.attendance.update({
+        where: { id: att.id },
+        data: { status }
+      });
+    } else {
+      // Create new one if not exists
+      att = await prisma.attendance.create({
+        data: {
+          enrollmentId,
+          status,
+          date: "Today"
+        }
+      });
+    }
+
     return NextResponse.json({
       success: true,
-      enrollmentId,
-      status,
+      enrollmentId: att.enrollmentId,
+      status: att.status,
     });
   } catch (error: any) {
     console.error("Employee attendance PATCH error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error: " + error.message }, { status: 500 });
   }
 }
