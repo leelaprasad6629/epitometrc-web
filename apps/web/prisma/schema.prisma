@@ -39,6 +39,7 @@ model Enrollment {
   completedAt DateTime?
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  attendances Attendance[]
 }
 
 model Job {
@@ -70,4 +71,98 @@ model Enquiry {
   message    String
   status     String   @default("Pending") // Pending, In Progress, Completed
   receivedAt DateTime @default(now())
+}
+
+model Attendance {
+  id           String   @id @default(uuid())
+  enrollmentId String
+  status       String   @default("Present") // Present, Absent
+  date         String   // "YYYY-MM-DD"
+  updatedAt    DateTime @updatedAt
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+}
+
+model Lead {
+  id                    String   @id @default(uuid())
+  name                  String
+  email                 String
+  requirements          String
+  leadScore             Int      @default(0)
+  priority              String   @default("Warm") // Hot, Warm, Cold
+  industry              String?
+  companySize           String?
+  businessNeed          String?
+  conversionProbability Int      @default(0)
+  explanation           String?
+  painPoints            String?  // JSON string
+  opportunities         String?  // JSON string
+  risks                 String?  // JSON string
+  recommendedServices   String?  // JSON string
+  recommendedNextAction String?
+  status                String   @default("Qualified") // Qualified, Disqualified, Override
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Proposal {
+  id                 String   @id @default(uuid())
+  clientName         String
+  requirements       String
+  companyOverview    String
+  projectScope       String
+  services           String   // JSON string
+  timeline           String   // JSON string
+  deliverables       String   // JSON string
+  totalPrice         String
+  priceBreakdown     String   // JSON string
+  termsAndConditions String
+  status             String   @default("Draft") // Draft, Sent, Accepted, Rejected
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model CRMClient {
+  id                 String   @id @default(uuid())
+  name               String
+  email              String
+  company            String
+  status             String   @default("Lead")
+  health             String   @default("Active") // Active, Inactive
+  summary            String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  interactions       CRMInteraction[]
+  actionItems        CRMActionItem[]
+}
+
+model CRMInteraction {
+  id          String   @id @default(uuid())
+  clientId    String
+  date        String
+  type        String   // Email, Meeting, Call, Ticket
+  description String
+  participant String
+  createdAt   DateTime @default(now())
+  client      CRMClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model CRMActionItem {
+  id          String   @id @default(uuid())
+  clientId    String
+  description String
+  priority    String   // High, Medium, Low
+  status      String   @default("Pending") // Pending, Completed
+  createdAt   DateTime @default(now())
+  client      CRMClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model RecordVersion {
+  id            String   @id @default(uuid())
+  recordId      String
+  recordType    String   // Proposal, Lead, CRMClient, Job, Course, Attendance
+  version       String   // v1.0, v1.1, etc.
+  createdAt     DateTime @default(now())
+  userId        String?
+  changeSummary String
+  snapshot      String   // Full JSON snapshot
 }
