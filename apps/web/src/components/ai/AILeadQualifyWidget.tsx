@@ -72,15 +72,36 @@ export default function AILeadQualifyWidget({ enquiries, onExecuteAction }: AILe
     }
   };
 
-  const handleApplyOverride = () => {
+  const handleApplyOverride = async () => {
     if (!result) return;
-    setResult({
-      ...result,
-      leadScore: overriddenScore,
-      priority: overriddenPriority,
-      explanation: `[Manager Override Applied] Score adjusted to ${overriddenScore} and Priority changed to ${overriddenPriority}. Initial AI verdict: ${result.explanation}`
-    });
-    setIsOverrideMode(false);
+    const lead = activeEnquiries.find((item) => item.entity === selectedLead) || activeEnquiries[0];
+    
+    try {
+      const res = await fetch("/api/ai/lead-qualify", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadName: lead.entity,
+          leadScore: overriddenScore,
+          priority: overriddenPriority
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResult({
+          ...result,
+          leadScore: overriddenScore,
+          priority: overriddenPriority,
+          explanation: `[Manager Override Applied] Score adjusted to ${overriddenScore} and Priority changed to ${overriddenPriority}. Initial AI verdict: ${result.explanation}`
+        });
+      } else {
+        setError(data.error || "Failed to persist manager override.");
+      }
+    } catch {
+      setError("Failed to apply override. Telemetry offline.");
+    } finally {
+      setIsOverrideMode(false);
+    }
   };
 
   return (

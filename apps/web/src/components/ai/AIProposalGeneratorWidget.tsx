@@ -38,6 +38,29 @@ export default function AIProposalGeneratorWidget({ initialClientName = "", init
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
 
+  const handleToggleEdit = async () => {
+    if (isEditing && result) {
+      try {
+        const res = await fetch("/api/ai/proposal-generator", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientName: clientName.trim(),
+            requirements: requirements.trim(),
+            proposalData: result,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          setError(data.error || "Failed to persist proposal changes.");
+        }
+      } catch {
+        setError("Proposal saving offline. Connection timeout.");
+      }
+    }
+    setIsEditing(!isEditing);
+  };
+
   const handleGenerateProposal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName.trim() || !requirements.trim() || loading) return;
@@ -275,7 +298,7 @@ export default function AIProposalGeneratorWidget({ initialClientName = "", init
             <div className="flex justify-between items-center bg-slate-50 p-2 border border-slate-100 rounded-xl flex-wrap gap-2">
               <div className="flex gap-1.5">
                 <button
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={handleToggleEdit}
                   className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[10px] font-bold text-slate-600 flex items-center gap-1 transition-colors"
                 >
                   {isEditing ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Edit2 className="h-3.5 w-3.5 text-blue-500" />}
