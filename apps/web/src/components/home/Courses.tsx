@@ -5,8 +5,39 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Calendar, Clock } from "lucide-react";
 
-export default function Courses() {
-  const steps = [
+interface CoursesProps {
+  persona: "student" | "corporate";
+}
+
+export default function Courses({ persona }: CoursesProps) {
+  const studentSteps = [
+    {
+      num: "01",
+      title: "Optimize Resume",
+      description: "Submit your profile and resume details to our AI scanner to extract metrics and scores.",
+      color: "border-blue-500 text-blue-500 bg-blue-50",
+    },
+    {
+      num: "02",
+      title: "AI Interview Prep",
+      description: "Conduct speech mock interviews tailored to your target technical roles and experience level.",
+      color: "border-[#0b172a] text-[#0b172a] bg-slate-100",
+    },
+    {
+      num: "03",
+      title: "Targeted Placement",
+      description: "Direct talent matching and recommendation pipelines connecting you to verified vacancies.",
+      color: "border-orange-500 text-orange-500 bg-orange-50",
+    },
+    {
+      num: "04",
+      title: "Upskill Bootcamps",
+      description: "Access curated learning paths and structured certifications to resolve missing capabilities.",
+      color: "border-slate-400 text-slate-500 bg-slate-50",
+    },
+  ];
+
+  const corporateSteps = [
     {
       num: "01",
       title: "Discovery",
@@ -32,6 +63,8 @@ export default function Courses() {
       color: "border-slate-400 text-slate-500 bg-slate-50",
     },
   ];
+
+  const steps = persona === "student" ? studentSteps : corporateSteps;
 
   const insights = [
     {
@@ -73,13 +106,15 @@ export default function Courses() {
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto mb-16 md:mb-20">
             <span className="text-orange-500 font-semibold text-xs uppercase tracking-wider block mb-2 font-sans">
-              EXECUTION PIPELINE
+              {persona === "student" ? "CANDIDATE JOURNEY" : "EXECUTION PIPELINE"}
             </span>
             <h2 className="text-3xl sm:text-4xl font-display font-bold text-[#0b172a] tracking-tight leading-tight">
-              Our Strategic Roadmap
+              {persona === "student" ? "Your AI Job Prep Roadmap" : "Our Strategic Roadmap"}
             </h2>
             <p className="text-slate-600 mt-3 font-sans text-base leading-relaxed">
-              A transparent, structured, four-phase methodology guiding your project from initial conception to high-performance, live production.
+              {persona === "student"
+                ? "A transparent, structured, four-phase path designed to optimize your profile, build confidence, and match you with employers."
+                : "A transparent, structured, four-phase methodology guiding your project from initial conception to high-performance, live production."}
             </p>
           </div>
 

@@ -5,10 +5,38 @@ import Image from "next/image";
 import { ShieldCheck, Zap, Users, Star, ArrowLeft, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function About() {
+interface AboutProps {
+  persona: "student" | "corporate";
+}
+
+export default function About({ persona }: AboutProps) {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
-  const trustPoints = [
+  const studentTrustPoints = [
+    {
+      title: "AI Resume Optimization",
+      description: "Build ATS-optimized resumes that highlight key capabilities and pass corporate screening algorithms.",
+      icon: ShieldCheck,
+      color: "text-blue-500",
+      bgColor: "bg-blue-50",
+    },
+    {
+      title: "Speech Mock Interviews",
+      description: "Practice interactive verbal interview screens with realistic AI recruiters in real-time.",
+      icon: Zap,
+      color: "text-orange-500",
+      bgColor: "bg-orange-50",
+    },
+    {
+      title: "Targeted Employer Matches",
+      description: "Direct alignment matching with leading software firms looking for certified developers.",
+      icon: Users,
+      color: "text-indigo-500",
+      bgColor: "bg-indigo-50",
+    },
+  ];
+
+  const corporateTrustPoints = [
     {
       title: "Uncompromising Quality",
       description: "Our solutions adhere to the absolute highest architectural and performance standards.",
@@ -32,7 +60,24 @@ export default function About() {
     },
   ];
 
-  const testimonials = [
+  const trustPoints = persona === "student" ? studentTrustPoints : corporateTrustPoints;
+
+  const studentTestimonials = [
+    {
+      quote: "The AI Mock Interview simulator was a game changer for me. It gave me real recruiter-style feedback that helped me identify weak concepts. I secured a senior Next.js role after practicing!",
+      author: "Alex Mercer",
+      role: "Graduate Frontend Engineer",
+      stars: 5,
+    },
+    {
+      quote: "Thanks to the resume parser and completeness scorer, I managed to restructure my engineering stack highlights, increasing my response rate by over 60%.",
+      author: "Jessica Chen",
+      role: "Full-Stack Software Fellow",
+      stars: 5,
+    },
+  ];
+
+  const corporateTestimonials = [
     {
       quote: "EpitomeTEC transformed our complete cloud ecosystem and automated our delivery pipelines. Their IT advisory team was cost-effective, extremely responsive, and highly professional. Our infrastructure is now faster, more resilient, and perfectly secure.",
       author: "Daniel Rose",
@@ -46,6 +91,8 @@ export default function About() {
       stars: 5,
     },
   ];
+
+  const testimonials = persona === "student" ? studentTestimonials : corporateTestimonials;
 
   const handleNext = () => {
     setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
@@ -92,10 +139,12 @@ export default function About() {
                   WHY CHOOSE US
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-display font-bold text-[#0b172a] tracking-tight leading-tight">
-                  Why Industry Leaders Trust EpitomeTEC.
+                  {persona === "student" ? "Why Candidates Choose EpitomeTRC." : "Why Industry Leaders Trust EpitomeTEC."}
                 </h2>
                 <p className="text-slate-600 mt-4 font-sans leading-relaxed text-base md:text-lg">
-                  With over a decade of hands-on expertise delivering strategic consultation and custom technology solutions, our team remains laser-focused on keeping you ahead of the digital curve.
+                  {persona === "student"
+                    ? "Our platform provides job seekers with elite AI interview prep and resume scanning tools to fast-track matching into leading software engineering roles."
+                    : "With over a decade of hands-on expertise delivering strategic consultation and custom technology solutions, our team remains laser-focused on keeping you ahead of the digital curve."}
                 </p>
               </div>
 
