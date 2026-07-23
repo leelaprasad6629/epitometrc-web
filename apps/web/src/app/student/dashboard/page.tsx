@@ -7,6 +7,10 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/common/Button";
 import AIMockInterviewWidget from "@/components/ai/AIMockInterviewWidget";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import { cn } from "@/lib/utils";
+import ProgressBar, { ProgressRing } from "@/components/dashboard/ProgressBar";
+import PriorityAlert, { PriorityItem } from "@/components/dashboard/PriorityAlert";
 
 export default function StudentDashboard() {
   const [data, setData] = useState<any>(null);
@@ -150,27 +154,84 @@ export default function StudentDashboard() {
     },
   ];
 
+  const priorityItems: PriorityItem[] = [
+    {
+      id: "skills-missing",
+      title: "Add missing skills to your resume",
+      type: "attention",
+      description: "AWS and Docker are missing. Adding them will improve your ATS Score by 15%.",
+      actionLabel: "Edit Profile",
+      onAction: () => { window.location.href = "/student/profile"; }
+    },
+    {
+      id: "mock-practice",
+      title: "Practice AI Mock Interview",
+      type: "today",
+      description: "You have an upcoming Frontend interview simulated slot ready.",
+      actionLabel: "Start Practice",
+      onAction: () => {
+        const widget = document.getElementById("mock-interview-widget");
+        if (widget) widget.scrollIntoView({ behavior: "smooth" });
+      }
+    },
+    {
+      id: "course-due",
+      title: "Submit Market Research Draft",
+      type: "next",
+      description: "Your course assignment is due today by 11:59 PM.",
+      actionLabel: "Go to Course",
+      onAction: () => { window.location.href = "/student/courses"; }
+    }
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="space-y-6"
+      className="space-y-6 font-sans text-xs"
     >
       {/* Top Banner section */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="space-y-1">
+      <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-mesh-gradient opacity-10 pointer-events-none"></div>
+        <div className="space-y-1 relative z-10">
+          <span className="px-2 py-0.5 rounded-full bg-orange-50 border border-orange-100 text-orange-600 font-bold text-[9px] uppercase tracking-wider">
+            AI WORKSPACE ACTIVE
+          </span>
           <h1 className="font-display text-2xl font-bold text-[#0b172a] sm:text-3xl">
             Welcome back, {currentUser?.name || "Student"}.
           </h1>
-          <p className="text-slate-500 text-sm font-medium font-sans">
-            Your progress this week is looking excellent. You have 2 assignments due soon.
+          <p className="text-slate-500 text-[11px] font-medium leading-relaxed max-w-2xl">
+            EpitomeTRC AI Advisor: "Your profile is 80% complete. We found 3 new matches matching your expertise. Practice mock interviews to boost matching."
           </p>
         </div>
-        <Button href="/student/courses" variant="primary" className="h-10 rounded-xl px-5 font-bold shrink-0 self-start md:self-auto">
+        <Button href="/student/courses" variant="primary" className="h-10 rounded-xl px-5 font-bold shrink-0 self-start md:self-auto relative z-10 shadow-md shadow-orange-500/10">
           Continue Learning
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
+      </div>
+
+      {/* Action Center & Profile Metrics Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <DashboardCard glowColor="blue">
+            <PriorityAlert items={priorityItems} />
+          </DashboardCard>
+        </div>
+        <div>
+          <DashboardCard glowColor="indigo" title="AI Profile Health" subtitle="Summary checklist credentials status">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col items-center p-3 bg-indigo-50/20 rounded-2xl border border-indigo-100/30">
+                <ProgressRing percent={80} size={76} strokeWidth={6} variant="indigo" label="Profile" />
+                <span className="text-[10px] font-bold text-indigo-600 mt-2">Completed</span>
+              </div>
+              <div className="flex flex-col items-center p-3 bg-purple-50/20 rounded-2xl border border-purple-100/30">
+                <ProgressRing percent={85} size={76} strokeWidth={6} variant="purple" label="ATS Score" />
+                <span className="text-[10px] font-bold text-purple-600 mt-2">Resume Fit</span>
+              </div>
+            </div>
+          </DashboardCard>
+        </div>
       </div>
 
       {/* Metrics Grid */}
@@ -178,32 +239,34 @@ export default function StudentDashboard() {
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
-            <div key={idx} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-3">
+            <DashboardCard key={idx} className="space-y-3" glowColor={idx === 0 ? "blue" : idx === 1 ? "orange" : idx === 2 ? "purple" : "indigo"}>
               <div className="flex justify-between items-start">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">
                   {stat.label}
                 </span>
-                <span className={`p-1.5 rounded-lg border ${stat.color}`}>
-                  <Icon className="h-4.5 w-4.5" />
+                <span className={cn("p-1.5 rounded-lg border", stat.color)}>
+                  <Icon className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-3xl font-extrabold text-[#0b172a] leading-none tracking-tight">
                 {stat.value}
               </p>
-            </div>
+            </DashboardCard>
           );
         })}
       </div>
 
-      {/* AI Mock Interview Simulator */}
-      <AIMockInterviewWidget />
+      {/* AI Mock Interview Simulator Container */}
+      <div id="mock-interview-widget" className="scroll-mt-6">
+        <AIMockInterviewWidget />
+      </div>
 
       {/* Main Grid: Recommended Programs & Sidebar Widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recommended Programs */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="font-display text-lg font-bold text-[#0b172a]">
+            <h2 className="font-display text-base font-bold text-[#0b172a] uppercase tracking-wider">
               Recommended Programs
             </h2>
             <Link href="/courses" className="text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors">
@@ -213,13 +276,13 @@ export default function StudentDashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {recommendedPrograms.map((prog: any) => (
-              <div key={prog.id} className="group rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div key={prog.id} className="group rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
                 <div className="relative h-40 overflow-hidden">
                   <Image
                     src={prog.image}
                     alt={prog.title}
                     fill
-                    className="object-cover group-hover:scale-103 transition-transform duration-300"
+                    className="object-cover group-hover:scale-102 transition-transform duration-500"
                     sizes="(max-width: 768px) 100vw, 25vw"
                   />
                   <div className="absolute top-3 left-3 flex gap-1.5">
@@ -250,7 +313,7 @@ export default function StudentDashboard() {
 
           {/* Recent Activity */}
           <div className="space-y-4 pt-2">
-            <h2 className="font-display text-lg font-bold text-[#0b172a]">
+            <h2 className="font-display text-base font-bold text-[#0b172a] uppercase tracking-wider">
               Recent Activity
             </h2>
             <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm divide-y divide-slate-100">
@@ -271,20 +334,15 @@ export default function StudentDashboard() {
         {/* Sidebar Widgets (Deadlines & Mentor Session) */}
         <div className="space-y-6">
           {/* Deadlines Widget */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider">
-                Deadlines
-              </h2>
-              <span className="rounded bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-600 uppercase tracking-wider">
-                Urgent
-              </span>
-            </div>
-
-            <div className="space-y-3.5">
+          <DashboardCard glowColor="orange" title="Deadlines" headerAction={
+            <span className="rounded bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-600 uppercase tracking-wider">
+              Urgent
+            </span>
+          }>
+            <div className="space-y-3.5 mb-4">
               {deadlines.map((dl, idx) => (
                 <div key={idx} className="flex justify-between items-start gap-4 pb-3 border-b border-slate-50 last:border-0 last:pb-0">
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <h4 className="text-xs font-bold text-slate-700 leading-snug">{dl.title}</h4>
                     <p className="text-[10px] text-slate-400 font-medium font-sans">{dl.due}</p>
                   </div>
@@ -303,47 +361,45 @@ export default function StudentDashboard() {
               <Calendar className="mr-1.5 h-3.5 w-3.5" />
               View Calendar
             </Button>
-          </div>
+          </DashboardCard>
 
           {/* Next Mentor Session */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
-            <h2 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider">
-              Next Mentor Session
-            </h2>
+          <DashboardCard glowColor="indigo" title="Next Mentor Session">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="relative h-11 w-11 overflow-hidden rounded-full border border-slate-100">
+                  <Image
+                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces"
+                    alt="Sarah Jenkins"
+                    fill
+                    className="object-cover"
+                    sizes="44px"
+                  />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-[#0b172a]">Sarah Jenkins</p>
+                  <span className="text-[10px] text-slate-400 font-medium font-sans block mt-0.5">Senior Strategy Consultant</span>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-3">
-              <div className="relative h-11 w-11 overflow-hidden rounded-full border border-slate-100">
-                <Image
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces"
-                  alt="Sarah Jenkins"
-                  fill
-                  className="object-cover"
-                  sizes="44px"
-                />
+              <div className="rounded-xl bg-slate-50 p-3 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Scheduled for</span>
+                  <span className="text-xs font-bold text-slate-700">Tomorrow, 10:00 AM</span>
+                </div>
+                <Clock className="h-5 w-5 text-slate-400" />
               </div>
-              <div className="text-left">
-                <p className="text-xs font-bold text-[#0b172a]">Sarah Jenkins</p>
-                <span className="text-[10px] text-slate-400 font-medium font-sans block mt-0.5">Senior Strategy Consultant</span>
-              </div>
+
+              <Button
+                onClick={() => setShowCallModal(true)}
+                variant="primary"
+                className="w-full h-9 rounded-xl text-xs font-bold bg-[#0b172a] hover:bg-slate-800 shadow-none border-0"
+              >
+                <Video className="mr-1.5 h-3.5 w-3.5" />
+                Join Meeting
+              </Button>
             </div>
-
-            <div className="rounded-xl bg-slate-50 p-3.5 flex items-center justify-between">
-              <div className="space-y-0.5">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Scheduled for</span>
-                <span className="text-xs font-bold text-slate-700">Tomorrow, 10:00 AM</span>
-              </div>
-              <Clock className="h-5 w-5 text-slate-400" />
-            </div>
-
-            <Button
-              onClick={() => setShowCallModal(true)}
-              variant="primary"
-              className="w-full h-9 rounded-xl text-xs font-bold bg-[#0b172a] hover:bg-slate-800 shadow-none border-0"
-            >
-              <Video className="mr-1.5 h-3.5 w-3.5" />
-              Join Meeting
-            </Button>
-          </div>
+          </DashboardCard>
         </div>
       </div>
 

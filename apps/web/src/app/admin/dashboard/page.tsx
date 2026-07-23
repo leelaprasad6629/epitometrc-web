@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Users, DollarSign, Award, CheckCircle2, TrendingUp, Download, Sparkles, ShieldCheck, Mail, FileText, ClipboardList } from "lucide-react";
 import Button from "@/components/common/Button";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import ProgressBar from "@/components/dashboard/ProgressBar";
+import PriorityAlert, { PriorityItem } from "@/components/dashboard/PriorityAlert";
 
 import AICohortPlannerWidget from "@/components/ai/AICohortPlannerWidget";
 import AILeadQualifyWidget from "@/components/ai/AILeadQualifyWidget";
@@ -86,6 +89,33 @@ export default function AdminDashboard() {
     role: e.type
   }));
 
+  const priorityItems: PriorityItem[] = [
+    {
+      id: "verify-credentials",
+      title: "Verify Consultant Credentials",
+      type: "attention",
+      description: "3 strategy advisors submitted certifications waiting for validation.",
+      actionLabel: "Verify Now",
+      onAction: () => { window.location.href = "/admin/users"; }
+    },
+    {
+      id: "approve-internships",
+      title: "Approve 12 pending student internships",
+      type: "today",
+      description: "Due by end of day for corporate training compliance.",
+      actionLabel: "View Internships",
+      onAction: () => { window.location.href = "/admin/students"; }
+    },
+    {
+      id: "blog-drafts",
+      title: "Review 5 new job postings & drafts",
+      type: "next",
+      description: "AI parsed job postings waiting for final system publication.",
+      actionLabel: "Go to Jobs",
+      onAction: () => { window.location.href = "/admin/jobs"; }
+    }
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -94,7 +124,7 @@ export default function AdminDashboard() {
       className="space-y-6 font-sans text-xs"
     >
       {/* Top Header Row */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between relative overflow-hidden">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#0b172a] sm:text-3xl">
             Executive Overview
@@ -104,7 +134,7 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <select className="text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 outline-none">
+          <select className="text-xs font-bold text-slate-655 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 outline-none">
             <option>Last 30 Days</option>
             <option>Last 90 Days</option>
           </select>
@@ -114,10 +144,17 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Action Center Grid */}
+      <div className="w-full">
+        <DashboardCard glowColor="blue">
+          <PriorityAlert items={priorityItems} />
+        </DashboardCard>
+      </div>
+
       {/* Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
-          <div key={idx} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-3">
+          <DashboardCard key={idx} className="space-y-3" glowColor={idx === 0 ? "blue" : idx === 1 ? "orange" : idx === 2 ? "purple" : "indigo"}>
             <div className="flex justify-between items-start">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                 {stat.label}
@@ -131,7 +168,7 @@ export default function AdminDashboard() {
             <p className="text-3xl font-extrabold text-[#0b172a] leading-none tracking-tight">
               {stat.value}
             </p>
-          </div>
+          </DashboardCard>
         ))}
       </div>
 
