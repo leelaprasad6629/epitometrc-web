@@ -167,40 +167,33 @@ export default function AIResumeMatchWidget() {
     setError("");
     setVerifiedSaved(false);
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const base64Data = event.target?.result?.toString().split(",")[1] || "";
-        const res = await fetch("/api/ai/parse-resume", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fileName: file.name,
-            fileMimeType: file.type || "application/pdf",
-            fileBase64: base64Data
-          })
-        });
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-        if (!res.ok) {
-          setError(`Server busy (${res.status}): Please try uploading again.`);
-          return;
-        }
+      const res = await fetch("/api/ai/parse-resume", {
+        method: "POST",
+        body: formData
+      });
 
-        const data = await res.json();
-        if (data.success) {
-          setResumeData(file.name, base64Data, file.type || "application/pdf", data.result, data.confidenceScores);
-          setActiveTab("details");
-        } else {
-          setError(data.error || "Failed to parse resume.");
-        }
-      } catch (err: any) {
-        setError(err?.message || "Connection timeout parsing file.");
-      } finally {
-        setLoading(false);
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setError(data?.error || `Upload failed (${res.status}). Please try again.`);
+        return;
       }
-    };
 
-    reader.readAsDataURL(file);
+      if (data?.success) {
+        setResumeData(file.name, "", file.type || "application/pdf", data.result, data.confidenceScores);
+        setActiveTab("details");
+      } else {
+        setError(data?.error || "Failed to parse resume.");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Connection timeout parsing file.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerifyAndSave = () => {

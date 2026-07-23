@@ -4,7 +4,61 @@ import { getAICompletion } from "@/lib/ai/services/aiService";
 import * as pdfParse from "pdf-parse";
 import mammoth from "mammoth";
 
+export const runtime = "nodejs";
 export const maxDuration = 60; // 60s Vercel serverless function timeout extension
+
+const MAX_RESUME_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_RESUME_MIME_TYPES = new Set([
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain"
+]);
+const ALLOWED_RESUME_EXTENSIONS = new Set([".pdf", ".docx", ".txt"]);
+
+function inferResumeType(fileName: string, fileMimeType?: string): { fileName: string; fileMimeType: string } {
+  const lowerName = (fileName || "").toLowerCase();
+  const extension = lowerName.includes(".") ? lowerName.slice(lowerName.lastIndexOf(".")) : "";
+  const normalizedMimeType = (fileMimeType || "").toLowerCase();
+
+  if (normalizedMimeType === "application/pdf" || extension === ".pdf") {
+    return { fileName, fileMimeType: "application/pdf" };
+  }
+
+  if (normalizedMimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || extension === ".docx") {
+    return { fileName, fileMimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" };
+  }
+
+  if (normalizedMimeType === "text/plain" || extension === ".txt") {
+    return { fileName, fileMimeType: "text/plain" };
+  }
+
+  return { fileName, fileMimeType: normalizedMimeType || "text/plain" };
+}
+
+function validateResumeUpload(fileName: string, fileMimeType: string, fileSizeBytes: number) {
+  const inferred = inferResumeType(fileName, fileMimeType);
+  const extension = (inferred.fileName || "").toLowerCase().includes(".")
+    ? (inferred.fileName || "").toLowerCase().slice((inferred.fileName || "").toLowerCase().lastIndexOf("."))
+    : "";
+
+  if (fileSizeBytes > MAX_RESUME_FILE_SIZE_BYTES) {
+    return {
+      valid: false,
+      status: 413,
+      error: `File too large. Please upload a resume smaller than 5MB.`
+    };
+  }
+
+  if (!ALLOWED_RESUME_MIME_TYPES.has(inferred.fileMimeType) && !ALLOWED_RESUME_EXTENSIONS.has(extension)) {
+    return {
+      valid: false,
+      status: 400,
+      error: "Invalid file type. Please upload a PDF, DOCX, or TXT resume."
+    };
+  }
+
+  return { valid: true, fileMimeType: inferred.fileMimeType };
+}
 
 // Extended predefined skills normalization alias database mapped to 14 groups
 const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
@@ -287,19 +341,53 @@ function extractUrlsFromText(text: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { fileName, fileBase64, fileMimeType } = await req.json();
+    const contentType = req.headers.get("content-type") || "";
+    let fileName = "resume";
+    let fileMimeType = "text/plain";
+    let buffer: Buffer | null = null;
 
-    if (!fileName || !fileBase64) {
-      return NextResponse.json({ success: false, error: "Missing file payload." }, { status: 400 });
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const uploadedFile = formData.get("file");
+
+      if (!uploadedFile || typeof uploadedFile === "string") {
+        return NextResponse.json({ success: false, error: "Missing file payload." }, { status: 400 });
+      }
+
+      const file = uploadedFile as File;
+      fileName = file.name || fileName;
+      fileMimeType = file.type || fileMimeType;
+      buffer = Buffer.from(await file.arrayBuffer());
+    } else {
+      const body = await req.json().catch(() => null);
+      const { fileName: bodyFileName, fileBase64, fileMimeType: bodyMimeType } = body || {};
+
+      if (!bodyFileName || !fileBase64) {
+        return NextResponse.json({ success: false, error: "Missing file payload." }, { status: 400 });
+      }
+
+      fileName = bodyFileName;
+      fileMimeType = bodyMimeType || fileMimeType;
+      buffer = Buffer.from(fileBase64, "base64");
     }
 
-    const buffer = Buffer.from(fileBase64, "base64");
+    if (!buffer) {
+      return NextResponse.json({ success: false, error: "Upload failed: no file content was received." }, { status: 400 });
+    }
+
+    const validation = validateResumeUpload(fileName, fileMimeType, buffer.length);
+    if (!validation.valid) {
+      return NextResponse.json({ success: false, error: validation.error }, { status: validation.status });
+    }
+
+    fileMimeType = validation.fileMimeType || fileMimeType;
+
     let rawText = "";
 
     if (fileMimeType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf")) {
       rawText = await parsePdfBuffer(buffer);
     } else if (
-      fileMimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
+      fileMimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
       fileName.toLowerCase().endsWith(".docx")
     ) {
       rawText = await parseDocxBuffer(buffer);
@@ -489,9 +577,12 @@ Text: ${cleanedText.substring(0, 8000)}
     });
 
   } catch (error: any) {
-    console.error("AI Parser Endpoint error:", error);
+    console.error("[resume-upload] parser failed", {
+      message: error?.message,
+      stack: error?.stack
+    });
     return NextResponse.json(
-      { success: false, error: "Parser error: " + (error?.message || "Failed to segment text.") },
+      { success: false, error: "Upload failed: unable to process the resume. Please try again." },
       { status: 500 }
     );
   }
