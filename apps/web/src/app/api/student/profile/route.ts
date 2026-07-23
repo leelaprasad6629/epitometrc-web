@@ -1,29 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/lib/jwt";
 
-const DB_PATH = path.join(process.cwd(), "src/lib/ai/store/profile_db.json");
-
-// Ensure database file exists
-function ensureDb() {
-  const dir = path.dirname(DB_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  if (!fs.existsSync(DB_PATH)) {
-    fs.writeFileSync(DB_PATH, JSON.stringify({ profile: null, confidenceScores: {} }), "utf8");
-  }
+function getUserIdFromRequest(req: NextRequest): string | null {
+  const token = req.cookies.get("token")?.value;
+  if (!token) return null;
+  const payload = verifyToken(token) as { id: string } | null;
+  return payload?.id || null;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    ensureDb();
-    const data = fs.readFileSync(DB_PATH, "utf8");
-    const json = JSON.parse(data);
+    const userId = getUserIdFromRequest(req);
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const profileRecord = await prisma.userProfile.findUnique({
+      where: { userId },
+      select: {
+        profile: true,
+        confidenceScores: true
+      }
+    });
+
     return NextResponse.json({
       success: true,
-      profile: json.profile || null,
-      confidenceScores: json.confidenceScores || {}
+      profile: profileRecord?.profile || null,
+      confidenceScores: profileRecord?.confidenceScores || {}
     });
   } catch (err) {
     console.error("Failed to read profile:", err);
@@ -33,13 +37,26 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    ensureDb();
+    const userId = getUserIdFromRequest(req);
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     const { profile, confidenceScores } = await req.json();
-    fs.writeFileSync(
-      DB_PATH,
-      JSON.stringify({ profile, confidenceScores }, null, 2),
-      "utf8"
-    );
+
+    await prisma.userProfile.upsert({
+      where: { userId },
+      update: {
+        profile: profile || null,
+        confidenceScores: confidenceScores || {}
+      },
+      create: {
+        userId,
+        profile: profile || null,
+        confidenceScores: confidenceScores || {}
+      }
+    });
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Failed to save profile:", err);
