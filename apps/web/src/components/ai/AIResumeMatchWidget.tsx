@@ -1,10 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, CheckCircle2, AlertTriangle, Lightbulb, FileText, Upload, User, Mail, Phone, BookOpen, Briefcase, Trash2, RefreshCw, Globe, Award, ShieldAlert, Check, Plus, Trash, Info } from "lucide-react";
+import { 
+  Sparkles, CheckCircle2, AlertTriangle, Lightbulb, FileText, Upload, 
+  User, Mail, Phone, BookOpen, Briefcase, Trash2, Globe, Award, 
+  Check, Plus, Trash, Info, RefreshCw 
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useResumeStore, ParsedResume, EducationEntry, ExperienceEntry, ProjectEntry, CertificationEntry, InternshipEntry, AchievementEntry } from "@/lib/ai/store/resumeStore";
+import { 
+  useResumeStore, ParsedResume, EducationEntry, ExperienceEntry, 
+  ProjectEntry, CertificationEntry, AchievementEntry 
+} from "@/lib/ai/store/resumeStore";
 import { Input } from "@/components/ui/input";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 const ROLE_SKILLS_MAP: Record<string, { mustHave: string[]; preferred: string[] }> = {
   "Full Stack Developer": {
@@ -62,24 +70,28 @@ export default function AIResumeMatchWidget() {
     loadProfileFromServer
   } = useResumeStore();
 
-  const [activeTab, setActiveTab] = useState<"details" | "analytics">("details");
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
-  const [verifiedSaved, setVerifiedSaved] = useState(false);
-  const [reviewingSkills, setReviewingSkills] = useState(false);
+  const [activeEditorTab, setActiveEditorTab] = useState<"personal" | "education" | "experience" | "projects" | "skills" | "certs">("personal");
+  const [activeWidgetMode, setActiveWidgetMode] = useState<"review" | "analysis">("review");
 
+  // Load profile from server on mount
   useEffect(() => {
-    loadProfileFromServer();
-  }, [loadProfileFromServer]);
+    loadProfileFromServer().then(() => {
+      if (verified) {
+        setActiveWidgetMode("analysis");
+      }
+    });
+  }, [loadProfileFromServer, verified]);
 
-  const runProgrammaticAnalysis = async (currentDetails: ParsedResume, role: string) => {
+  // Run matching analytics
+  const runMatchingAnalytics = async (currentDetails: ParsedResume, role: string) => {
     setAnalyzing(true);
     try {
       const completenessVal = currentDetails.overallCompleteness || 0;
-
       const requirements = ROLE_SKILLS_MAP[role] || { mustHave: [], preferred: [] };
-      const allUserSkills = [
+      const userSkills = [
         ...(currentDetails.technicalSkills || []),
         ...(currentDetails.programmingLanguages || []),
         ...(currentDetails.frontend || []),
@@ -88,32 +100,25 @@ export default function AIResumeMatchWidget() {
         ...(currentDetails.databases || []),
         ...(currentDetails.cloud || []),
         ...(currentDetails.devops || []),
-        ...(currentDetails.testing || []),
-        ...(currentDetails.aiml || []),
-        ...(currentDetails.mobile || [])
+        ...(currentDetails.tools || [])
       ].map(s => s.trim().toLowerCase());
 
-      const matchedMustHave = requirements.mustHave.filter(s => allUserSkills.includes(s));
-      const matchedPreferred = requirements.preferred.filter(s => allUserSkills.includes(s));
+      const matchedMust = requirements.mustHave.filter(s => userSkills.includes(s));
+      const matchedPref = requirements.preferred.filter(s => userSkills.includes(s));
 
       const totalRequired = requirements.mustHave.length + requirements.preferred.length;
-      const totalMatched = matchedMustHave.length + matchedPreferred.length;
+      const totalMatched = matchedMust.length + matchedPref.length;
 
-      const skillMatchPercentageVal = totalRequired > 0
-        ? Math.round((totalMatched / totalRequired) * 100)
-        : 0;
-
-      const mustHaveScore = requirements.mustHave.length > 0 ? (matchedMustHave.length / requirements.mustHave.length) * 70 : 0;
-      const preferredScore = requirements.preferred.length > 0 ? (matchedPreferred.length / requirements.preferred.length) * 30 : 0;
-      
-      const matchScoreVal = Math.min(100, Math.round(mustHaveScore + preferredScore));
+      const skillMatchVal = totalRequired > 0 ? Math.round((totalMatched / totalRequired) * 100) : 0;
+      const matchScoreVal = Math.min(100, Math.round((matchedMust.length / (requirements.mustHave.length || 1)) * 70 + (matchedPref.length / (requirements.preferred.length || 1)) * 30));
       const atsScoreVal = Math.min(100, Math.round((matchScoreVal * 0.7) + (completenessVal * 0.3)));
 
-      const matchedList = [...matchedMustHave, ...matchedPreferred].map(s => s.toUpperCase());
+      const matchedList = [...matchedMust, ...matchedPref].map(s => s.toUpperCase());
       const missingList = [...requirements.mustHave, ...requirements.preferred]
-        .filter(s => !allUserSkills.includes(s))
+        .filter(s => !userSkills.includes(s))
         .map(s => s.toUpperCase());
 
+      // Fetch dynamic insights
       const res = await fetch("/api/ai/resume-match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -121,7 +126,7 @@ export default function AIResumeMatchWidget() {
           selectedJobRole: role,
           atsScore: atsScoreVal,
           matchScore: matchScoreVal,
-          skillMatchPercentage: skillMatchPercentageVal,
+          skillMatchPercentage: skillMatchVal,
           matchedSkills: matchedList,
           missingSkills: missingList,
           fullName: currentDetails.fullName
@@ -130,24 +135,23 @@ export default function AIResumeMatchWidget() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        const result = data.result;
         updateAnalysis({
           atsScore: atsScoreVal,
           matchScore: matchScoreVal,
-          skillMatchPercentage: skillMatchPercentageVal,
+          skillMatchPercentage: skillMatchVal,
           completeness: completenessVal,
           matchedSkills: matchedList,
           missingSkills: missingList,
           missingKeywords: missingList.slice(0, 3),
-          strengths: result.strengths,
-          improvements: result.weaknesses,
-          recommendations: result.suggestions,
-          certRecommendations: result.certRecommendations,
-          projectRecommendations: result.techRecommendations
+          strengths: data.result.strengths || [],
+          improvements: data.result.weaknesses || [],
+          recommendations: data.result.suggestions || [],
+          certRecommendations: data.result.certRecommendations || [],
+          projectRecommendations: data.result.techRecommendations || []
         });
       }
     } catch (err) {
-      console.error("Analysis failed:", err);
+      console.error("Match analytics failed:", err);
     } finally {
       setAnalyzing(false);
     }
@@ -155,17 +159,17 @@ export default function AIResumeMatchWidget() {
 
   useEffect(() => {
     if (parsedResumeDetails && verified) {
-      runProgrammaticAnalysis(parsedResumeDetails, selectedJobRole);
+      runMatchingAnalytics(parsedResumeDetails, selectedJobRole);
     }
   }, [selectedJobRole]);
 
+  // Handle resume uploading
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setLoading(true);
     setError("");
-    setVerifiedSaved(false);
 
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -182,559 +186,816 @@ export default function AIResumeMatchWidget() {
         });
 
         if (!res.ok) {
-          setError(`Server busy (${res.status}): Please try uploading again.`);
+          setError(`Parsing service unavailable (${res.status}).`);
           return;
         }
 
         const data = await res.json();
         if (data.success) {
           setResumeData(file.name, base64Data, file.type || "application/pdf", data.result, data.confidenceScores);
-          setActiveTab("details");
+          setActiveWidgetMode("review");
+          setActiveEditorTab("personal");
         } else {
-          setError(data.error || "Failed to parse resume.");
+          setError(data.error || "Parsing failed.");
         }
       } catch (err: any) {
-        setError(err?.message || "Connection timeout parsing file.");
+        setError(err.message || "Failed to parse file.");
       } finally {
         setLoading(false);
       }
     };
-
     reader.readAsDataURL(file);
   };
 
-  const handleVerifyAndSave = () => {
+  // Populate Profile & Save
+  const handleSaveAndVerify = async () => {
     if (!parsedResumeDetails) return;
     setVerified(true);
-    setVerifiedSaved(true);
-    runProgrammaticAnalysis(parsedResumeDetails, selectedJobRole);
-    
-    setTimeout(() => {
-      setActiveTab("analytics");
-      setVerifiedSaved(false);
-    }, 1200);
+    setActiveWidgetMode("analysis");
+    await runMatchingAnalytics(parsedResumeDetails, selectedJobRole);
   };
 
-  const CircularProgress = ({ value, label, colorClass }: { value: number; label: string; colorClass: string }) => {
-    const radius = 22;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference - (value / 100) * circumference;
+  // Re-upload action
+  const handleReset = () => {
+    deleteResume();
+    setActiveWidgetMode("review");
+    setError("");
+  };
 
+  // Helper: render confidence badge
+  const renderConfidenceBadge = (score: number | undefined) => {
+    if (score === undefined || score < 0) return null;
+    if (score >= 80) return <span className="px-2 py-0.5 rounded-full text-[8.5px] font-black bg-emerald-50 border border-emerald-100 text-emerald-600 font-sans uppercase">High</span>;
+    if (score >= 50) return <span className="px-2 py-0.5 rounded-full text-[8.5px] font-black bg-amber-50 border border-amber-100 text-amber-600 font-sans uppercase">Medium</span>;
+    return <span className="px-2 py-0.5 rounded-full text-[8.5px] font-black bg-rose-50 border border-rose-100 text-rose-600 font-sans uppercase">Low</span>;
+  };
+
+  if (loading) {
     return (
-      <div className="flex flex-col items-center gap-1.5 p-2 bg-slate-50/50 rounded-xl border border-slate-100 flex-1 min-w-[75px]">
-        <div className="relative h-12 w-12 flex items-center justify-center">
-          <svg className="h-full w-full -rotate-90">
-            <circle cx="24" cy="24" r={radius} className="stroke-slate-100 fill-transparent stroke-2.5" />
-            <circle
-              cx="24"
-              cy="24"
-              r={radius}
-              className={`fill-transparent stroke-2.5 transition-all duration-700 ${colorClass}`}
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-            />
-          </svg>
-          <span className="absolute text-[10px] font-black text-slate-800 font-mono">{value}%</span>
+      <DashboardCard glowColor="purple" className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <div className="relative">
+          <RefreshCw className="h-10 w-10 text-purple-600 animate-spin" />
+          <Sparkles className="h-4 w-4 text-orange-500 absolute -top-1 -right-1 animate-pulse" />
         </div>
-        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-center">{label}</span>
-      </div>
+        <div>
+          <h3 className="font-display font-black text-slate-800 text-sm">Resume Intelligence Engine Active</h3>
+          <p className="text-[10px] text-slate-400 font-medium mt-1">Groq llama-3.3 parsing layout, extracting sections, & calculating confidence matrices...</p>
+        </div>
+      </DashboardCard>
     );
-  };
+  }
 
-  // Phase 9: Verification Status Badges
-  const renderStatusBadge = (field: string, type: "deterministic" | "structured" | "ai") => {
-    if (type === "ai") {
-      return (
-        <span className="text-[9px] font-black text-blue-600 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
-          <Info className="h-3 w-3" /> AI Generated
-        </span>
-      );
-    }
-
-    const value = (parsedResumeDetails as any)?.[field];
-    const isEmpty = !value || (Array.isArray(value) && value.length === 0);
-
-    if (isEmpty) {
-      return (
-        <span className="text-[9px] font-black text-slate-500 bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
-          <ShieldAlert className="h-3 w-3" /> Missing Information
-        </span>
-      );
-    }
-
-    // Dynamic verification score lookup
-    const score = confidenceScores?.[field] ?? 0;
-    
-    if (score < 90) {
-      return (
-        <span className="text-[9px] font-black text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
-          <AlertTriangle className="h-3 w-3" /> Needs Review ({score}%)
-        </span>
-      );
-    }
-
+  // Upload state
+  if (!parsedResumeDetails) {
     return (
-      <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 rounded px-1.5 py-0.5 ml-2 inline-flex items-center gap-0.5">
-        <CheckCircle2 className="h-3 w-3" /> Verified
-      </span>
-    );
-  };
-
-  const verifiedSkillsList = parsedResumeDetails?.verifiedSkills || [];
-  const parsedSkillsList = parsedResumeDetails?.technicalSkills || [];
-  const missingSkillsInProfile = parsedSkillsList.filter(
-    s => !verifiedSkillsList.map(v => v.toLowerCase()).includes(s.toLowerCase())
-  );
-
-  const handleAddAllDetected = () => {
-    const updated = Array.from(new Set([...verifiedSkillsList, ...missingSkillsInProfile]));
-    updateParsedDetails({ verifiedSkills: updated });
-    setReviewingSkills(false);
-  };
-
-  // Structured verification list add/edits
-  const addEducation = () => {
-    const list = parsedResumeDetails?.education || [];
-    updateParsedDetails({ education: [...list, { degree: "", branch: "", institution: "", university: "", startYear: "", endYear: "", cgpa: "" }] });
-  };
-  const removeEducation = (idx: number) => {
-    const list = parsedResumeDetails?.education || [];
-    updateParsedDetails({ education: list.filter((_, i) => i !== idx) });
-  };
-  const editEducation = (idx: number, key: keyof EducationEntry, val: string) => {
-    const list = parsedResumeDetails?.education || [];
-    updateParsedDetails({ education: list.map((item, i) => i === idx ? { ...item, [key]: val } : item) });
-  };
-
-  const addExperience = () => {
-    const list = parsedResumeDetails?.experience || [];
-    updateParsedDetails({ experience: [...list, { companyName: "", role: "", employmentType: "Full-time", startDate: "", endDate: "", duration: "", responsibilities: "" }] });
-  };
-  const removeExperience = (idx: number) => {
-    const list = parsedResumeDetails?.experience || [];
-    updateParsedDetails({ experience: list.filter((_, i) => i !== idx) });
-  };
-  const editExperience = (idx: number, key: keyof ExperienceEntry, val: string) => {
-    const list = parsedResumeDetails?.experience || [];
-    updateParsedDetails({ experience: list.map((item, i) => i === idx ? { ...item, [key]: val } : item) });
-  };
-
-  const addProject = () => {
-    const list = parsedResumeDetails?.projects || [];
-    updateParsedDetails({ projects: [...list, { projectTitle: "", description: "", technologiesUsed: [], githubLink: "", liveUrl: "", duration: "" }] });
-  };
-  const removeProject = (idx: number) => {
-    const list = parsedResumeDetails?.projects || [];
-    updateParsedDetails({ projects: list.filter((_, i) => i !== idx) });
-  };
-  const editProject = (idx: number, key: keyof ProjectEntry, val: any) => {
-    const list = parsedResumeDetails?.projects || [];
-    updateParsedDetails({ projects: list.map((item, i) => i === idx ? { ...item, [key]: val } : item) });
-  };
-
-  return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-5 font-sans text-xs">
-      <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4.5 w-4.5 text-blue-500 animate-pulse" />
-          <h2 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider">
-            AI Resume Match Analyzer
-          </h2>
-        </div>
-      </div>
-
-      {fileName ? (
-        <div className="rounded-xl border border-slate-100 p-4 bg-slate-50/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-left">
-          <div className="flex items-start gap-3">
-            <span className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-500 shrink-0">
-              <FileText className="h-5 w-5" />
-            </span>
-            <div className="space-y-0.5">
-              <h4 className="text-xs font-bold text-slate-800 line-clamp-1">{fileName}</h4>
-              <p className="text-[10px] text-slate-400 font-medium font-sans">Verified Profile Stored</p>
-            </div>
+      <DashboardCard glowColor="blue" className="p-8 text-center space-y-6">
+        <div className="max-w-md mx-auto space-y-4">
+          <div className="h-12 w-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto text-blue-600">
+            <Upload className="h-5 w-5" />
           </div>
-          <div className="flex gap-2 shrink-0">
-            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer font-bold text-[10px] text-slate-600 transition-colors">
-              <RefreshCw className="h-3 w-3" />
-              Replace Resume
-              <input type="file" accept=".pdf,.docx,.txt" onChange={handleFileUpload} className="hidden" />
-            </label>
-            <button
-              onClick={deleteResume}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[10px] transition-colors"
-            >
-              <Trash2 className="h-3 w-3" />
-              Delete
-            </button>
+          <div>
+            <h3 className="font-display font-bold text-slate-900 text-sm">Upload Candidate Resume</h3>
+            <p className="text-[10px] text-slate-400 mt-1.5 font-medium leading-relaxed">
+              Upload PDF or Word layout formats. Groq Intelligence will parse and populate details automatically.
+            </p>
           </div>
-        </div>
-      ) : (
-        <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-6 bg-slate-50/20 hover:bg-slate-50 hover:border-orange-400 cursor-pointer transition-all">
-          <Upload className="h-6.5 w-6.5 text-slate-400 mb-1.5" />
-          <div className="text-center">
-            <p className="text-xs font-bold text-slate-700">Click to upload your resume</p>
-            <p className="text-[9px] text-slate-400 font-medium font-sans">Supports PDF, DOCX, or TXT</p>
-          </div>
-          <input type="file" accept=".pdf,.docx,.txt" onChange={handleFileUpload} className="hidden" />
-        </label>
-      )}
 
-      {loading && (
-        <p className="text-orange-500 font-semibold text-center animate-pulse">Running 10-Phase Segmentation Parser...</p>
-      )}
+          <label className="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-3xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all bg-slate-50/50 hover:bg-white group">
+            <FileText className="h-8 w-8 text-slate-400 group-hover:text-blue-500 transition-colors" />
+            <span className="text-[10.5px] font-bold text-slate-700 mt-2 block">Choose PDF or DOCX file</span>
+            <input type="file" onChange={handleFileUpload} accept=".pdf,.docx" className="hidden" />
+          </label>
 
-      {error && (
-        <p className="text-red-500 text-[10px] font-semibold text-center">{error}</p>
-      )}
-
-      {parsedResumeDetails && missingSkillsInProfile.length > 0 && (
-        <div className="rounded-xl border border-blue-100 p-4 bg-blue-50/20 text-left space-y-3.5">
-          <div className="flex items-center gap-2 text-[#0b172a] font-bold text-xs">
-            <Sparkles className="h-4.5 w-4.5 text-blue-500" />
-            AI Detected Skills
-          </div>
-          <p className="text-slate-500 leading-normal text-[10.5px]">
-            We found {missingSkillsInProfile.length} additional skills in your resume.
-          </p>
-          
-          {reviewingSkills ? (
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-1.5">
-                {missingSkillsInProfile.map(skill => (
-                  <span key={skill} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-[10px] font-bold text-slate-700">
-                    {skill}
-                    <button
-                      onClick={() => {
-                        const updated = [...verifiedSkillsList, skill];
-                        updateParsedDetails({ verifiedSkills: updated });
-                      }}
-                      className="text-emerald-600 hover:text-emerald-700 font-bold ml-1"
-                    >
-                      ✓
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <button onClick={() => setReviewingSkills(false)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600">
-                Close Review
-              </button>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <button onClick={handleAddAllDetected} className="px-3.5 py-1.5 rounded-lg bg-[#0b172a] text-white font-bold text-[10px]">
-                Add All
-              </button>
-              <button onClick={() => setReviewingSkills(true)} className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-655 font-bold text-[10px]">
-                Review
-              </button>
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-[10px] text-left">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
         </div>
-      )}
+      </DashboardCard>
+    );
+  }
 
-      {parsedResumeDetails && (
-        <div className="space-y-4">
-          <div className="flex rounded-xl bg-slate-50 p-1 border border-slate-100">
-            <button
-              onClick={() => setActiveTab("details")}
-              className={`flex-1 py-2 rounded-lg font-bold text-[10.5px] uppercase tracking-wider transition-colors ${
-                activeTab === "details" ? "bg-white text-[#0b172a] shadow-sm border border-slate-100" : "text-slate-400"
-              }`}
-            >
-              📋 Verification Inputs
-            </button>
-            <button
-              disabled={!verified}
-              onClick={() => setActiveTab("analytics")}
-              className={`flex-1 py-2 rounded-lg font-bold text-[10.5px] uppercase tracking-wider transition-colors disabled:opacity-50 ${
-                activeTab === "analytics" ? "bg-white text-[#0b172a] shadow-sm border border-slate-100" : "text-slate-400"
-              }`}
-            >
-              📊 Programmatic Match
-            </button>
+  return (
+    <div className="space-y-6">
+      {/* Mode Selection Tabs */}
+      <div className="flex justify-between items-center bg-white p-2 rounded-2xl border border-slate-100 shadow-xs">
+        <div className="flex gap-1">
+          <button
+            onClick={() => setActiveWidgetMode("review")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeWidgetMode === "review" ? "bg-slate-900 text-white shadow-xs" : "text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            1. Review & Edit Fields
+          </button>
+          <button
+            onClick={() => {
+              if (verified) {
+                setActiveWidgetMode("analysis");
+              }
+            }}
+            disabled={!verified}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              !verified ? "opacity-50 cursor-not-allowed text-slate-300" :
+              activeWidgetMode === "analysis" ? "bg-slate-900 text-white shadow-xs" : "text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            2. Match Analysis
+          </button>
+        </div>
+        <button
+          onClick={handleReset}
+          className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-1"
+        >
+          <RefreshCw className="h-3 w-3" /> Re-upload
+        </button>
+      </div>
+
+      {activeWidgetMode === "review" ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Editor Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Editor Sections Navigation */}
+            <div className="flex flex-wrap gap-1.5 pb-1">
+              {[
+                { id: "personal", label: "Personal Info", icon: User },
+                { id: "education", label: "Education", icon: BookOpen },
+                { id: "experience", label: "Experience", icon: Briefcase },
+                { id: "projects", label: "Projects", icon: FileText },
+                { id: "skills", label: "Skills", icon: Globe },
+                { id: "certs", label: "Certs & Awards", icon: Award }
+              ].map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveEditorTab(tab.id as any)}
+                    className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black flex items-center gap-1.5 border transition-all ${
+                      activeEditorTab === tab.id
+                        ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                        : "bg-white text-slate-600 border-slate-100 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Editor details body */}
+            <DashboardCard glowColor="blue" className="text-left space-y-4">
+              {/* Personal Details */}
+              {activeEditorTab === "personal" && (
+                <div className="space-y-4 font-sans">
+                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
+                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Candidate Personal Details</h4>
+                    {renderConfidenceBadge(confidenceScores.fullName)}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400">Full Name</span>
+                      <Input
+                        type="text"
+                        value={parsedResumeDetails.fullName || ""}
+                        onChange={(e) => updateParsedDetails({ fullName: e.target.value })}
+                        className="h-8 text-xs font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400">Headline</span>
+                      <Input
+                        type="text"
+                        value={parsedResumeDetails.headline || ""}
+                        onChange={(e) => updateParsedDetails({ headline: e.target.value })}
+                        className="h-8 text-xs font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400">Email</span>
+                      <Input
+                        type="email"
+                        value={parsedResumeDetails.email || ""}
+                        onChange={(e) => updateParsedDetails({ email: e.target.value })}
+                        className="h-8 text-xs font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400">Phone</span>
+                      <Input
+                        type="text"
+                        value={parsedResumeDetails.phone || ""}
+                        onChange={(e) => updateParsedDetails({ phone: e.target.value })}
+                        className="h-8 text-xs font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400">Location</span>
+                      <Input
+                        type="text"
+                        value={parsedResumeDetails.location || ""}
+                        onChange={(e) => updateParsedDetails({ location: e.target.value })}
+                        className="h-8 text-xs font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400">LinkedIn URL</span>
+                      <Input
+                        type="text"
+                        value={parsedResumeDetails.linkedin || ""}
+                        onChange={(e) => updateParsedDetails({ linkedin: e.target.value })}
+                        className="h-8 text-xs font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400">GitHub URL</span>
+                      <Input
+                        type="text"
+                        value={parsedResumeDetails.github || ""}
+                        onChange={(e) => updateParsedDetails({ github: e.target.value })}
+                        className="h-8 text-xs font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400">Portfolio</span>
+                      <Input
+                        type="text"
+                        value={parsedResumeDetails.portfolioWebsite || ""}
+                        onChange={(e) => updateParsedDetails({ portfolioWebsite: e.target.value })}
+                        className="h-8 text-xs font-semibold"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400">Career Summary / Bio</span>
+                    <textarea
+                      value={parsedResumeDetails.bio || ""}
+                      onChange={(e) => updateParsedDetails({ bio: e.target.value })}
+                      className="w-full rounded-2xl border border-slate-200 p-3 text-xs leading-relaxed outline-none h-24 font-medium resize-none bg-white transition-all focus:border-slate-800"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Education section */}
+              {activeEditorTab === "education" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
+                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Education Details</h4>
+                    <button
+                      onClick={() => {
+                        const current = parsedResumeDetails.education || [];
+                        updateParsedDetails({
+                          education: [...current, { degree: "", branch: "", institution: "", university: "", startYear: "", endYear: "", cgpa: "" }]
+                        });
+                      }}
+                      className="text-blue-600 hover:text-blue-700 font-bold text-[10px] flex items-center gap-0.5 bg-blue-50/50 px-2 py-1 rounded-lg"
+                    >
+                      <Plus className="h-3 w-3" /> Add Edu
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {(parsedResumeDetails.education || []).map((item, idx) => (
+                      <div key={idx} className="p-3 border border-slate-100 rounded-2xl relative space-y-3 bg-slate-50/20">
+                        <button
+                          onClick={() => {
+                            const current = parsedResumeDetails.education || [];
+                            updateParsedDetails({ education: current.filter((_, i) => i !== idx) });
+                          }}
+                          className="absolute top-2.5 right-2.5 text-slate-400 hover:text-red-500"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Degree</span>
+                            <Input
+                              type="text"
+                              value={item.degree}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.education || [])];
+                                current[idx].degree = e.target.value;
+                                updateParsedDetails({ education: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Branch</span>
+                            <Input
+                              type="text"
+                              value={item.branch}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.education || [])];
+                                current[idx].branch = e.target.value;
+                                updateParsedDetails({ education: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Institution</span>
+                            <Input
+                              type="text"
+                              value={item.institution}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.education || [])];
+                                current[idx].institution = e.target.value;
+                                updateParsedDetails({ education: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">CGPA/Marks</span>
+                            <Input
+                              type="text"
+                              value={item.cgpa}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.education || [])];
+                                current[idx].cgpa = e.target.value;
+                                updateParsedDetails({ education: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Start Year</span>
+                            <Input
+                              type="text"
+                              value={item.startYear}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.education || [])];
+                                current[idx].startYear = e.target.value;
+                                updateParsedDetails({ education: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">End Year</span>
+                            <Input
+                              type="text"
+                              value={item.endYear}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.education || [])];
+                                current[idx].endYear = e.target.value;
+                                updateParsedDetails({ education: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {(parsedResumeDetails.education || []).length === 0 && (
+                      <p className="text-slate-400 italic text-[10px]">No education records. Click Add Edu to create one.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Experience section */}
+              {activeEditorTab === "experience" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
+                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Professional Experience</h4>
+                    <button
+                      onClick={() => {
+                        const current = parsedResumeDetails.experience || [];
+                        updateParsedDetails({
+                          experience: [...current, { companyName: "", role: "", employmentType: "Full-Time", startDate: "", endDate: "", duration: "", responsibilities: "", technologiesUsed: [] }]
+                        });
+                      }}
+                      className="text-blue-600 hover:text-blue-700 font-bold text-[10px] flex items-center gap-0.5 bg-blue-50/50 px-2 py-1 rounded-lg"
+                    >
+                      <Plus className="h-3 w-3" /> Add Exp
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {(parsedResumeDetails.experience || []).map((item, idx) => (
+                      <div key={idx} className="p-3 border border-slate-100 rounded-2xl relative space-y-3 bg-slate-50/20 text-[10.5px]">
+                        <button
+                          onClick={() => {
+                            const current = parsedResumeDetails.experience || [];
+                            updateParsedDetails({ experience: current.filter((_, i) => i !== idx) });
+                          }}
+                          className="absolute top-2.5 right-2.5 text-slate-400 hover:text-red-500"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Company Name</span>
+                            <Input
+                              type="text"
+                              value={item.companyName}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.experience || [])];
+                                current[idx].companyName = e.target.value;
+                                updateParsedDetails({ experience: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Role</span>
+                            <Input
+                              type="text"
+                              value={item.role}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.experience || [])];
+                                current[idx].role = e.target.value;
+                                updateParsedDetails({ experience: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Start Date</span>
+                            <Input
+                              type="text"
+                              value={item.startDate}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.experience || [])];
+                                current[idx].startDate = e.target.value;
+                                updateParsedDetails({ experience: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">End Date</span>
+                            <Input
+                              type="text"
+                              value={item.endDate}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.experience || [])];
+                                current[idx].endDate = e.target.value;
+                                updateParsedDetails({ experience: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[9.5px] font-bold text-slate-400 font-sans">Responsibilities & Key Tasks</span>
+                          <textarea
+                            value={item.responsibilities}
+                            onChange={(e) => {
+                              const current = [...(parsedResumeDetails.experience || [])];
+                              current[idx].responsibilities = e.target.value;
+                              updateParsedDetails({ experience: current });
+                            }}
+                            className="w-full rounded-2xl border border-slate-200 p-2.5 text-[10.5px] outline-none h-16 resize-none font-medium bg-white"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {(parsedResumeDetails.experience || []).length === 0 && (
+                      <p className="text-slate-400 italic text-[10px]">No work history recorded. Click Add Exp to create one.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Projects section */}
+              {activeEditorTab === "projects" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
+                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Projects Portfolio</h4>
+                    <button
+                      onClick={() => {
+                        const current = parsedResumeDetails.projects || [];
+                        updateParsedDetails({
+                          projects: [...current, { projectTitle: "", description: "", technologiesUsed: [], githubLink: "", liveUrl: "", duration: "" }]
+                        });
+                      }}
+                      className="text-blue-600 hover:text-blue-700 font-bold text-[10px] flex items-center gap-0.5 bg-blue-50/50 px-2 py-1 rounded-lg"
+                    >
+                      <Plus className="h-3 w-3" /> Add Project
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {(parsedResumeDetails.projects || []).map((item, idx) => (
+                      <div key={idx} className="p-3 border border-slate-100 rounded-2xl relative space-y-3 bg-slate-50/20 text-[10.5px]">
+                        <button
+                          onClick={() => {
+                            const current = parsedResumeDetails.projects || [];
+                            updateParsedDetails({ projects: current.filter((_, i) => i !== idx) });
+                          }}
+                          className="absolute top-2.5 right-2.5 text-slate-400 hover:text-red-500"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Project Title</span>
+                            <Input
+                              type="text"
+                              value={item.projectTitle}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.projects || [])];
+                                current[idx].projectTitle = e.target.value;
+                                updateParsedDetails({ projects: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Github Link</span>
+                            <Input
+                              type="text"
+                              value={item.githubLink}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.projects || [])];
+                                current[idx].githubLink = e.target.value;
+                                updateParsedDetails({ projects: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[9.5px] font-bold text-slate-400">Description</span>
+                          <textarea
+                            value={item.description}
+                            onChange={(e) => {
+                              const current = [...(parsedResumeDetails.projects || [])];
+                              current[idx].description = e.target.value;
+                              updateParsedDetails({ projects: current });
+                            }}
+                            className="w-full rounded-2xl border border-slate-200 p-2.5 text-[10.5px] outline-none h-16 resize-none font-medium bg-white"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {(parsedResumeDetails.projects || []).length === 0 && (
+                      <p className="text-slate-400 italic text-[10px]">No projects listed. Click Add Project to create one.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Skills Editor */}
+              {activeEditorTab === "skills" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
+                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Skills Inventory</h4>
+                  </div>
+                  <div className="space-y-3 font-sans">
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-400">Technical Skills</span>
+                      <textarea
+                        value={(parsedResumeDetails.technicalSkills || []).join(", ")}
+                        onChange={(e) => {
+                          const list = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+                          updateParsedDetails({ technicalSkills: list });
+                        }}
+                        placeholder="React, TypeScript, Node.js"
+                        className="w-full rounded-2xl border border-slate-200 p-3 text-xs leading-relaxed outline-none h-20 font-medium resize-none bg-white focus:border-slate-800"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-400">Soft Skills</span>
+                      <textarea
+                        value={(parsedResumeDetails.softSkills || []).join(", ")}
+                        onChange={(e) => {
+                          const list = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+                          updateParsedDetails({ softSkills: list });
+                        }}
+                        placeholder="Communication, Teamwork, Problem Solving"
+                        className="w-full rounded-2xl border border-slate-200 p-3 text-xs leading-relaxed outline-none h-20 font-medium resize-none bg-white focus:border-slate-800"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Certifications and Achievements */}
+              {activeEditorTab === "certs" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
+                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Certifications & Achievements</h4>
+                    <button
+                      onClick={() => {
+                        const current = parsedResumeDetails.certifications || [];
+                        updateParsedDetails({
+                          certifications: [...current, { certificationName: "", organization: "", date: "", credentialId: "" }]
+                        });
+                      }}
+                      className="text-blue-600 hover:text-blue-700 font-bold text-[10px] flex items-center gap-0.5 bg-blue-50/50 px-2 py-1 rounded-lg"
+                    >
+                      <Plus className="h-3 w-3" /> Add Cert
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {(parsedResumeDetails.certifications || []).map((item, idx) => (
+                      <div key={idx} className="p-3 border border-slate-100 rounded-2xl relative space-y-3 bg-slate-50/20 text-[10.5px]">
+                        <button
+                          onClick={() => {
+                            const current = parsedResumeDetails.certifications || [];
+                            updateParsedDetails({ certifications: current.filter((_, i) => i !== idx) });
+                          }}
+                          className="absolute top-2.5 right-2.5 text-slate-400 hover:text-red-500"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Certification Name</span>
+                            <Input
+                              type="text"
+                              value={item.certificationName}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.certifications || [])];
+                                current[idx].certificationName = e.target.value;
+                                updateParsedDetails({ certifications: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9.5px] font-bold text-slate-400">Organization</span>
+                            <Input
+                              type="text"
+                              value={item.organization}
+                              onChange={(e) => {
+                                const current = [...(parsedResumeDetails.certifications || [])];
+                                current[idx].organization = e.target.value;
+                                updateParsedDetails({ certifications: current });
+                              }}
+                              className="h-7 text-[10.5px]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {(parsedResumeDetails.certifications || []).length === 0 && (
+                      <p className="text-slate-400 italic text-[10px]">No certifications listed. Click Add Cert to create one.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </DashboardCard>
           </div>
 
-          <AnimatePresence mode="wait">
-            {activeTab === "details" ? (
-              <motion.div
-                key="details"
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                className="space-y-4 text-left pt-1"
+          {/* Right Persistence Details & Metrics Bar */}
+          <div className="space-y-6">
+            <DashboardCard glowColor="indigo" className="text-left space-y-5">
+              <div>
+                <h4 className="font-display font-black text-slate-800 text-[11px] uppercase tracking-wider">Engine Telemetry</h4>
+                <p className="text-[10px] text-slate-400 mt-0.5">Resume Parser structured validation metrics</p>
+              </div>
+
+              {/* Confidence Gauges */}
+              <div className="space-y-3 border-t border-b border-slate-50 py-4">
+                <h5 className="font-black text-slate-500 text-[9px] uppercase tracking-wider">Section Confidence levels</h5>
+                <div className="space-y-2.5">
+                  {[
+                    { key: "fullName", label: "Candidate Name" },
+                    { key: "email", label: "Email Address" },
+                    { key: "phone", label: "Phone Details" },
+                    { key: "location", label: "Location info" },
+                    { key: "education", label: "Education" },
+                    { key: "experience", label: "Work History" },
+                    { key: "projects", label: "Projects" },
+                    { key: "skills", label: "Skills Inventory" }
+                  ].map((field) => {
+                    const score = confidenceScores[field.key];
+                    return (
+                      <div key={field.key} className="flex justify-between items-center text-[10px]">
+                        <span className="font-semibold text-slate-600">{field.label}</span>
+                        {renderConfidenceBadge(score)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Save CTAs */}
+              <div className="space-y-3.5 pt-1">
+                <button
+                  onClick={handleSaveAndVerify}
+                  className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 text-xs shadow-md shadow-blue-500/10 hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Save & Populate Profile
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="w-full rounded-2xl border border-slate-200 text-slate-600 font-bold py-3 text-xs hover:bg-slate-50 transition-all text-center"
+                >
+                  Discard Parsed Data
+                </button>
+              </div>
+            </DashboardCard>
+          </div>
+        </div>
+      ) : (
+        /* Match Analysis view mode */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
+          <div className="lg:col-span-2 space-y-6">
+            {/* ATS Score card */}
+            <DashboardCard glowColor="purple" className="flex flex-col md:flex-row items-center gap-6">
+              <div className="relative h-24 w-24 flex items-center justify-center shrink-0">
+                <svg className="h-full w-full -rotate-90">
+                  <circle cx="48" cy="48" r="40" className="stroke-slate-50 fill-transparent stroke-[6px]" />
+                  <circle
+                    cx="48"
+                    cy="48"
+                    r="40"
+                    className="fill-transparent stroke-[6px] stroke-purple-600 transition-all duration-700"
+                    strokeDasharray={2 * Math.PI * 40}
+                    strokeDashoffset={2 * Math.PI * 40 - (atsScore / 100) * (2 * Math.PI * 40)}
+                  />
+                </svg>
+                <span className="absolute text-xl font-black text-slate-900 font-mono">{atsScore}%</span>
+              </div>
+              <div className="space-y-1.5 text-center md:text-left">
+                <span className="px-2 py-0.5 rounded-full bg-purple-50 border border-purple-100 text-purple-600 font-black text-[9px] uppercase tracking-wider font-sans">
+                  ATS Score Analysis
+                </span>
+                <h4 className="font-display font-black text-slate-900 text-sm">Overall Profile ATS Score</h4>
+                <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                  Calculated based on skill match rates for {selectedJobRole}, education completeness, and professional work formatting.
+                </p>
+              </div>
+            </DashboardCard>
+
+            {/* Strengths and Improvements */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <DashboardCard glowColor="blue" className="space-y-4">
+                <h4 className="font-display font-black text-slate-900 text-xs flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Resume Strengths
+                </h4>
+                <ul className="space-y-2 text-[10.5px] text-slate-655 font-medium leading-relaxed">
+                  {strengths.map((str, idx) => (
+                    <li key={idx} className="flex items-start gap-1">
+                      <span className="text-emerald-500 font-bold">•</span>
+                      <span>{str}</span>
+                    </li>
+                  ))}
+                  {strengths.length === 0 && <li className="text-slate-400 italic">Calculating matching highlights...</li>}
+                </ul>
+              </DashboardCard>
+
+              <DashboardCard glowColor="orange" className="space-y-4">
+                <h4 className="font-display font-black text-slate-900 text-xs flex items-center gap-1.5">
+                  <AlertTriangle className="h-4 w-4 text-orange-500" /> Improvement Areas
+                </h4>
+                <ul className="space-y-2 text-[10.5px] text-slate-655 font-medium leading-relaxed">
+                  {improvements.map((imp, idx) => (
+                    <li key={idx} className="flex items-start gap-1">
+                      <span className="text-orange-500 font-bold">•</span>
+                      <span>{imp}</span>
+                    </li>
+                  ))}
+                  {improvements.length === 0 && <li className="text-slate-400 italic">Calculating improvement areas...</li>}
+                </ul>
+              </DashboardCard>
+            </div>
+          </div>
+
+          {/* Job Target selector */}
+          <div className="space-y-6">
+            <DashboardCard glowColor="indigo" className="space-y-4">
+              <div>
+                <h4 className="font-display font-black text-slate-800 text-[11px] uppercase tracking-wider">Target Job Role</h4>
+                <p className="text-[9.5px] text-slate-400 mt-0.5">Select a role to analyze ATS compatibility</p>
+              </div>
+              <select
+                value={selectedJobRole}
+                onChange={(e) => setSelectedJobRole(e.target.value)}
+                className="w-full h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold outline-none focus:border-slate-800 focus:bg-white"
               >
-                <div className="border border-slate-100 p-4.5 rounded-2xl bg-slate-50/20 space-y-4">
-                  <h3 className="font-bold text-slate-700 flex items-center gap-1.5 border-b border-slate-50 pb-2">
-                    <User className="h-4.5 w-4.5 text-orange-500" /> Personal Info
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Full Name {renderStatusBadge("fullName", "deterministic")}
-                      </label>
-                      <input
-                        type="text"
-                        value={parsedResumeDetails.fullName}
-                        onChange={(e) => updateParsedDetails({ fullName: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-655 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Email Address {renderStatusBadge("email", "deterministic")}
-                      </label>
-                      <input
-                        type="email"
-                        value={parsedResumeDetails.email}
-                        onChange={(e) => updateParsedDetails({ email: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-655 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Phone Number {renderStatusBadge("phone", "deterministic")}
-                      </label>
-                      <input
-                        type="text"
-                        value={parsedResumeDetails.phone}
-                        onChange={(e) => updateParsedDetails({ phone: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-655 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                        Location {renderStatusBadge("location", "deterministic")}
-                      </label>
-                      <input
-                        type="text"
-                        value={parsedResumeDetails.location}
-                        onChange={(e) => updateParsedDetails({ location: e.target.value })}
-                        className="w-full h-8.5 rounded-lg border border-slate-200 px-3 text-slate-655 outline-none text-xs bg-white focus:border-orange-500"
-                      />
-                    </div>
-                  </div>
+                {Object.keys(ROLE_SKILLS_MAP).map((role) => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
 
-                  <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
-                    <span className="flex items-center gap-1.5">
-                      <BookOpen className="h-4.5 w-4.5 text-orange-500" /> Education Background {renderStatusBadge("education", "structured")}
-                    </span>
-                    <button onClick={addEducation} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[9px]">
-                      <Plus className="h-3 w-3" /> Add
-                    </button>
-                  </h3>
-
-                  <div className="space-y-3.5">
-                    {parsedResumeDetails.education?.map((item, idx) => (
-                      <div key={idx} className="p-3 border border-slate-200 rounded-xl space-y-2 relative bg-white">
-                        <button onClick={() => removeEducation(idx)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">
-                          <Trash className="h-3.5 w-3.5" />
-                        </button>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6">
-                          <Input
-                            placeholder="Degree"
-                            value={item.degree}
-                            onChange={(e) => editEducation(idx, "degree", e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                          <Input
-                            placeholder="Institution"
-                            value={item.institution}
-                            onChange={(e) => editEducation(idx, "institution", e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                          <Input
-                            placeholder="Branch"
-                            value={item.branch}
-                            onChange={(e) => editEducation(idx, "branch", e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                          <Input
-                            placeholder="End Year"
-                            value={item.endYear}
-                            onChange={(e) => editEducation(idx, "endYear", e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
-                    <span className="flex items-center gap-1.5">
-                      <Briefcase className="h-4.5 w-4.5 text-orange-500" /> Work Experience {renderStatusBadge("experience", "structured")}
-                    </span>
-                    <button onClick={addExperience} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[9px]">
-                      <Plus className="h-3 w-3" /> Add
-                    </button>
-                  </h3>
-
-                  <div className="space-y-3.5">
-                    {parsedResumeDetails.experience?.map((item, idx) => (
-                      <div key={idx} className="p-3 border border-slate-200 rounded-xl space-y-2 relative bg-white">
-                        <button onClick={() => removeExperience(idx)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">
-                          <Trash className="h-3.5 w-3.5" />
-                        </button>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6">
-                          <Input
-                            placeholder="Company Name"
-                            value={item.companyName}
-                            onChange={(e) => editExperience(idx, "companyName", e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                          <Input
-                            placeholder="Role"
-                            value={item.role}
-                            onChange={(e) => editExperience(idx, "role", e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                        </div>
-                        <textarea
-                          placeholder="Responsibilities"
-                          value={item.responsibilities}
-                          onChange={(e) => editExperience(idx, "responsibilities", e.target.value)}
-                          className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-655 h-14 resize-none outline-none font-sans"
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  <h3 className="font-bold text-slate-700 flex items-center justify-between border-b border-slate-50 pb-2 pt-2">
-                    <span className="flex items-center gap-1.5">
-                      <Globe className="h-4.5 w-4.5 text-orange-500" /> Projects {renderStatusBadge("projects", "structured")}
-                    </span>
-                    <button onClick={addProject} className="text-orange-500 hover:text-orange-600 font-bold flex items-center gap-0.5 text-[9px]">
-                      <Plus className="h-3 w-3" /> Add
-                    </button>
-                  </h3>
-
-                  <div className="space-y-3.5">
-                    {parsedResumeDetails.projects?.map((item, idx) => (
-                      <div key={idx} className="p-3 border border-slate-200 rounded-xl space-y-2 relative bg-white">
-                        <button onClick={() => removeProject(idx)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">
-                          <Trash className="h-3.5 w-3.5" />
-                        </button>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6">
-                          <Input
-                            placeholder="Project Title"
-                            value={item.projectTitle}
-                            onChange={(e) => editProject(idx, "projectTitle", e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                          <Input
-                            placeholder="Technologies (comma-separated)"
-                            value={item.technologiesUsed?.join(", ") || ""}
-                            onChange={(e) => editProject(idx, "technologiesUsed", e.target.value.split(",").map(t => t.trim()).filter(Boolean))}
-                            className="h-8 text-xs"
-                          />
-                        </div>
-                        <textarea
-                          placeholder="Description"
-                          value={item.description}
-                          onChange={(e) => editProject(idx, "description", e.target.value)}
-                          className="w-full rounded-lg border border-slate-200 p-2 text-xs h-14 resize-none outline-none font-sans"
-                        />
-                      </div>
-                    ))}
-                  </div>
+              <div className="pt-2 border-t border-slate-50 space-y-3">
+                <h5 className="font-black text-slate-400 text-[9px] uppercase tracking-wider">Matched Skills</h5>
+                <div className="flex flex-wrap gap-1">
+                  {matchedSkills.map((skill) => (
+                    <span key={skill} className="px-2 py-0.5 rounded bg-emerald-50 border border-emerald-100 text-emerald-600 font-black text-[9px] uppercase tracking-wider">{skill}</span>
+                  ))}
+                  {matchedSkills.length === 0 && <span className="text-slate-400 italic text-[9.5px]">No match.</span>}
                 </div>
+              </div>
 
-                <div className="pt-2 flex justify-end">
-                  <button
-                    onClick={handleVerifyAndSave}
-                    disabled={verifiedSaved}
-                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#0b172a] hover:bg-slate-800 text-white font-bold transition-colors disabled:opacity-60 shadow-sm text-xs"
-                  >
-                    {verifiedSaved ? "Details Saved!" : "Verify & Save Details"}
-                  </button>
+              <div className="pt-2 border-t border-slate-50 space-y-3">
+                <h5 className="font-black text-slate-400 text-[9px] uppercase tracking-wider">Missing Skills</h5>
+                <div className="flex flex-wrap gap-1">
+                  {missingSkills.map((skill) => (
+                    <span key={skill} className="px-2 py-0.5 rounded bg-rose-50 border border-rose-100 text-rose-600 font-black text-[9px] uppercase tracking-wider">{skill}</span>
+                  ))}
+                  {missingSkills.length === 0 && <span className="text-slate-400 italic text-[9.5px]">No missing skills.</span>}
                 </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="analytics"
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                className="space-y-5 text-left"
-              >
-                <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Select Target Job Role
-                  </label>
-                  <select
-                    value={selectedJobRole}
-                    onChange={(e) => setSelectedJobRole(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-slate-200 px-3 py-1.5 outline-none bg-white text-slate-655 font-semibold"
-                  >
-                    {Object.keys(ROLE_SKILLS_MAP).map((role) => (
-                      <option key={role} value={role}>{role}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex gap-3 justify-between items-center">
-                  <CircularProgress value={atsScore} label="ATS Score" colorClass="stroke-red-500" />
-                  <CircularProgress value={matchScore} label="Match Score" colorClass="stroke-orange-500" />
-                  <CircularProgress value={skillMatchPercentage} label="Skills Match" colorClass="stroke-blue-500" />
-                </div>
-
-                {analyzing ? (
-                  <p className="text-orange-500 text-center animate-pulse py-2">Recalculating programmatic metrics and AI analysis...</p>
-                ) : (
-                  <>
-                    <div className="border-t border-slate-100 pt-4 space-y-3">
-                      <div className="space-y-1.5">
-                        <span className="text-[9.5px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-                          <CheckCircle2 className="h-3.5 w-3.5" /> Matched Skills ({matchedSkills.length})
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {matchedSkills.map((s, idx) => (
-                            <span key={idx} className="px-2 py-0.5 rounded bg-emerald-50 text-[9px] font-bold text-emerald-600 border border-emerald-100">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <span className="text-[9.5px] font-bold text-red-500 uppercase tracking-wider flex items-center gap-1">
-                          <ShieldAlert className="h-3.5 w-3.5" /> Missing Target Skills ({missingSkills.length})
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {missingSkills.length > 0 ? (
-                            missingSkills.map((s, idx) => (
-                              <span key={idx} className="px-2 py-0.5 rounded bg-red-50 text-[9px] font-bold text-red-600 border border-red-100">
-                                {s}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-emerald-600 font-bold text-[10px]">100% skill alignment met!</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-slate-100 pt-4 space-y-3">
-                      <div className="space-y-1">
-                        <span className="font-bold text-slate-700 block">AI Strategic Strengths</span>
-                        <ul className="list-disc pl-4 space-y-1 text-slate-500 text-[10px] leading-relaxed">
-                          {strengths.map((s, idx) => <li key={idx}>{s}</li>)}
-                        </ul>
-                      </div>
-
-                      <div className="space-y-1 pt-1">
-                        <span className="font-bold text-slate-700 block">AI Strategic Recommendations</span>
-                        <ul className="list-disc pl-4 space-y-1 text-slate-500 text-[10px] leading-relaxed">
-                          {recommendations.map((r, idx) => <li key={idx}>{r}</li>)}
-                        </ul>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            </DashboardCard>
+          </div>
         </div>
       )}
     </div>
