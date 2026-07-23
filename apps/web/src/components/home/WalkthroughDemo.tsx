@@ -29,7 +29,7 @@ export default function WalkthroughDemo() {
   ];
 
   return (
-    <section id="demo-walkthrough" className="py-20 md:py-28 bg-[#fafafb] border-t border-b border-slate-100 font-sans relative overflow-hidden">
+    <section id="demo-walkthrough" className="py-20 md:py-28 bg-mesh-gradient border-t border-b border-slate-100 font-sans relative overflow-hidden">
       {/* Background gradients */}
       <div className="absolute top-1/4 right-0 w-96 h-96 bg-orange-100/30 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-blue-100/20 rounded-full blur-[100px] pointer-events-none" />
