@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, ShieldCheck, Mail, Lock, User, Check, ShieldAlert, Phone } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
+import DnaCanvas from "@/components/common/DnaCanvas";
 
 type UserRole = "Student" | "Employer" | "Organization";
 
@@ -96,6 +97,7 @@ export default function RegisterPage() {
       <div className="hidden lg:flex w-1/2 bg-[#0b172a] text-white flex-col justify-between p-12 relative overflow-hidden">
         {/* Decorative Grid Lines */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30"></div>
+        <DnaCanvas />
 
         <div className="relative z-10 flex items-center space-x-2">
           <span className="rounded-lg bg-slate-900 p-1.5 border border-slate-800">
