@@ -96,7 +96,7 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
       <div className="flex items-center space-x-3">
         <button
           onClick={onMenuToggle}
-          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-700 lg:hidden"
           aria-label="Toggle Navigation Menu"
         >
           <Menu className="h-5 w-5" />

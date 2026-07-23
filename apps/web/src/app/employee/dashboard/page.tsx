@@ -117,7 +117,7 @@ export default function EmployeeDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
           <DashboardCard key={idx} className="space-y-3" glowColor={idx === 0 ? "blue" : idx === 1 ? "indigo" : idx === 2 ? "purple" : "orange"}>
             <div className="flex justify-between items-start">
