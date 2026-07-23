@@ -110,7 +110,7 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
           {breadcrumbs.map((crumb, idx) => {
             const isLast = idx === breadcrumbs.length - 1;
             return (
-              <span key={crumb.href} className="flex items-center space-x-1.5">
+              <span key={`${crumb.href}-${idx}`} className="flex items-center space-x-1.5">
                 <span>/</span>
                 {isLast ? (
                   <span className="text-[#0b172a] font-bold">{crumb.label}</span>
