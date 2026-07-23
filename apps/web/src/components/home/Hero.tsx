@@ -54,30 +54,27 @@ export default function Hero({ persona, setPersona }: HeroProps) {
     // Create 3D points
     const points: {
       type: "torus" | "sphere" | "star";
-      x3d: number;
-      y3d: number;
-      z3d: number;
       theta: number;
       phi: number;
       color: string;
       sizeOffset: number;
+      // Stars background coordinates
+      starX?: number;
+      starY?: number;
+      starZ?: number;
     }[] = [];
 
-    // 1. Torus points (Outer Shell) - 1500 points
-    for (let i = 0; i < 1500; i++) {
+    // 1. Torus points (Outer Network) - 1200 points
+    for (let i = 0; i < 1200; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.random() * Math.PI * 2;
-      const color = i % 2 === 0 ? "rgba(59, 130, 246, 0.48)" : "rgba(249, 115, 22, 0.48)";
       
-      const x3d = (R_torus + r_torus * Math.cos(theta)) * Math.cos(phi);
-      const y3d = (R_torus + r_torus * Math.cos(theta)) * Math.sin(phi);
-      const z3d = r_torus * Math.sin(theta);
+      let color = "rgba(59, 130, 246, 0.45)"; // Electric Blue
+      if (i % 3 === 1) color = "rgba(99, 102, 241, 0.45)"; // Indigo
+      else if (i % 3 === 2) color = "rgba(139, 92, 246, 0.45)"; // Purple
 
       points.push({
         type: "torus",
-        x3d,
-        y3d,
-        z3d,
         theta,
         phi,
         color,
@@ -85,21 +82,15 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       });
     }
 
-    // 2. Inner Sphere points (AI Core Core) - 800 points
-    for (let i = 0; i < 800; i++) {
+    // 2. Inner Sphere points (AI Core) - 500 points
+    for (let i = 0; i < 500; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
-      const color = i % 3 === 0 ? "rgba(239, 68, 68, 0.55)" : "rgba(245, 158, 11, 0.55)";
       
-      const x3d = R_sphere * Math.sin(phi) * Math.cos(theta);
-      const y3d = R_sphere * Math.sin(phi) * Math.sin(theta);
-      const z3d = R_sphere * Math.cos(phi);
+      const color = i % 2 === 0 ? "rgba(249, 115, 22, 0.55)" : "rgba(239, 68, 68, 0.55)"; // Orange & Red-orange
 
       points.push({
         type: "sphere",
-        x3d,
-        y3d,
-        z3d,
         theta,
         phi,
         color,
@@ -107,16 +98,16 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       });
     }
 
-    // 3. Constellation Background Stars - 300 points
-    for (let i = 0; i < 300; i++) {
+    // 3. Constellation Background Stars - 200 points
+    for (let i = 0; i < 200; i++) {
       points.push({
         type: "star",
-        x3d: (Math.random() - 0.5) * width * 1.5,
-        y3d: (Math.random() - 0.5) * height * 1.5,
-        z3d: (Math.random() - 0.5) * 400,
         theta: 0,
         phi: 0,
-        color: "rgba(148, 163, 184, 0.25)",
+        starX: (Math.random() - 0.5) * width * 1.5,
+        starY: (Math.random() - 0.5) * height * 1.5,
+        starZ: (Math.random() - 0.5) * 400,
+        color: "rgba(148, 163, 184, 0.2)",
         sizeOffset: Math.random() * Math.PI * 2,
       });
     }
@@ -129,21 +120,23 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       time += 0.015;
       ctx.clearRect(0, 0, width, height);
 
-      // Smooth mouse tracking interpolation
       const mouse = mouseRef.current;
       mouse.x += (mouse.targetX - mouse.x) * 0.15;
       mouse.y += (mouse.targetY - mouse.y) * 0.15;
 
-      // Base rotations (faster velocity)
-      angleX += 0.007;
-      angleY += 0.009;
+      angleX += 0.005;
+      angleY += 0.006;
 
-      // Slower inner rotation factor
       const innerAngleX = -angleX * 0.7;
       const innerAngleY = angleY * 1.2;
 
-      // Draw background grid pattern for high-tech HUD look
-      ctx.strokeStyle = "rgba(15, 23, 42, 0.015)";
+      // Gentle breathing idle animations
+      const breathingFactor = 1 + 0.04 * Math.sin(time * 0.8);
+      const currentR_torus = R_torus * breathingFactor;
+      const currentR_sphere = R_sphere * (1 + 0.02 * Math.cos(time * 0.6));
+
+      // Draw grid
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.012)";
       ctx.lineWidth = 1;
       const gridSize = 60;
       for (let x = 0; x < width; x += gridSize) {
@@ -159,31 +152,40 @@ export default function Hero({ persona, setPersona }: HeroProps) {
         ctx.stroke();
       }
 
-      points.forEach((p) => {
-        let rx = p.x3d;
-        let ry = p.y3d;
-        let rz = p.z3d;
+      // Store projected coordinates for drawing paths
+      const screenCoords: { x: number; y: number; scale: number }[] = [];
 
-        // Apply distinct rotation based on geometry category
+      points.forEach((p, idx) => {
+        let rx = 0;
+        let ry = 0;
+        let rz = 0;
+
         if (p.type === "torus") {
-          // X rotation
-          const y1 = ry * Math.cos(angleX) - rz * Math.sin(angleX);
-          const z1 = ry * Math.sin(angleX) + rz * Math.cos(angleX);
-          // Y rotation
-          rx = rx * Math.cos(angleY) - z1 * Math.sin(angleY);
-          rz = rx * Math.sin(angleY) + z1 * Math.cos(angleY);
+          const x3d = (currentR_torus + r_torus * Math.cos(p.theta)) * Math.cos(p.phi);
+          const y3d = (currentR_torus + r_torus * Math.cos(p.theta)) * Math.sin(p.phi);
+          const z3d = r_torus * Math.sin(p.theta);
+
+          const y1 = y3d * Math.cos(angleX) - z3d * Math.sin(angleX);
+          const z1 = y3d * Math.sin(angleX) + z3d * Math.cos(angleX);
+          rx = x3d * Math.cos(angleY) - z1 * Math.sin(angleY);
+          rz = x3d * Math.sin(angleY) + z1 * Math.cos(angleY);
           ry = y1;
         } else if (p.type === "sphere") {
-          // X rotation
-          const y1 = ry * Math.cos(innerAngleX) - rz * Math.sin(innerAngleX);
-          const z1 = ry * Math.sin(innerAngleX) + rz * Math.cos(innerAngleX);
-          // Y rotation
-          rx = rx * Math.cos(innerAngleY) - z1 * Math.sin(innerAngleY);
-          rz = rx * Math.sin(innerAngleY) + z1 * Math.cos(innerAngleY);
+          const x3d = currentR_sphere * Math.sin(p.phi) * Math.cos(p.theta);
+          const y3d = currentR_sphere * Math.sin(p.phi) * Math.sin(p.theta);
+          const z3d = currentR_sphere * Math.cos(p.phi);
+
+          const y1 = y3d * Math.cos(innerAngleX) - z3d * Math.sin(innerAngleX);
+          const z1 = y3d * Math.sin(innerAngleX) + z3d * Math.cos(innerAngleX);
+          rx = x3d * Math.cos(innerAngleY) - z1 * Math.sin(innerAngleY);
+          rz = x3d * Math.sin(innerAngleY) + z1 * Math.cos(innerAngleY);
           ry = y1;
+        } else {
+          rx = p.starX || 0;
+          ry = p.starY || 0;
+          rz = p.starZ || 0;
         }
 
-        // Perspective projections
         const perspective = 500;
         const scale = perspective / (perspective + rz);
         let projX = width / 2 + rx * scale;
@@ -201,24 +203,76 @@ export default function Hero({ persona, setPersona }: HeroProps) {
           }
         }
 
-        if (projX >= 0 && projX <= width && projY >= 0 && projY <= height) {
-          // Pulsing sizing logic
-          const pulse = 1.0 + 0.4 * Math.sin(time + p.sizeOffset);
-          const baseSize = p.type === "torus" ? 1.6 : p.type === "sphere" ? 1.3 : 0.8;
-          const size = baseSize * scale * pulse;
+        screenCoords[idx] = { x: projX, y: projY, scale };
+      });
 
-          ctx.beginPath();
-          ctx.arc(projX, projY, size, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.fill();
+      // Draw Connections (Neural Pathways)
+      const connectionDistance = 45;
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < points.length; i += 4) {
+        const p1 = points[i];
+        if (p1.type === "star") continue;
+        const screenP1 = screenCoords[i];
+        if (!screenP1) continue;
 
-          // Connect stars with fine constellation lines if they are close
-          if (p.type === "star" && Math.random() < 0.0003) {
+        for (let j = i + 1; j < i + 15; j++) {
+          if (j >= points.length) break;
+          const p2 = points[j];
+          if (p2.type !== p1.type) continue;
+          const screenP2 = screenCoords[j];
+          if (!screenP2) continue;
+
+          const dx = screenP1.x - screenP2.x;
+          const dy = screenP1.y - screenP2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < connectionDistance) {
+            const alpha = (1 - dist / connectionDistance) * 0.15;
+            ctx.strokeStyle = p1.type === "torus" 
+              ? `rgba(99, 102, 241, ${alpha})` // Indigo
+              : `rgba(249, 115, 22, ${alpha})`; // Orange
             ctx.beginPath();
-            ctx.arc(projX, projY, size * 2, 0, Math.PI * 2);
-            ctx.strokeStyle = "rgba(59, 130, 246, 0.08)";
+            ctx.moveTo(screenP1.x, screenP1.y);
+            ctx.lineTo(screenP2.x, screenP2.y);
             ctx.stroke();
           }
+        }
+      }
+
+      // Draw Traveling Data Pulses
+      ctx.fillStyle = "rgba(249, 115, 22, 0.8)";
+      for (let i = 0; i < points.length; i += 28) {
+        const p = points[i];
+        const screenP = screenCoords[i];
+        if (!screenP) continue;
+        
+        const pulseOffset = (time * 2 + p.sizeOffset) % 1;
+        const nextIdx = (i + 5) % points.length;
+        const screenNext = screenCoords[nextIdx];
+        if (!screenNext) continue;
+
+        const pulseX = screenP.x + (screenNext.x - screenP.x) * pulseOffset;
+        const pulseY = screenP.y + (screenNext.y - screenP.y) * pulseOffset;
+
+        ctx.beginPath();
+        ctx.arc(pulseX, pulseY, 2 * screenP.scale, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw Nodes
+      points.forEach((p, idx) => {
+        const screenP = screenCoords[idx];
+        if (!screenP) return;
+
+        if (screenP.x >= 0 && screenP.x <= width && screenP.y >= 0 && screenP.y <= height) {
+          const pulse = 1.0 + 0.4 * Math.sin(time + p.sizeOffset);
+          const baseSize = p.type === "torus" ? 1.6 : p.type === "sphere" ? 1.3 : 0.8;
+          const size = baseSize * screenP.scale * pulse;
+
+          ctx.beginPath();
+          ctx.arc(screenP.x, screenP.y, size, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
         }
       });
 
