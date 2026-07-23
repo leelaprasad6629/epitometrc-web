@@ -53,13 +53,18 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       {/* Left side banner (hidden on small screens) */}
-      <div className="hidden lg:flex w-1/2 bg-[#0b172a] text-white flex-col justify-between p-12 relative overflow-hidden">
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#060b13] via-[#09111e] to-[#141235] text-white flex-col justify-between p-12 relative overflow-hidden">
+        {/* Glow ambient blobs */}
+        <div className="absolute top-1/4 -left-10 w-72 h-72 rounded-full bg-blue-500/10 blur-[100px] pointer-events-none z-0"></div>
+        <div className="absolute bottom-1/4 -right-10 w-72 h-72 rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none z-0"></div>
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-purple-500/5 blur-[120px] pointer-events-none z-0"></div>
+
         {/* Decorative Grid Lines */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30"></div>
         <DnaCanvas />
 
         <div className="relative z-10 flex items-center space-x-2">
-          <span className="rounded-lg bg-slate-900 p-1.5 border border-slate-800">
+          <span className="rounded-lg bg-slate-900/60 p-1.5 border border-slate-800/40 backdrop-blur-md">
             <ShieldCheck className="h-6 w-6 text-orange-500" />
           </span>
           <span className="font-display text-xl font-bold tracking-tight">
@@ -68,11 +73,11 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 my-auto max-w-lg space-y-6">
-          <h1 className="font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+          <h1 className="font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl text-slate-100">
             Precision in Strategy,<br />
-            <span className="text-orange-500">Excellence in Execution.</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-400">Excellence in Execution.</span>
           </h1>
-          <p className="text-slate-300 text-base leading-relaxed">
+          <p className="text-slate-300/90 text-sm leading-relaxed font-medium">
             Join the network of elite IT professionals and corporate leaders shaping the future of global enterprise solutions. Connect with experts, streamline operations, and master production-grade skills.
           </p>
         </div>
