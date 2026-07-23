@@ -14,13 +14,13 @@ export default function DnaCanvas() {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let width = (canvas.width = canvas.offsetWidth);
-    let height = (canvas.height = canvas.offsetHeight);
+    let width = 500;
+    let height = 700;
 
     const handleResize = () => {
       if (!canvas) return;
-      width = canvas.width = canvas.offsetWidth;
-      height = canvas.height = canvas.offsetHeight;
+      width = canvas.width = canvas.offsetWidth || 500;
+      height = canvas.height = canvas.offsetHeight || 700;
     };
     window.addEventListener("resize", handleResize);
 
@@ -60,7 +60,7 @@ export default function DnaCanvas() {
         const x = cx + r * Math.sin(phi) * Math.cos(theta);
         const y = cy + r * Math.sin(phi) * Math.sin(theta);
         const z = cz + r * Math.cos(phi);
-        points.push({ x3d: x, y3d: y, z3d: z, baseX: x, baseY: y, baseZ: z, color, size: 1.3, sizeOffset: Math.random() * Math.PI * 2, type });
+        points.push({ x3d: x, y3d: y, z3d: z, baseX: x, baseY: y, baseZ: z, color, size: 1.5, sizeOffset: Math.random() * Math.PI * 2, type });
       }
     };
 
@@ -73,13 +73,13 @@ export default function DnaCanvas() {
         const cz = z1 + (z2 - z1) * t;
         const px = cx + r * Math.cos(angle);
         const pz = cz + r * Math.sin(angle);
-        points.push({ x3d: px, y3d: cy, z3d: pz, baseX: px, baseY: cy, baseZ: pz, color, size: 1.1, sizeOffset: Math.random() * Math.PI * 2, type: "limb" });
+        points.push({ x3d: px, y3d: cy, z3d: pz, baseX: px, baseY: cy, baseZ: pz, color, size: 1.2, sizeOffset: Math.random() * Math.PI * 2, type: "limb" });
       }
     };
 
     // Generate Waving Humanoid skeletal mesh
     // 1. Head
-    addSphere(0, 90, 0, 24, 180, "rgba(59, 130, 246, 0.48)", "head"); // Blue Head
+    addSphere(0, 95, 0, 24, 180, "rgba(59, 130, 246, 0.65)", "head"); // Electric Blue
 
     // 2. Torso (Ellipsoid)
     for (let i = 0; i < 350; i++) {
@@ -88,41 +88,59 @@ export default function DnaCanvas() {
       const x = 28 * Math.sin(v) * Math.cos(u);
       const y = 15 + 40 * Math.sin(v) * Math.sin(u);
       const z = 18 * Math.cos(v);
-      let color = "rgba(99, 102, 241, 0.48)"; // Indigo Torso
-      if (i % 3 === 0) color = "rgba(139, 92, 246, 0.48)"; // Purple
-      points.push({ x3d: x, y3d: y, z3d: z, baseX: x, baseY: y, baseZ: z, color, size: 1.3, sizeOffset: Math.random() * Math.PI * 2, type: "torus" as any });
+      let color = "rgba(99, 102, 241, 0.65)"; // Indigo Torso
+      if (i % 3 === 0) color = "rgba(139, 92, 246, 0.65)"; // Purple
+      points.push({ x3d: x, y3d: y, z3d: z, baseX: x, baseY: y, baseZ: z, color, size: 1.4, sizeOffset: Math.random() * Math.PI * 2, type: "torus" as any });
     }
 
     // 3. Waving Right Arm (Shoulder -> Elbow -> Waving Hand)
-    addCylinder(28, 45, 0, 48, 65, 10, 5, 60, "rgba(99, 102, 241, 0.48)");
-    addCylinder(48, 65, 10, 55, 95, 20, 4, 60, "rgba(139, 92, 246, 0.48)");
-    addSphere(55, 95, 20, 10, 40, "rgba(249, 115, 22, 0.6)", "hand"); // Orange Waving Hand
+    addCylinder(28, 45, 0, 48, 65, 10, 5, 60, "rgba(99, 102, 241, 0.65)");
+    addCylinder(48, 65, 10, 55, 95, 20, 4, 60, "rgba(139, 92, 246, 0.65)");
+    addSphere(55, 95, 20, 10, 45, "rgba(249, 115, 22, 0.8)", "hand"); // Orange Waving Hand
 
     // 4. Left Arm (Downwards)
-    addCylinder(-28, 45, 0, -42, 15, -5, 5, 60, "rgba(59, 130, 246, 0.48)");
-    addCylinder(-42, 15, -5, -45, -15, -10, 4, 60, "rgba(59, 130, 246, 0.48)");
+    addCylinder(-28, 45, 0, -42, 15, -5, 5, 60, "rgba(59, 130, 246, 0.65)");
+    addCylinder(-42, 15, -5, -45, -15, -10, 4, 60, "rgba(59, 130, 246, 0.65)");
 
     // 5. Left Leg
-    addCylinder(-16, -30, 0, -18, -75, 5, 5.5, 60, "rgba(59, 130, 246, 0.42)");
-    addCylinder(-18, -75, 5, -20, -120, 15, 4.5, 60, "rgba(99, 102, 241, 0.42)");
+    addCylinder(-16, -30, 0, -18, -75, 5, 5.5, 60, "rgba(59, 130, 246, 0.55)");
+    addCylinder(-18, -75, 5, -20, -120, 15, 4.5, 60, "rgba(99, 102, 241, 0.55)");
 
     // 6. Right Leg
-    addCylinder(16, -30, 0, 18, -75, 5, 5.5, 60, "rgba(59, 130, 246, 0.42)");
-    addCylinder(18, -75, 5, 20, -120, 15, 4.5, 60, "rgba(99, 102, 241, 0.42)");
+    addCylinder(16, -30, 0, 18, -75, 5, 5.5, 60, "rgba(59, 130, 246, 0.55)");
+    addCylinder(18, -75, 5, 20, -120, 15, 4.5, 60, "rgba(99, 102, 241, 0.55)");
 
-    // 7. Background space stars
+    // 7. Background space stars (using relative positions)
     for (let i = 0; i < 150; i++) {
-      const sx = (Math.random() - 0.5) * width;
-      const sy = (Math.random() - 0.5) * height;
-      const sz = (Math.random() - 0.5) * 300;
-      points.push({ x3d: sx, y3d: sy, z3d: sz, baseX: sx, baseY: sy, baseZ: sz, color: "rgba(148, 163, 184, 0.15)", size: 0.8, sizeOffset: Math.random() * Math.PI * 2, type: "star" });
+      points.push({
+        x3d: 0,
+        y3d: 0,
+        z3d: 0,
+        baseX: Math.random() - 0.5,
+        baseY: Math.random() - 0.5,
+        baseZ: (Math.random() - 0.5) * 300,
+        color: "rgba(249, 115, 22, 0.15)", // subtle orange stars
+        size: 1.0,
+        sizeOffset: Math.random() * Math.PI * 2,
+        type: "star"
+      });
     }
 
     let angleX = 0;
-    let angleY = 0.4; // Slightly angled view
+    let angleY = 0.4;
     let time = 0;
 
     const render = () => {
+      // Dynamic resolution sync
+      const currentWidth = canvas.clientWidth || canvas.offsetWidth || 500;
+      const currentHeight = canvas.clientHeight || canvas.offsetHeight || 700;
+      if (canvas.width !== currentWidth || canvas.height !== currentHeight) {
+        canvas.width = currentWidth;
+        canvas.height = currentHeight;
+        width = currentWidth;
+        height = currentHeight;
+      }
+
       time += 0.015;
       ctx.clearRect(0, 0, width, height);
 
@@ -130,10 +148,8 @@ export default function DnaCanvas() {
       mouse.x += (mouse.targetX - mouse.x) * 0.15;
       mouse.y += (mouse.targetY - mouse.y) * 0.15;
 
-      // Slow idle rotations
       angleY += 0.003; 
 
-      // Breathing factors
       const breath = Math.sin(time * 0.8) * 1.5;
       const sway = Math.sin(time * 0.5) * 3;
 
@@ -144,7 +160,10 @@ export default function DnaCanvas() {
         let ry = p.baseY;
         let rz = p.baseZ;
 
-        if (p.type !== "star") {
+        if (p.type === "star") {
+          rx = p.baseX * width;
+          ry = p.baseY * height;
+        } else {
           // Breathing scale
           ry += (p.baseY > 0 ? breath : -breath) * 0.4;
           // Upper body sway
@@ -175,7 +194,7 @@ export default function DnaCanvas() {
         screenCoords[idx] = { x: projX, y: projY, scale };
       });
 
-      // Draw faint structural lines (constellation mesh)
+      // Draw structural paths
       ctx.lineWidth = 0.5;
       for (let i = 0; i < points.length; i += 3) {
         const p1 = points[i];
@@ -195,10 +214,10 @@ export default function DnaCanvas() {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < 28) {
-            const alpha = (1 - dist / 28) * 0.12;
+            const alpha = (1 - dist / 28) * 0.18;
             ctx.strokeStyle = p1.type === "hand" 
-              ? `rgba(249, 115, 22, ${alpha})` // Waving hand glows orange
-              : `rgba(99, 102, 241, ${alpha})`; // Body glows Indigo
+              ? `rgba(249, 115, 22, ${alpha})` // Orange waving hand glow
+              : `rgba(99, 102, 241, ${alpha})`; // Indigo body glow
             ctx.beginPath();
             ctx.moveTo(screenP1.x, screenP1.y);
             ctx.lineTo(screenP2.x, screenP2.y);
@@ -229,9 +248,9 @@ export default function DnaCanvas() {
     render();
 
     return () => {
-      window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
+      window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
@@ -239,7 +258,7 @@ export default function DnaCanvas() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 h-full w-full opacity-60 pointer-events-none select-none z-0"
+      className="absolute inset-0 h-full w-full opacity-80 pointer-events-none select-none z-0"
     />
   );
 }
