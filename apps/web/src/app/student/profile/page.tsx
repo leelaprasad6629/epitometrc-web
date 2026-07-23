@@ -46,6 +46,20 @@ export default function StudentProfilePage() {
     confidenceScores
   } = useResumeStore();
 
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    bio: false,
+    links: false,
+    education: false,
+    experience: false,
+    projects: false,
+    skills: false,
+    academic: false,
+  });
+
+  const toggleSection = (section: string) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
   useEffect(() => {
     loadProfileFromServer();
   }, [loadProfileFromServer]);
@@ -587,30 +601,52 @@ export default function StudentProfilePage() {
         {/* Left main column (2 cols span) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Bio section */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm text-left space-y-3.5">
-            <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <FileText className="h-4 w-4 text-cyan-600" /> Career Profile Summary
-            </h3>
-            {isEditing ? (
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Write a summary about your skills, expertise, and aspirations..."
-                className="w-full rounded-2xl border border-slate-200 p-3.5 text-xs text-slate-655 font-sans leading-relaxed focus:border-slate-800 outline-none h-24 resize-none bg-white transition-all"
-              />
-            ) : (
-              <p className="text-slate-655 font-sans leading-relaxed text-xs italic">
-                "{bio || "Professional summary biography. Edit profile to write yours."}"
-              </p>
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-3.5">
+            <div 
+              onClick={() => toggleSection("bio")}
+              className="flex justify-between items-center cursor-pointer select-none"
+            >
+              <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <FileText className="h-4 w-4 text-cyan-600" /> Career Profile Summary
+              </h3>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                {collapsedSections.bio ? "[ Show ]" : "[ Hide ]"}
+              </span>
+            </div>
+            {!collapsedSections.bio && (
+              <>
+                {isEditing ? (
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Write a summary about your skills, expertise, and aspirations..."
+                    className="w-full rounded-2xl border border-slate-200 p-3.5 text-xs text-slate-655 font-sans leading-relaxed focus:border-slate-800 outline-none h-24 resize-none bg-white transition-all"
+                  />
+                ) : (
+                  <p className="text-slate-655 font-sans leading-relaxed text-xs italic">
+                    "{bio || "Professional summary biography. Edit profile to write yours."}"
+                  </p>
+                )}
+              </>
             )}
           </div>
 
           {/* Social Links Card */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm text-left space-y-4">
-            <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Link2 className="h-4 w-4 text-cyan-600" /> Social & Professional Networks
-            </h3>
-            {isEditing ? (
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-4">
+            <div 
+              onClick={() => toggleSection("links")}
+              className="flex justify-between items-center cursor-pointer select-none"
+            >
+              <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Link2 className="h-4 w-4 text-cyan-600" /> Social & Professional Networks
+              </h3>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                {collapsedSections.links ? "[ Show ]" : "[ Hide ]"}
+              </span>
+            </div>
+            {!collapsedSections.links && (
+              <>
+                {isEditing ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><FaLinkedin /> LinkedIn</span>
@@ -684,15 +720,28 @@ export default function StudentProfilePage() {
                 )}
               </div>
             )}
+              </>
+            )}
           </div>
 
           {/* Connected Education & Work Timelines Card */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm text-left space-y-6">
-            <div>
-              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <BookOpen className="h-4 w-4 text-cyan-600" /> Education History
-                </h3>
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-6">
+            <div 
+              onClick={() => toggleSection("education")}
+              className="flex justify-between items-center cursor-pointer select-none"
+            >
+              <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <BookOpen className="h-4 w-4 text-cyan-600" /> Education & Work Timelines
+              </h3>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                {collapsedSections.education ? "[ Show ]" : "[ Hide ]"}
+              </span>
+            </div>
+            {!collapsedSections.education && (
+              <>
+                <div>
+                  <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h4 className="font-bold text-slate-500 text-[9.5px] uppercase">Education History</h4>
                 {isEditing && (
                   <button onClick={addEdu} className="text-slate-800 hover:text-slate-900 font-bold flex items-center gap-0.5 text-[10px] bg-slate-50 border border-slate-150 px-2 py-1 rounded-xl transition-colors">
                     <Plus className="h-3.5 w-3.5" /> Add
@@ -795,14 +844,27 @@ export default function StudentProfilePage() {
                 )}
               </div>
             </div>
+              </>
+            )}
           </div>
 
           {/* Projects Portfolio Section Card */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm text-left space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-4">
+            <div 
+              onClick={() => toggleSection("projects")}
+              className="flex justify-between items-center cursor-pointer select-none"
+            >
               <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Target className="h-4 w-4 text-cyan-600" /> Projects Portfolio
               </h3>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                {collapsedSections.projects ? "[ Show ]" : "[ Hide ]"}
+              </span>
+            </div>
+            {!collapsedSections.projects && (
+              <>
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <span className="font-bold text-slate-500 text-[9.5px] uppercase">My Projects</span>
               {isEditing && (
                 <button onClick={addProj} className="text-slate-800 hover:text-slate-900 font-bold flex items-center gap-0.5 text-[10px] bg-slate-50 border border-slate-150 px-2 py-1 rounded-xl transition-colors">
                   <Plus className="h-3.5 w-3.5" /> Add Project
@@ -888,13 +950,25 @@ export default function StudentProfilePage() {
                 <p className="text-slate-400 italic text-[10px] col-span-2 pl-1">No projects configured.</p>
               )}
             </div>
+              </>
+            )}
           </div>
 
           {/* Categorized Skills Card */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm text-left space-y-4">
-            <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Compass className="h-4 w-4 text-cyan-600" /> Categorized Skills Inventory
-            </h3>
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-4">
+            <div 
+              onClick={() => toggleSection("skills")}
+              className="flex justify-between items-center cursor-pointer select-none"
+            >
+              <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Compass className="h-4 w-4 text-cyan-600" /> Categorized Skills Inventory
+              </h3>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                {collapsedSections.skills ? "[ Show ]" : "[ Hide ]"}
+              </span>
+            </div>
+            {!collapsedSections.skills && (
+              <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { label: "Programming Languages", key: "programmingLanguages", color: "bg-blue-50 border-blue-100 text-blue-700" },
@@ -923,6 +997,8 @@ export default function StudentProfilePage() {
                 );
               })}
             </div>
+              </>
+            )}
           </div>
 
           {/* AI Resume Match Widget wrapper */}
