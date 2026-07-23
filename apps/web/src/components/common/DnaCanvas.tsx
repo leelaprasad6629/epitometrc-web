@@ -38,9 +38,10 @@ export default function DnaCanvas() {
     window.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("mouseleave", handleMouseLeave);
 
-    // Create Grid nodes
-    const cols = 20;
-    const rows = 20;
+    // Create Grid nodes adaptively based on screen width for mobile performance
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const cols = isMobile ? 8 : 20;
+    const rows = isMobile ? 8 : 20;
     const points: {
       gridX: number;
       gridY: number;
@@ -72,7 +73,8 @@ export default function DnaCanvas() {
       speed: number;
       color: string;
     }[] = [];
-    for (let i = 0; i < 40; i++) {
+    const floatersCount = isMobile ? 10 : 40;
+    for (let i = 0; i < floatersCount; i++) {
       floaters.push({
         x3d: (Math.random() - 0.5) * 350,
         y3d: (Math.random() - 0.5) * 350,
