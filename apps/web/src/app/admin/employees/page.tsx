@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Briefcase, Search, Plus, Trash2 } from "lucide-react";
+import { Briefcase, Search, Plus, Trash2, Upload } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
+import BulkImportModal from "@/components/common/BulkImportModal";
 
 export default function AdminEmployeesPage() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const loadEmployees = (query = "") => {
     fetch(`/api/admin/users?role=Employee&search=${encodeURIComponent(query)}`)
@@ -69,9 +71,19 @@ export default function AdminEmployeesPage() {
             Oversee staff profiles, assign departments, and track active deliverables.
           </p>
         </div>
-        <Button variant="primary" size="sm" className="h-9 px-4 rounded-xl font-bold shrink-0 self-start sm:self-auto">
-          <Plus className="mr-1 h-4 w-4" /> Add Employee
-        </Button>
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+          <Button
+            onClick={() => setShowImportModal(true)}
+            variant="outline"
+            size="sm"
+            className="h-9 px-3 rounded-xl font-bold flex items-center gap-1.5"
+          >
+            <Upload className="h-4 w-4 text-slate-500" /> Import CSV
+          </Button>
+          <Button variant="primary" size="sm" className="h-9 px-4 rounded-xl font-bold">
+            <Plus className="mr-1 h-4 w-4" /> Add Employee
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 w-full max-w-md bg-white p-1 rounded-xl border border-slate-200">
@@ -136,6 +148,13 @@ export default function AdminEmployeesPage() {
           </table>
         </div>
       </div>
+
+      <BulkImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        entityRole="Employee"
+        onImportComplete={() => loadEmployees(search)}
+      />
     </motion.div>
   );
 }
