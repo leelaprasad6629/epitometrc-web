@@ -27,11 +27,14 @@ import Footer from "@/components/layout/Footer";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 import Container from "@/components/common/Container";
+import Link from "next/link";
+
+type SubjectType = "General Support" | "Business Consulting" | "Recruitment & Staffing" | "Training & Academics";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("General Support");
+  const [subject, setSubject] = useState<SubjectType>("General Support");
   const [message, setMessage] = useState("");
   const [fileName, setFileName] = useState("");
   const [sending, setSending] = useState(false);
@@ -67,7 +70,7 @@ export default function ContactPage() {
             {/* Header Section */}
             <div className="text-center space-y-4 max-w-2xl mx-auto">
               <span className="rounded-full bg-blue-50 border border-blue-100 px-3.5 py-1 text-[10px] font-bold text-blue-600 uppercase tracking-widest inline-flex items-center gap-1.5 shadow-sm">
-                <Sparkles className="h-3.5 w-3.5 text-blue-500 animate-pulse" /> Connect with Advisors
+                <Sparkles className="h-3.5 w-3.5 text-blue-500 animate-pulse" /> Contact & Consultation Hub
               </span>
               <h1 className="text-4xl sm:text-5xl font-display font-extrabold text-slate-900 tracking-tight leading-tight">
                 Let's Build Something <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-orange-500 bg-clip-text text-transparent">Extraordinary.</span>
@@ -122,7 +125,7 @@ export default function ContactPage() {
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <span className="px-2 py-0.5 rounded text-[8px] font-black bg-violet-50 text-violet-600 border border-violet-100 uppercase tracking-widest">Instant Resolution</span>
-                      <h4 className="font-display text-sm font-bold text-slate-900">Talk to AI Recruiter</h4>
+                      <h4 className="font-display text-sm font-bold text-slate-900">Talk to AI Advisor</h4>
                       <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
                         Need instant course advisory or training details? Our chatbot is ready.
                       </p>
@@ -132,6 +135,7 @@ export default function ContactPage() {
                     </div>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setShowAiModal(true)}
                     className="w-full h-10 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-indigo-600 hover:to-violet-600 text-white font-bold text-xs shadow-md shadow-indigo-500/10 flex items-center justify-center gap-1.5 transition-all duration-300"
                   >
@@ -141,7 +145,7 @@ export default function ContactPage() {
 
                 {/* Rich Information Panel */}
                 <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-md space-y-5 text-xs font-semibold text-slate-600">
-                  <h4 className="font-display text-sm font-bold text-slate-900 border-b border-slate-50 pb-2">Advisor Information</h4>
+                  <h4 className="font-display text-sm font-bold text-slate-900 border-b border-slate-50 pb-2">Office Information</h4>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <span className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 shrink-0">
@@ -184,22 +188,60 @@ export default function ContactPage() {
 
               </div>
 
-              {/* Right Column: Contact Form */}
-              <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-xl">
+              {/* Right Column: Contact Form / Success State */}
+              <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-xl min-h-[420px] flex flex-col justify-center">
                 {sent ? (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-center py-16 space-y-4 max-w-sm mx-auto font-sans"
+                    className="text-left space-y-6 font-sans text-xs"
                   >
-                    <div className="h-14 w-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto text-emerald-500 shadow-md">
-                      <Check className="h-6 w-6" />
+                    <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+                      <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shadow-md">
+                        <Check className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-display text-sm font-bold text-[#0b172a]">Request Received</h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Ref ID: EPT-2026-1048</p>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <h3 className="font-display text-base font-bold text-[#0b172a]">Message Sent Successfully</h3>
-                      <p className="text-slate-500 text-xs font-semibold">
-                        Our B2B coordinators will parse your details and match you with target advisors.
-                      </p>
+
+                    <div className="space-y-3">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Next Steps Pipeline</p>
+                      <div className="space-y-2.5 text-slate-600">
+                        <div className="flex items-start gap-2.5">
+                          <CheckCircle className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" />
+                          <span className="font-medium">AI system successfully categorized and routed your enquiry.</span>
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <CheckCircle className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" />
+                          <span className="font-medium">Expert advisor assigned to review project attachments.</span>
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <CheckCircle className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" />
+                          <span className="font-medium">Outbound email receipt confirmation sent.</span>
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <CheckCircle className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" />
+                          <span className="font-medium">Expected response speed: <strong>Within 24 hours</strong>.</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => alert("Request EPT-2026-1048 is in queue: Assigned to B2B Strategy Coordinator.")}
+                        className="flex-1 h-10 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold transition-all"
+                      >
+                        Track Request
+                      </button>
+                      <Link
+                        href="/"
+                        className="flex-1 h-10 rounded-xl bg-[#0b172a] hover:bg-orange-500 text-white font-bold transition-all flex items-center justify-center"
+                      >
+                        Return Home
+                      </Link>
                     </div>
                   </motion.div>
                 ) : (
@@ -245,13 +287,13 @@ export default function ContactPage() {
                       <div className="relative">
                         <select
                           value={subject}
-                          onChange={(e) => setSubject(e.target.value)}
+                          onChange={(e) => setSubject(e.target.value as SubjectType)}
                           className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-full appearance-none pr-8 font-semibold text-slate-600"
                         >
-                          <option>General Support</option>
-                          <option>Business Consulting</option>
-                          <option>Recruitment & Staffing</option>
-                          <option>Training & Academics</option>
+                          <option value="General Support">General Support</option>
+                          <option value="Business Consulting">Business Consulting</option>
+                          <option value="Recruitment & Staffing">Recruitment & Staffing</option>
+                          <option value="Training & Academics">Training & Academics</option>
                         </select>
                         <ChevronDown className="h-4 w-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
                       </div>
@@ -297,6 +339,57 @@ export default function ContactPage() {
                 )}
               </div>
 
+            </div>
+
+            {/* Customer Journey Timeline */}
+            <div className="space-y-6 bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-sm">
+              <div className="text-center space-y-1">
+                <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Enquiry Process</p>
+                <h3 className="font-display text-lg font-bold text-slate-900">Your Journey with EpitomeTRC</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-6 pt-4 text-center font-sans text-xs">
+                {[
+                  { title: "Submit Request", desc: "Fill RFP / consult form" },
+                  { title: "AI Classifies", desc: "Automated routing" },
+                  { title: "Team Assigned", desc: "Matched with coordinators" },
+                  { title: "Expert Review", desc: "Evaluate deliverables" },
+                  { title: "Meeting Booking", desc: "Configure bootcamps" },
+                  { title: "Project Begins", desc: "Launch development" }
+                ].map((step, idx) => (
+                  <div key={idx} className="space-y-2 relative">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 font-bold mx-auto border border-blue-100 relative z-10 shadow-sm">
+                      {idx + 1}
+                    </div>
+                    <div className="space-y-0.5">
+                      <p className="font-bold text-slate-800">{step.title}</p>
+                      <p className="text-slate-400 text-[10px] font-semibold leading-relaxed">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Testimonials */}
+            <div className="space-y-6">
+              <div className="text-center space-y-1">
+                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Partner Reviews</p>
+                <h3 className="font-display text-lg font-bold text-slate-900">Trusted globally by leaders</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans text-xs leading-relaxed">
+                {[
+                  { quote: "EpitomeTRC's B2B suite halved our developer onboarding time. The AI cohort planner is magic.", author: "Marcus Vance", role: "VP of Talent, TechCorp" },
+                  { quote: "The candidate matchmaking accuracy is unparalleled. A game-changer for engineering hiring.", author: "Lina Thorne", role: "Lead Recruiter, InnovateHQ" },
+                  { quote: "The Speech AI Mock Interview built my confidence. Landed my first Senior DevOps role in weeks!", author: "Sreya Reddy", role: "Full Stack Engineer Graduate" }
+                ].map((test, idx) => (
+                  <div key={idx} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover-scale-card space-y-3">
+                    <p className="text-slate-500 font-medium italic">"{test.quote}"</p>
+                    <div className="space-y-0.5">
+                      <p className="font-bold text-slate-800">{test.author}</p>
+                      <p className="text-slate-400 text-[10px] font-semibold">{test.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Quick Actions Grid */}
@@ -362,7 +455,7 @@ export default function ContactPage() {
                   <Sparkles className="h-4 w-4 text-violet-500 animate-pulse" />
                 </div>
                 <h3 className="font-display text-xs font-bold text-[#0b172a]">
-                  EpitomeTRC AI Recruiter
+                  EpitomeTRC AI Advisor
                 </h3>
               </div>
               <button
@@ -375,7 +468,7 @@ export default function ContactPage() {
 
             <div className="space-y-3 font-sans text-xs">
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 leading-relaxed text-slate-600 font-medium">
-                🤖 Hello! I am the automated recruitment chatbot assistant. Ask me questions about active tech bootcamps, resume optimizing standards, or custom client consulting.
+                🤖 Hello! I am the automated advisory chatbot assistant. Ask me questions about active tech bootcamps, resume matching rules, or custom client consulting details.
               </div>
               <div className="space-y-1.5">
                 <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Suggested Prompts</p>
