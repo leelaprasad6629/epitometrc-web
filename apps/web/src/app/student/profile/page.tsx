@@ -17,6 +17,7 @@ import {
   WorkshopEntry, HackathonEntry, LeadershipEntry, VolunteerEntry 
 } from "@/lib/ai/store/resumeStore";
 import AIResumeMatchWidget from "@/components/ai/AIResumeMatchWidget";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 const SKILLS_DICTIONARY = [
   "Frontend Development", "Frontend Architecture", "React", "React Native", "Redux", "TypeScript", "JavaScript",
@@ -601,7 +602,7 @@ export default function StudentProfilePage() {
         {/* Left main column (2 cols span) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Bio section */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-3.5">
+          <DashboardCard glowColor="blue" className="text-left">
             <div 
               onClick={() => toggleSection("bio")}
               className="flex justify-between items-center cursor-pointer select-none"
@@ -614,7 +615,7 @@ export default function StudentProfilePage() {
               </span>
             </div>
             {!collapsedSections.bio && (
-              <>
+              <div className="mt-4 pt-4 border-t border-slate-50">
                 {isEditing ? (
                   <textarea
                     value={bio}
@@ -627,12 +628,12 @@ export default function StudentProfilePage() {
                     "{bio || "Professional summary biography. Edit profile to write yours."}"
                   </p>
                 )}
-              </>
+              </div>
             )}
-          </div>
+          </DashboardCard>
 
           {/* Social Links Card */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-4">
+          <DashboardCard glowColor="indigo" className="text-left">
             <div 
               onClick={() => toggleSection("links")}
               className="flex justify-between items-center cursor-pointer select-none"
@@ -645,87 +646,88 @@ export default function StudentProfilePage() {
               </span>
             </div>
             {!collapsedSections.links && (
-              <>
+              <div className="mt-4 pt-4 border-t border-slate-50">
                 {isEditing ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><FaLinkedin /> LinkedIn</span>
-                  <Input type="text" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className="h-7 text-[10px]" placeholder="https://linkedin.com/..." />
-                  {errors.linkedin && <p className="text-[8px] text-red-500 font-semibold">{errors.linkedin}</p>}
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><FaGithub /> GitHub</span>
-                  <Input type="text" value={github} onChange={(e) => setGithub(e.target.value)} className="h-7 text-[10px]" placeholder="https://github.com/..." />
-                  {errors.github && <p className="text-[8px] text-red-500 font-semibold">{errors.github}</p>}
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><Globe className="h-3 w-3" /> Portfolio</span>
-                  <Input type="text" value={portfolioWebsite} onChange={(e) => setPortfolioWebsite(e.target.value)} className="h-7 text-[10px]" placeholder="https://..." />
-                  {errors.portfolioWebsite && <p className="text-[8px] text-red-500 font-semibold">{errors.portfolioWebsite}</p>}
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><Globe className="h-3 w-3" /> Personal Site</span>
-                  <Input type="text" value={personalWebsite} onChange={(e) => setPersonalWebsite(e.target.value)} className="h-7 text-[10px]" placeholder="https://..." />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><SiLeetcode /> LeetCode</span>
-                  <Input type="text" value={leetcode} onChange={(e) => setLeetcode(e.target.value)} className="h-7 text-[10px]" placeholder="https://leetcode.com/..." />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><FaHackerrank /> HackerRank</span>
-                  <Input type="text" value={hackerrank} onChange={(e) => setHackerrank(e.target.value)} className="h-7 text-[10px]" placeholder="https://hackerrank.com/..." />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><SiCodechef /> CodeChef</span>
-                  <Input type="text" value={codechef} onChange={(e) => setCodechef(e.target.value)} className="h-7 text-[10px]" placeholder="CodeChef URL" />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><SiCodeforces /> Codeforces</span>
-                  <Input type="text" value={codeforces} onChange={(e) => setCodeforces(e.target.value)} className="h-7 text-[10px]" placeholder="Codeforces URL" />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><Sparkles className="h-3 w-3" /> Kaggle</span>
-                  <Input type="text" value={kaggle} onChange={(e) => setKaggle(e.target.value)} className="h-7 text-[10px]" placeholder="Kaggle URL" />
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2.5">
-                {[
-                  { name: "LinkedIn", url: linkedin, icon: <FaLinkedin className="h-4 w-4" /> },
-                  { name: "GitHub", url: github, icon: <FaGithub className="h-4 w-4" /> },
-                  { name: "Portfolio", url: portfolioWebsite, icon: <Globe className="h-4 w-4 text-cyan-600" /> },
-                  { name: "Personal Website", url: personalWebsite, icon: <Globe className="h-4 w-4 text-slate-400" /> },
-                  { name: "LeetCode", url: leetcode, icon: <SiLeetcode className="h-4 w-4 text-orange-500" /> },
-                  { name: "HackerRank", url: hackerrank, icon: <FaHackerrank className="h-4 w-4 text-green-500" /> },
-                  { name: "CodeChef", url: codechef, icon: <SiCodechef className="h-4 w-4" /> },
-                  { name: "Codeforces", url: codeforces, icon: <SiCodeforces className="h-4 w-4 text-blue-500" /> },
-                  { name: "Kaggle", url: kaggle, icon: <Sparkles className="h-4 w-4 text-sky-500" /> }
-                ].map((item) => {
-                  if (!item.url) return null;
-                  return (
-                    <a
-                      key={item.name}
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-slate-100 hover:border-slate-200 transition-all font-semibold text-slate-800 text-[10.5px] shadow-xs"
-                    >
-                      {item.icon}
-                      <span>{item.name}</span>
-                    </a>
-                  );
-                })}
-                {![linkedin, github, portfolioWebsite, personalWebsite, leetcode, hackerrank, codechef, codeforces, kaggle].some(Boolean) && (
-                  <p className="text-slate-400 italic text-[10px]">No links configured. Edit details to configure links.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><FaLinkedin /> LinkedIn</span>
+                      <Input type="text" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className="h-7 text-[10px]" placeholder="https://linkedin.com/..." />
+                      {errors.linkedin && <p className="text-[8px] text-red-500 font-semibold">{errors.linkedin}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><FaGithub /> GitHub</span>
+                      <Input type="text" value={github} onChange={(e) => setGithub(e.target.value)} className="h-7 text-[10px]" placeholder="https://github.com/..." />
+                      {errors.github && <p className="text-[8px] text-red-500 font-semibold">{errors.github}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><Globe className="h-3 w-3" /> Portfolio</span>
+                      <Input type="text" value={portfolioWebsite} onChange={(e) => setPortfolioWebsite(e.target.value)} className="h-7 text-[10px]" placeholder="https://..." />
+                      {errors.portfolioWebsite && <p className="text-[8px] text-red-500 font-semibold">{errors.portfolioWebsite}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><Globe className="h-3 w-3" /> Personal Site</span>
+                      <Input type="text" value={personalWebsite} onChange={(e) => setPersonalWebsite(e.target.value)} className="h-7 text-[10px]" placeholder="https://..." />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><SiLeetcode /> LeetCode</span>
+                      <Input type="text" value={leetcode} onChange={(e) => setLeetcode(e.target.value)} className="h-7 text-[10px]" placeholder="https://leetcode.com/..." />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><FaHackerrank /> HackerRank</span>
+                      <Input type="text" value={hackerrank} onChange={(e) => setHackerrank(e.target.value)} className="h-7 text-[10px]" placeholder="https://hackerrank.com/..." />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><SiCodechef /> CodeChef</span>
+                      <Input type="text" value={codechef} onChange={(e) => setCodechef(e.target.value)} className="h-7 text-[10px]" placeholder="CodeChef URL" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><SiCodeforces /> Codeforces</span>
+                      <Input type="text" value={codeforces} onChange={(e) => setCodeforces(e.target.value)} className="h-7 text-[10px]" placeholder="Codeforces URL" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1"><Sparkles className="h-3 w-3" /> Kaggle</span>
+                      <Input type="text" value={kaggle} onChange={(e) => setKaggle(e.target.value)} className="h-7 text-[10px]" placeholder="Kaggle URL" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2.5">
+                    {[
+                      { name: "LinkedIn", url: linkedin, icon: <FaLinkedin className="h-4 w-4" /> },
+                      { name: "GitHub", url: github, icon: <FaGithub className="h-4 w-4" /> },
+                      { name: "Portfolio", url: portfolioWebsite, icon: <Globe className="h-4 w-4 text-cyan-600" /> },
+                      { name: "Personal Website", url: personalWebsite, icon: <Globe className="h-4 w-4 text-slate-400" /> },
+                      { name: "LeetCode", url: leetcode, icon: <SiLeetcode className="h-4 w-4 text-orange-500" /> },
+                      { name: "HackerRank", url: hackerrank, icon: <FaHackerrank className="h-4 w-4 text-green-500" /> },
+                      { name: "CodeChef", url: codechef, icon: <SiCodechef className="h-4 w-4" /> },
+                      { name: "Codeforces", url: codeforces, icon: <SiCodeforces className="h-4 w-4 text-blue-500" /> },
+                      { name: "Kaggle", url: kaggle, icon: <Sparkles className="h-4 w-4 text-sky-500" /> }
+                    ].map((item) => {
+                      if (!item.url) return null;
+                      return (
+                        <a
+                          key={item.name}
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-slate-100 hover:border-slate-200 transition-all font-semibold text-slate-800 text-[10.5px] shadow-xs"
+                        >
+                          {item.icon}
+                          <span>{item.name}</span>
+                        </a>
+                      );
+                    })}
+                    {![linkedin, github, portfolioWebsite, personalWebsite, leetcode, hackerrank, codechef, codeforces, kaggle].some(Boolean) && (
+                      <p className="text-slate-400 italic text-[10px]">No links configured. Edit details to configure links.</p>
+                    )}
+                  </div>
                 )}
               </div>
             )}
-              </>
-            )}
-          </div>
+          </DashboardCard>
 
           {/* Connected Education & Work Timelines Card */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-6">
+          {/* Connected Education & Work Timelines Card */}
+          <DashboardCard glowColor="purple" className="text-left">
             <div 
               onClick={() => toggleSection("education")}
               className="flex justify-between items-center cursor-pointer select-none"
@@ -738,7 +740,7 @@ export default function StudentProfilePage() {
               </span>
             </div>
             {!collapsedSections.education && (
-              <>
+              <div className="mt-4 pt-4 border-t border-slate-50">
                 <div>
                   <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                     <h4 className="font-bold text-slate-500 text-[9.5px] uppercase">Education History</h4>
@@ -844,12 +846,12 @@ export default function StudentProfilePage() {
                 )}
               </div>
             </div>
-              </>
+              </div>
             )}
-          </div>
+          </DashboardCard>
 
           {/* Projects Portfolio Section Card */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-4">
+          <DashboardCard glowColor="orange" className="text-left">
             <div 
               onClick={() => toggleSection("projects")}
               className="flex justify-between items-center cursor-pointer select-none"
@@ -862,7 +864,7 @@ export default function StudentProfilePage() {
               </span>
             </div>
             {!collapsedSections.projects && (
-              <>
+              <div className="mt-4 pt-4 border-t border-slate-50">
                 <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                   <span className="font-bold text-slate-500 text-[9.5px] uppercase">My Projects</span>
               {isEditing && (
@@ -950,12 +952,13 @@ export default function StudentProfilePage() {
                 <p className="text-slate-400 italic text-[10px] col-span-2 pl-1">No projects configured.</p>
               )}
             </div>
-              </>
+              </div>
             )}
-          </div>
+          </DashboardCard>
 
           {/* Categorized Skills Card */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-4">
+          {/* Categorized Skills Card */}
+          <DashboardCard glowColor="blue" className="text-left">
             <div 
               onClick={() => toggleSection("skills")}
               className="flex justify-between items-center cursor-pointer select-none"
@@ -968,7 +971,7 @@ export default function StudentProfilePage() {
               </span>
             </div>
             {!collapsedSections.skills && (
-              <>
+              <div className="mt-4 pt-4 border-t border-slate-50">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { label: "Programming Languages", key: "programmingLanguages", color: "bg-blue-50 border-blue-100 text-blue-700" },
@@ -997,9 +1000,9 @@ export default function StudentProfilePage() {
                 );
               })}
             </div>
-              </>
+              </div>
             )}
-          </div>
+          </DashboardCard>
 
           {/* AI Resume Match Widget wrapper */}
           <div className="w-full">
@@ -1010,7 +1013,8 @@ export default function StudentProfilePage() {
         {/* Right Sidebar (1 col span) */}
         <div className="space-y-6">
           {/* Circular Completeness Score Widget */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left flex items-center justify-between">
+          {/* Circular Completeness Score Widget */}
+          <DashboardCard glowColor="indigo" className="text-left flex items-center justify-between gap-4">
             <div className="space-y-1.5 flex-1">
               <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Flame className="h-4 w-4 text-cyan-600 animate-pulse" /> Profile Health Strength
@@ -1043,15 +1047,15 @@ export default function StudentProfilePage() {
               </svg>
               <span className="absolute text-[10px] font-black text-slate-950 font-mono">{overallCompleteness}%</span>
             </div>
-          </div>
+          </DashboardCard>
 
           {/* AI Career Insights Panel */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4 text-left bg-gradient-to-br from-white to-slate-50/50 relative overflow-hidden">
+          <DashboardCard glowColor="purple" className="text-left bg-gradient-to-br from-white to-slate-50/50 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-200/10 rounded-full blur-2xl pointer-events-none" />
             <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-cyan-600" /> AI Career insights
             </h3>
-            <div className="space-y-3 font-sans">
+            <div className="space-y-3 font-sans mt-4 pt-4 border-t border-slate-50">
               <p className="text-slate-655 italic leading-relaxed text-xs">
                 "{semanticSummary}"
               </p>
@@ -1064,39 +1068,40 @@ export default function StudentProfilePage() {
                 </span>
               </div>
             </div>
-          </div>
+          </DashboardCard>
 
           {/* Profile Suggestions list */}
           {missingSuggestions.length > 0 && (
-            <div className="rounded-2xl border border-cyan-100 bg-cyan-50/10 p-5 shadow-xs text-left space-y-3">
+            <DashboardCard glowColor="orange" className="text-left">
               <h3 className="font-display text-[10.5px] font-black text-cyan-800 uppercase tracking-wider flex items-center gap-1.5">
                 <Target className="h-4 w-4 text-cyan-600 animate-pulse" /> Profile Suggestions
               </h3>
-              <p className="text-slate-500 leading-relaxed text-[10.5px]">
+              <p className="text-slate-500 leading-relaxed text-[10.5px] mt-3 pt-3 border-t border-slate-50">
                 Configuring these fields will maximize your profile matching score:
               </p>
-              <ul className="space-y-1.5 text-cyan-850 text-[10px] font-semibold font-sans">
+              <ul className="space-y-1.5 text-cyan-850 text-[10px] font-semibold font-sans mt-2.5">
                 {missingSuggestions.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-1">
                     <span className="text-cyan-500 font-bold">•</span> {item}
                   </li>
                 ))}
               </ul>
-            </div>
+            </DashboardCard>
           )}
 
           {/* Sidebar: Certifications & Achievements list */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-4">
+          <DashboardCard glowColor="blue" className="text-left">
             <div className="flex justify-between items-center border-b border-slate-100 pb-2">
               <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Award className="h-4 w-4 text-cyan-600" /> Certifications & Achievements
               </h3>
               {isEditing && (
-                <button onClick={addCert} className="text-slate-850 hover:text-slate-900 font-bold flex items-center gap-0.5 text-[9.5px]">
+                <button onClick={addCert} className="text-slate-855 hover:text-slate-900 font-bold flex items-center gap-0.5 text-[9.5px]">
                   <Plus className="h-3 w-3" /> Add Cert
                 </button>
               )}
             </div>
+            <div className="mt-4 pt-4 border-t border-slate-50 space-y-4">
 
             <div className="space-y-3">
               {certificationsList.map((item, idx) => (
@@ -1158,14 +1163,15 @@ export default function StudentProfilePage() {
               </div>
             </div>
           </div>
+        </DashboardCard>
 
           {/* Sidebar: Verified Skills Tag addition input */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-4">
+          <DashboardCard glowColor="indigo" className="text-left">
             <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">
               Verified Skills Inventory
             </h3>
 
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1 mt-4">
               {verifiedSkillsList.length > 0 ? (
                 verifiedSkillsList.map((skill) => (
                   <span
@@ -1186,7 +1192,7 @@ export default function StudentProfilePage() {
               )}
             </div>
 
-            <div className="relative pt-2 border-t border-slate-100 space-y-1">
+            <div className="relative pt-2 border-t border-slate-100 space-y-1 mt-3">
               <Input
                 type="text"
                 placeholder="Search skills (e.g. React, Docker)"
@@ -1210,13 +1216,14 @@ export default function StudentProfilePage() {
                 </div>
               )}
             </div>
-          </div>
+          </DashboardCard>
 
           {/* Sidebar: Academic & Extra Activities Card */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left space-y-5">
+          <DashboardCard glowColor="purple" className="text-left">
             <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">
               Academic & Extra Activities
             </h3>
+            <div className="mt-4 pt-4 border-t border-slate-50 space-y-5">
 
             {/* Publications */}
             <div className="space-y-2">
@@ -1374,8 +1381,9 @@ export default function StudentProfilePage() {
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
+              </div>
+              </div>
+            </DashboardCard>
         </div>
       </div>
     </motion.div>
