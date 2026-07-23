@@ -292,11 +292,25 @@ export default function Hero({ persona, setPersona }: HeroProps) {
           transition={{ duration: 0.4 }}
           className="space-y-4"
         >
-          <span className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] block">
+          <span className="rounded-full bg-orange-50 border border-orange-100 px-3.5 py-0.5 text-[9px] font-black text-orange-500 uppercase tracking-widest inline-block shadow-sm">
             {persona === "student" ? "EpitomeTRC Career Portal" : "EpitomeTRC B2B Suite"}
           </span>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-extralight text-slate-900 tracking-[0.2em] leading-tight select-none uppercase">
-            {persona === "student" ? "ENGINEER YOUR FUTURE" : "ALIGN PEOPLE STRATEGY"}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight leading-tight select-none">
+            {persona === "student" ? (
+              <>
+                Engineer Your Future, <br />
+                <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-orange-500 bg-clip-text text-transparent">
+                  Build Your Dream Career.
+                </span>
+              </>
+            ) : (
+              <>
+                Align People Strategy, <br />
+                <span className="bg-gradient-to-r from-orange-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent">
+                  Drive Enterprise Velocity.
+                </span>
+              </>
+            )}
           </h1>
         </motion.div>
 
@@ -305,11 +319,11 @@ export default function Hero({ persona, setPersona }: HeroProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          className="text-slate-500 text-[10.5px] sm:text-xs font-semibold uppercase tracking-[0.18em] max-w-2xl leading-loose"
+          className="text-slate-500 text-xs sm:text-sm font-medium max-w-2xl leading-relaxed"
         >
           {persona === "student"
-            ? "Optimize your resume with AI, practice mock interview scenarios, and match with elite tech employers."
-            : "Automate technical recruitment, qualify corporate leads, and configure customized training bootcamps."}
+            ? "Refine and optimize your resume with AI score insights, conduct verbal speech mock interviews, and match directly with verified top-tier tech vacancy channels."
+            : "Qualify high-value project leads automatically, generate client-facing proposals with audit logs, and configure workforce training bootcamps."}
         </motion.p>
 
         <motion.div
@@ -321,7 +335,7 @@ export default function Hero({ persona, setPersona }: HeroProps) {
         >
           <Link
             href={persona === "student" ? "/student/resume-builder" : "/admin/dashboard"}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#0b172a] hover:bg-orange-500 transition-colors uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-md"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-orange-500 hover:to-orange-600 hover:shadow-lg hover:shadow-orange-500/20 transition-all uppercase tracking-wider px-5 py-2.5 rounded-xl"
           >
             {persona === "student" ? "Build AI Resume" : "Access Recruiter Workspace"} <ArrowUpRight className="h-4 w-4" />
           </Link>
