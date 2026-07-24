@@ -54,7 +54,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">HQ Office</h4>
-                  <p className="text-slate-500 text-sm mt-1">100 Ave of the Americas, New York, NY 10013</p>
+                  <p className="text-slate-500 text-sm mt-1">208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, Madhya Pradesh, India</p>
                 </div>
               </div>
 
@@ -64,8 +64,8 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">Direct Email</h4>
-                  <a href="mailto:info@epitometec.com" className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block">
-                    info@epitometec.com
+                  <a href="mailto:info@epitometrc.com" className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block">
+                    info@epitometrc.com
                   </a>
                 </div>
               </div>
@@ -76,8 +76,8 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">Direct Phone</h4>
-                  <a href="tel:+12025550143" className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block">
-                    +1 (202) 555-0143
+                  <a href="tel:+916265966705" className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block">
+                    +91-626-596-6705
                   </a>
                 </div>
               </div>

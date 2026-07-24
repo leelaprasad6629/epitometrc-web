@@ -11,11 +11,11 @@ export default function EmployeeProfilePage() {
   const profile = {
     name: "Marcus Thorne",
     role: "Talent Director & Strategy Coach",
-    email: "m.thorne@epitome.com",
-    phone: "+44-7911-123456",
+    email: "m.thorne@epitometrc.com",
+    phone: "+91-626-596-6705",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=faces",
     specialization: "IT Recruitment, Agile Systems & Business Transformation",
-    office: "London HQ",
+    office: "Indore HQ",
     availability: "95%",
     verifiedStatus: "Gold Certified Lead",
   };

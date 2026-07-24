@@ -20,7 +20,7 @@ export default function CareersPage() {
       id: 1,
       category: "Engineering",
       title: "Senior Full Stack Developer",
-      loc: "London, UK",
+      loc: "Indore, India",
       type: "Full Time",
       desc: "Lead the development of high-performance enterprise applications using React, Node.js, and AWS.",
     },
@@ -28,7 +28,7 @@ export default function CareersPage() {
       id: 2,
       category: "Consulting",
       title: "Strategy Consultant",
-      loc: "New York, USA",
+      loc: "Indore, India",
       type: "Full Time",
       desc: "Advise Fortune 500 executives on digital transformation and market entry strategies. Requires strong analytical skills.",
     },
@@ -36,7 +36,7 @@ export default function CareersPage() {
       id: 3,
       category: "Staffing",
       title: "Technical Recruiter",
-      loc: "London, UK",
+      loc: "Indore, India",
       type: "Full Time",
       desc: "Shape our engineering teams by identifying, attracting, and onboarding top talent for our clients in the technology sector.",
     },
@@ -100,8 +100,8 @@ export default function CareersPage() {
                 </select>
                 <select className="h-10 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-orange-500 flex-1 md:flex-none">
                   <option>Location</option>
-                  <option>London, UK</option>
-                  <option>New York, USA</option>
+                  <option>Indore, India</option>
+                  <option>Remote</option>
                 </select>
                 <select className="h-10 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-orange-500 flex-1 md:flex-none">
                   <option>Job Type</option>

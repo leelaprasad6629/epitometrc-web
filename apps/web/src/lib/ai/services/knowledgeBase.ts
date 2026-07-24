@@ -19,7 +19,7 @@ EPITOME TRC (EpitomeTEC) OFFICIAL KNOWLEDGE BASE
 - Student Dashboard (/student): Handles active courses, applications progression, digital certifications, scheduler calendars, and live mentor video meetings (with camera/mic integrations).
 
 4. FAQS & HELPFUL LINKS
-- Support Hours: 9 AM - 6 PM EST.
-- Locations: London, UK (Headquarters) & Global remote hubs.
+- Support Hours: 9 AM - 6 PM IST.
+- Locations: Indore, India (Headquarters) & PAN India corporate hubs.
 - Security and Cookies: Uses secure HTTP-only cookies to handle authentication sessions safely. Clicking Sign Out clears cookies and redirects to /login.
 `;

@@ -417,8 +417,8 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
   }
 
   // Dynamic location check
-  if (queryLower.includes("where") || queryLower.includes("location") || queryLower.includes("office") || queryLower.includes("headquarter") || queryLower.includes("london") || queryLower.includes("address")) {
-    return `Epitome TRC is headquartered in London, UK, with remote global consultant hubs. For regional consulting, office visits, or corporate workshops, you can reach out via email at info@epitometrc.com.`;
+  if (queryLower.includes("where") || queryLower.includes("location") || queryLower.includes("office") || queryLower.includes("headquarter") || queryLower.includes("indore") || queryLower.includes("address")) {
+    return `Epitome TRC is headquartered in Indore, India, at 208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, Madhya Pradesh, India. We operate corporate consulting and recruitment hubs PAN India. You can reach us via email at info@epitometrc.com or +91-626-596-6705.`;
   }
 
   // Smart Dynamic Catch-all

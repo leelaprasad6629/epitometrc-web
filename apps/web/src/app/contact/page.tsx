@@ -153,7 +153,7 @@ export default function ContactPage() {
                       </span>
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Office Address</p>
-                        <p className="text-slate-800 text-[11.5px] font-bold">123 Business Park, Hyderabad, India</p>
+                        <p className="text-slate-800 text-[11.5px] font-bold">208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, MP, India</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export default function ContactPage() {
                       </span>
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Contact Number</p>
-                        <p className="text-slate-800 text-[11.5px] font-bold">+91 98765 43210</p>
+                        <p className="text-slate-800 text-[11.5px] font-bold">+91-626-596-6705</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

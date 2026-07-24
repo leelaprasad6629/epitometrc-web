@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
 Act as an ATS Job Recommendation Engine. Analyze the candidate parameters:
 Skills: ${JSON.stringify(skills)}
 Preferred Role: ${preferredRole || "Frontend Engineer"}
-Preferred Location: ${location || "Remote / London"}
+Preferred Location: ${location || "Remote / Indore"}
 Experience Level: ${JSON.stringify(experience)}
 Career Goal: ${goal || "Full Stack developer"}
 
@@ -20,7 +20,7 @@ Return strictly JSON with no comments:
     {
       "title": "Junior Full Stack Engineer",
       "company": "Epitome Tech Labs",
-      "location": "London, UK (Hybrid)",
+      "location": "Indore, India (Hybrid)",
       "matchScore": 92,
       "matchedSkills": ["React", "JavaScript", "TypeScript"],
       "missingSkills": ["Node.js", "PostgreSQL"],
@@ -40,7 +40,7 @@ Return strictly JSON with no comments:
     {
       "title": "Software Engineering Apprentice",
       "company": "Cloud Innovators",
-      "location": "London, UK (On-site)",
+      "location": "Indore, India (On-site)",
       "matchScore": 82,
       "matchedSkills": ["TypeScript", "Java", "Python"],
       "missingSkills": ["AWS", "Docker"],

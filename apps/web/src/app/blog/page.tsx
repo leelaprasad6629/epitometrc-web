@@ -45,8 +45,8 @@ export default function BlogPage() {
         const { latitude, longitude } = position.coords;
         setCoords({ latitude, longitude });
         
-        // Epitome HQ coordinates (London, UK): 51.5074, -0.1278
-        const dist = getHaversineDistance(latitude, longitude, 51.5074, -0.1278);
+        // Epitome HQ coordinates (Indore, India): 22.7441, 75.8874
+        const dist = getHaversineDistance(latitude, longitude, 22.7441, 75.8874);
         setDistance(dist);
         setGeoLoading(false);
       },
@@ -142,7 +142,7 @@ export default function BlogPage() {
                       Local Telemetry Widget
                     </h3>
                     <p className="text-slate-400 text-[11px] font-sans leading-relaxed">
-                      Enable browser location tracking to calculate your distance to our London Headquarters and match local region updates.
+                      Enable browser location tracking to calculate your distance to our Indore Headquarters and match local region updates.
                     </p>
                   </div>
 

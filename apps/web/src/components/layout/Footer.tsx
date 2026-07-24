@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ShieldCheck, Mail, Phone, MapPin, ArrowRight } from "lucide-react";
-import { FaFacebook, FaTwitter, FaLinkedin } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaLinkedin } from "react-icons/fa";
 import { motion } from "framer-motion";
 import {
   footerServicesLinks,
@@ -65,11 +65,17 @@ export default function Footer() {
               Precision in Strategy, Excellence in Execution. We design robust digital transformations and enterprise software systems to connect technology with clear outcomes.
             </p>
             <div className="flex space-x-3">
-              {[FaLinkedin, FaTwitter, FaFacebook].map((Icon, i) => (
+              {[
+                { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn" },
+                { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook" },
+                { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram" }
+              ].map(({ Icon, href, label }) => (
                 <a
-                  key={i}
-                  href="#"
-                  aria-label="Social link"
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
                   className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white"
                 >
                   <Icon className="h-4 w-4" />
@@ -131,9 +137,9 @@ export default function Footer() {
               <li className="flex items-start space-x-3 text-sm text-slate-400">
                 <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
                 <span className="font-sans leading-relaxed">
-                  100 Ave of the Americas, Suite 400
+                  208, Swadesh Bhawan, Behind Press Complex,
                   <br />
-                  New York, NY 10013
+                  LIG Colony, Indore - 452001, MP, India
                 </span>
               </li>
               <li className="flex items-center space-x-3 text-sm text-slate-400">
@@ -144,8 +150,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center space-x-3 text-sm text-slate-400">
                 <Phone className="h-5 w-5 shrink-0 text-orange-500" />
-                <a href="tel:+12025550143" className="font-sans transition-colors hover:text-white">
-                  +1 (202) 555-0143
+                <a href="tel:+916265966705" className="font-sans transition-colors hover:text-white">
+                  +91-626-596-6705
                 </a>
               </li>
             </ul>

@@ -9,9 +9,9 @@ import Container from "@/components/common/Container";
 
 export default function JobsPage() {
   const jobs = [
-    { id: 1, title: "Senior Full Stack Developer", loc: "London, UK", type: "Full Time", desc: "Lead the development of high-performance enterprise applications using React, Node.js, and AWS." },
-    { id: 2, title: "Strategy Consultant", loc: "New York, USA", type: "Full Time", desc: "Advise Fortune 500 executives on digital transformation and market entry strategies." },
-    { id: 3, title: "Technical Recruiter", loc: "London, UK", type: "Full Time", desc: "Shape our engineering teams by identifying, attracting, and onboarding top talent." },
+    { id: 1, title: "Senior Full Stack Developer", loc: "Indore, India", type: "Full Time", desc: "Lead the development of high-performance enterprise applications using React, Node.js, and AWS." },
+    { id: 2, title: "Strategy Consultant", loc: "Indore, India", type: "Full Time", desc: "Advise Fortune 500 executives on digital transformation and market entry strategies." },
+    { id: 3, title: "Technical Recruiter", loc: "Indore, India", type: "Full Time", desc: "Shape our engineering teams by identifying, attracting, and onboarding top talent." },
   ];
 
   return (
