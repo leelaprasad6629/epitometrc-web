@@ -1,21 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, ShieldCheck, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 import DnaCanvas from "@/components/common/DnaCanvas";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const errParam = searchParams?.get("error");
+    if (errParam) {
+      setError(errParam);
+    }
+  }, [searchParams]);
+
+  const handleOAuthLogin = async (provider: "google" | "facebook") => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/auth/oauth/url?provider=${provider}`);
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.url) {
+        throw new Error(data.error || `Failed to initialize ${provider} login`);
+      }
+      window.location.href = data.url;
+    } catch (err: any) {
+      setError(err.message || "OAuth redirection failed");
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,8 +229,10 @@ export default function LoginPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={() => router.push("/student/dashboard")}
-              className="flex items-center justify-center gap-2 h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98]"
+              type="button"
+              onClick={() => handleOAuthLogin("google")}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98] disabled:opacity-50"
             >
               <svg className="h-4.5 w-4.5" viewBox="0 0 24 24">
                 <path
@@ -229,13 +255,15 @@ export default function LoginPage() {
               Google
             </button>
             <button
-              onClick={() => router.push("/student/dashboard")}
-              className="flex items-center justify-center gap-2 h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98]"
+              type="button"
+              onClick={() => handleOAuthLogin("facebook")}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98] disabled:opacity-50"
             >
-              <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="#0A66C2">
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="#1877F2">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
               </svg>
-              LinkedIn
+              Facebook
             </button>
           </div>
 
@@ -259,5 +287,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen bg-slate-50 items-center justify-center font-sans text-slate-500 text-xs">
+        Loading form...
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -18,6 +18,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
 
+    const userRole = role || "Student";
+
+    if (userRole === "Admin") {
+      return NextResponse.json({ error: "Administrator accounts must be pre-authorized and cannot be registered publicly." }, { status: 403 });
+    }
+
+    if (userRole === "Employee") {
+      if (!email.toLowerCase().endsWith("@epitometrc.com")) {
+        return NextResponse.json({ error: "Employee accounts must use an official @epitometrc.com email address." }, { status: 400 });
+      }
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -25,7 +37,7 @@ export async function POST(req: NextRequest) {
         name,
         email,
         passwordHash,
-        role: role || "Student",
+        role: userRole,
       },
     });
 

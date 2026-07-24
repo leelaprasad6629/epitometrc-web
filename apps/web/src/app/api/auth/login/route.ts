@@ -19,6 +19,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
     }
 
+    // Domain validation for employees
+    if (user.role === "Employee") {
+      if (!email.toLowerCase().endsWith("@epitometrc.com")) {
+        return NextResponse.json({ error: "Access Denied: Employees must use an official @epitometrc.com email." }, { status: 403 });
+      }
+    }
+
+    // Role-based status whitelist for administrators
+    if (user.role === "Admin") {
+      if (user.status !== "Active") {
+        return NextResponse.json({ error: "Access Denied: Administrator account is not active or whitelisted." }, { status: 403 });
+      }
+    }
+
     const match = await bcrypt.compare(password, user.passwordHash);
     if (!match) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
