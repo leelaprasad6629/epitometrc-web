@@ -5,7 +5,7 @@ export const maxDuration = 60; // 60s Vercel serverless function timeout extensi
 
 export async function POST(req: NextRequest) {
   try {
-    const { role, interviewType, difficulty, question, answer, history, company, jobDescription, resumeContext } = await req.json();
+    const { role, interviewType, difficulty, question, answer, history, company, jobDescription, resumeContext, codeSubmission, codeLanguage } = await req.json();
 
     const isFinalQuestion = history && history.length >= 8; // 5 question session (10 entries in history)
 
@@ -22,15 +22,17 @@ ${resumeContext ? `Candidate Resume Background Context: ${JSON.stringify(resumeC
 
 Current Question Asked: "${question}"
 Candidate's Response: "${answer}"
+${codeSubmission ? `Candidate's Code Submission (${codeLanguage}):\n\`\`\`\n${codeSubmission}\n\`\`\`` : ""}
 Conversation History: ${JSON.stringify(history)}
 
 INSTRUCTIONS:
-1. Conduct an adaptive interview. Evaluate the quality, accuracy, and depth of the candidate's last answer.
+1. Conduct an adaptive interview. Evaluate the quality, accuracy, and depth of the candidate's last answer (evaluating both their explanation/response text AND their code submission correctness, style, and complexity, if provided).
 2. If this is NOT the final question (isFinalQuestion: ${isFinalQuestion ? "YES" : "NO"}), formulate a highly conversational follow-up question.
    - Do NOT ask generic template questions.
    - Reference concepts the candidate brought up in their response.
    - Challenge weak, vague, or textbook answers (e.g. ask "how did you optimize that specifically?" or "what trade-offs did you consider?").
    - If they did exceptionally well, increase complexity. If they struggled, ask a clarifying sub-question to test foundation.
+   - If the role is highly technical and coding is expected, feel free to ask a coding challenge question as the next question!
 3. If this IS the final question (isFinalQuestion: YES), compile a comprehensive, expert interview intelligence report.
 4. Respond strictly with a JSON object. Ensure it contains no markdown code block wrapper or extra comments.
 
@@ -39,6 +41,8 @@ Response format required:
   "evaluation": "Feedback text summarizing their answer performance...",
   "score": 85,
   "nextQuestion": "${isFinalQuestion ? "" : "Conversational follow-up question..."}",
+  "isCodingQuestion": ${!isFinalQuestion && (interviewType === "Technical" || !interviewType) ? "true" : "false"},
+  "codeTemplate": "${!isFinalQuestion && (interviewType === "Technical" || !interviewType) ? "function solve() {\\n  // Write solution here\\n}" : ""}",
   "report": ${
     isFinalQuestion
       ? `{
@@ -101,6 +105,8 @@ Response format required:
           evaluation: "Your answers demonstrate reasonable logical foundation, but could benefit from deeper structure and technical elaboration. Focus on clarifying implementation steps and architectural design choices.",
           score: 72,
           nextQuestion: isFinalQuestion ? "" : "Could you elaborate further on how you would structure the data flow and handle latency challenges in your design?",
+          isCodingQuestion: false,
+          codeTemplate: "",
           report: isFinalQuestion ? {
             overallScore: 72,
             technicalScore: 70,
