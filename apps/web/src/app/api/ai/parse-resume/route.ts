@@ -120,53 +120,19 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const contentType = req.headers.get("content-type") || "";
-    let fileName = "resume";
-    let fileMimeType = "text/plain";
-    let buffer: Buffer | null = null;
+    const { fileName, fileBase64, fileMimeType } = await req.json();
 
-    if (contentType.includes("multipart/form-data")) {
-      const formData = await req.formData();
-      const uploadedFile = formData.get("file");
-
-      if (!uploadedFile || typeof uploadedFile === "string") {
-        return NextResponse.json({ success: false, error: "Missing file payload." }, { status: 400 });
-      }
-
-      const file = uploadedFile as File;
-      fileName = file.name || fileName;
-      fileMimeType = file.type || fileMimeType;
-      buffer = Buffer.from(await file.arrayBuffer());
-    } else {
-      const body = await req.json().catch(() => null);
-      const { fileName: bodyFileName, fileBase64, fileMimeType: bodyMimeType } = body || {};
-
-      if (!bodyFileName || !fileBase64) {
-        return NextResponse.json({ success: false, error: "Missing file payload." }, { status: 400 });
-      }
-
-      fileName = bodyFileName;
-      fileMimeType = bodyMimeType || fileMimeType;
-      buffer = Buffer.from(fileBase64, "base64");
+    if (!fileName || !fileBase64) {
+      return NextResponse.json({ success: false, error: "Missing file payload." }, { status: 400 });
     }
 
-    if (!buffer) {
-      return NextResponse.json({ success: false, error: "Upload failed: no file content was received." }, { status: 400 });
-    }
-
-    const validation = validateResumeUpload(fileName, fileMimeType, buffer.length);
-    if (!validation.valid) {
-      return NextResponse.json({ success: false, error: validation.error }, { status: validation.status });
-    }
-
-    fileMimeType = validation.fileMimeType || fileMimeType;
-
+    const buffer = Buffer.from(fileBase64, "base64");
     let rawText = "";
 
     if (fileMimeType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf")) {
       rawText = await parsePdfBuffer(buffer);
     } else if (
-      fileMimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      fileMimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
       fileName.toLowerCase().endsWith(".docx")
     ) {
       rawText = await parseDocxBuffer(buffer);
