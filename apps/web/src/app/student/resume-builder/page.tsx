@@ -94,6 +94,7 @@ export default function AICareerCopilotPage() {
   const [mockSpeakActive, setMockSpeakActive] = useState(false);
   const [mockStream, setMockStream] = useState<MediaStream | null>(null);
   const mockVideoRef = useRef<HTMLVideoElement | null>(null);
+  const interviewContainerRef = useRef<HTMLDivElement | null>(null);
   const recognitionRef = useRef<any>(null);
 
   // Integrity & Onboarding states
@@ -289,9 +290,13 @@ export default function AICareerCopilotPage() {
     setCodeSubmission("");
     setCompilerOutput("");
 
-    // Request fullscreen mode
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {});
+    // Request fullscreen mode for the specific interview container element
+    if (interviewContainerRef.current) {
+      if (interviewContainerRef.current.requestFullscreen) {
+        interviewContainerRef.current.requestFullscreen().catch(() => {});
+      } else if ((interviewContainerRef.current as any).webkitRequestFullscreen) {
+        (interviewContainerRef.current as any).webkitRequestFullscreen();
+      }
     }
 
     // Capture user webcam video stream
@@ -1941,7 +1946,7 @@ export default function AICareerCopilotPage() {
                   </div>
                 ) : (
                   /* Active Live Mock Session */
-                  <div className="space-y-4">
+                  <div ref={interviewContainerRef} className="space-y-4 bg-slate-50 p-6 rounded-3xl overflow-y-auto w-full h-full">
 
                     {/* Integrity Warnings Popup Banner */}
                     {showViolationAlert && (
