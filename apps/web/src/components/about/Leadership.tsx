@@ -7,9 +7,9 @@ import SectionTitle from "@/components/common/SectionTitle";
 
 const leaders = [
   {
-    name: "Michael James",
-    role: "Chief Executive Officer",
-    image: "/images/boardroom_hero.jpg",
+    name: "Y. Sree Lakshmi",
+    role: "CEO & Founder",
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=600&fit=crop&crop=faces",
   },
   {
     name: "Sarah Jenkins",

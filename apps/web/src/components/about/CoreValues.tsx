@@ -1,6 +1,6 @@
 "use client";
 
-import { Shield, Lightbulb, Users, TrendingUp } from "lucide-react";
+import { Shield, Eye, Target, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import Container from "@/components/common/Container";
 import SectionTitle from "@/components/common/SectionTitle";
@@ -10,22 +10,22 @@ const values = [
   {
     icon: Shield,
     title: "Integrity",
-    description: "We operate with transparency and accountability in every engagement, building trust that endures.",
+    description: "We are dedicated to implementing best practices and continually enhancing our processes.",
   },
   {
-    icon: Lightbulb,
-    title: "Innovation",
-    description: "We continuously evolve our methodologies to deliver cutting-edge solutions for modern challenges.",
+    icon: Eye,
+    title: "Transparency",
+    description: "Our culture promotes open communication, ensuring that customer value remains our top priority.",
   },
   {
-    icon: Users,
-    title: "Collaboration",
-    description: "We partner deeply with clients, treating their goals as our own and fostering shared success.",
+    icon: Target,
+    title: "Results-Oriented",
+    description: "We focus on training and development workshops that guarantee effective outcomes.",
   },
   {
-    icon: TrendingUp,
-    title: "Excellence",
-    description: "We hold ourselves to the highest standards of quality, precision, and measurable impact.",
+    icon: Sparkles,
+    title: "Affordability",
+    description: "We believe that personal growth drives company growth, and our services are designed to be budget-friendly.",
   },
 ];
 

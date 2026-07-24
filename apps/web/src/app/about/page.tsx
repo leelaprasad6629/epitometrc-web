@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AboutHero from "@/components/about/AboutHero";
+import FounderMessage from "@/components/about/FounderMessage";
 import CompanyStory from "@/components/about/CompanyStory";
 import MissionVision from "@/components/about/MissionVision";
+import CultureStory from "@/components/about/CultureStory";
 import CoreValues from "@/components/about/CoreValues";
 import Leadership from "@/components/about/Leadership";
 import Achievements from "@/components/about/Achievements";
@@ -21,8 +23,10 @@ export default function AboutPage() {
       <Navbar />
       <main>
         <AboutHero />
+        <FounderMessage />
         <CompanyStory />
         <MissionVision />
+        <CultureStory />
         <CoreValues />
         <Leadership />
         <Achievements />
