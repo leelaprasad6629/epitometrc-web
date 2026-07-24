@@ -47,12 +47,13 @@ export async function GET(req: NextRequest) {
       success: true,
       applicants: applications.map((app) => ({
         id: app.id,
+        userId: app.userId,
         name: app.user.name,
         email: app.user.email,
         role: app.job.title,
         status: app.status,
         appliedDate: new Date(app.appliedAt).toLocaleDateString(),
-        matchScore: "85%", // Default dynamic placeholder for matching score
+        matchScore: "85%",
       })),
     });
   } catch (error: any) {

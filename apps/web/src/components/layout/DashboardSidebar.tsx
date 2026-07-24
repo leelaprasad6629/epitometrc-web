@@ -38,38 +38,80 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
   const pathname = usePathname();
   const router = useRouter();
 
-  // Navigation configurations
-  const navigationMap: Record<"student" | "employee" | "admin", SidebarItem[]> = {
+  type SidebarSection = {
+    title?: string;
+    items: SidebarItem[];
+  };
+
+  // Navigation configurations grouped by sections
+  const sectionsMap: Record<"student" | "employee" | "admin", SidebarSection[]> = {
     student: [
-      { name: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
-      { name: "My Courses", href: "/student/courses", icon: BookOpen },
-      { name: "My Applications", href: "/student/applications", icon: ClipboardList },
-      { name: "Certificates", href: "/student/certificates", icon: Award },
-      { name: "AI Career Suite", href: "/student/resume-builder", icon: Sparkles },
-      { name: "Profile", href: "/student/profile", icon: User },
+      {
+        title: "Overview",
+        items: [{ name: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard }],
+      },
+      {
+        title: "My Academics",
+        items: [
+          { name: "My Courses", href: "/student/courses", icon: BookOpen },
+          { name: "My Applications", href: "/student/applications", icon: ClipboardList },
+          { name: "Certificates", href: "/student/certificates", icon: Award },
+        ],
+      },
+      {
+        title: "Career Tools",
+        items: [
+          { name: "AI Career Suite", href: "/student/resume-builder", icon: Sparkles },
+          { name: "Profile", href: "/student/profile", icon: User },
+        ],
+      },
     ],
     employee: [
-      { name: "Dashboard", href: "/employee/dashboard", icon: LayoutDashboard },
-      { name: "Recruitment", href: "/employee/recruitment", icon: Briefcase },
-      { name: "Students", href: "/employee/students", icon: Users },
-      { name: "Trainings", href: "/employee/trainings", icon: BookOpen },
-      { name: "Attendance", href: "/employee/attendance", icon: Calendar },
-      { name: "Profile", href: "/employee/profile", icon: User },
+      {
+        title: "Overview",
+        items: [{ name: "Dashboard", href: "/employee/dashboard", icon: LayoutDashboard }],
+      },
+      {
+        title: "Talent & Placement",
+        items: [
+          { name: "Recruitment", href: "/employee/recruitment", icon: Briefcase },
+          { name: "Students", href: "/employee/students", icon: Users },
+          { name: "Trainings", href: "/employee/trainings", icon: BookOpen },
+          { name: "Attendance", href: "/employee/attendance", icon: Calendar },
+        ],
+      },
+      {
+        title: "User Settings",
+        items: [{ name: "Profile", href: "/employee/profile", icon: User }],
+      },
     ],
     admin: [
-      { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-      { name: "Manage Students", href: "/admin/students", icon: Users },
-      { name: "Manage Employees", href: "/admin/employees", icon: Briefcase },
-      { name: "Manage Courses", href: "/admin/courses", icon: BookOpen },
-      { name: "Manage Blogs", href: "/admin/blog", icon: FileText },
-      { name: "Manage Jobs", href: "/admin/jobs", icon: ClipboardList },
-      { name: "Credential Overrides", href: "/admin/users", icon: User },
-      { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-      { name: "Settings", href: "/admin/settings", icon: Settings },
+      {
+        title: "Overview",
+        items: [{ name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard }],
+      },
+      {
+        title: "User Management",
+        items: [
+          { name: "Manage Students", href: "/admin/students", icon: Users },
+          { name: "Manage Employees", href: "/admin/employees", icon: Briefcase },
+          { name: "Credential Overrides", href: "/admin/users", icon: User },
+        ],
+      },
+      {
+        title: "Platform Data",
+        items: [
+          { name: "Manage Courses", href: "/admin/courses", icon: BookOpen },
+          { name: "Manage Blogs", href: "/admin/blog", icon: FileText },
+          { name: "Manage Jobs", href: "/admin/jobs", icon: ClipboardList },
+          { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+          { name: "Settings", href: "/admin/settings", icon: Settings },
+        ],
+      },
     ],
   };
 
-  const navItems = navigationMap[role] || [];
+  const sections = sectionsMap[role] || [];
 
   return (
     <aside
@@ -103,26 +145,37 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
         </div>
 
         {/* Navigation Items */}
-        <nav className="space-y-1.5 p-3">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-200",
-                  isActive
-                    ? "bg-orange-500 text-white shadow-md shadow-orange-500/10"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                )}
-              >
-                <Icon className={cn("h-4.5 w-4.5 shrink-0", isActive ? "text-white" : "text-slate-500")} />
-                {!collapsed && <span className="truncate">{item.name}</span>}
-              </Link>
-            );
-          })}
+        <nav className="space-y-5 p-3 overflow-y-auto max-h-[calc(100vh-140px)]">
+          {sections.map((section, sIdx) => (
+            <div key={sIdx} className="space-y-1">
+              {section.title && !collapsed && (
+                <span className="px-3.5 py-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest block font-sans">
+                  {section.title}
+                </span>
+              )}
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all duration-200",
+                        isActive
+                          ? "bg-orange-500 text-white shadow-md shadow-orange-500/10"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      )}
+                    >
+                      <Icon className={cn("h-4.5 w-4.5 shrink-0", isActive ? "text-white" : "text-slate-500")} />
+                      {!collapsed && <span className="truncate">{item.name}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
       </div>
 

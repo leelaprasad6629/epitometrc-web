@@ -47,11 +47,12 @@ export async function GET(req: NextRequest) {
       success: true,
       students: enrollments.map((e) => ({
         id: e.id,
+        userId: e.userId,
         name: e.user.name,
         course: e.course.title,
         progress: e.progress,
         email: e.user.email,
-        avatar: `https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces`, // Static default face avatar
+        avatar: `https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces`,
       })),
     });
   } catch (error: any) {

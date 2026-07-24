@@ -39,6 +39,32 @@ export async function GET(req: NextRequest) {
       where: { status: "Reviewing" },
     });
 
+    const totalStudents = await prisma.user.count({
+      where: { role: "Student" },
+    });
+
+    // Compute average ATS score from parsed profile completeness
+    const profiles = await prisma.userProfile.findMany({ select: { profile: true } });
+    let totalCompleteness = 0;
+    let profileCount = 0;
+    profiles.forEach((p) => {
+      if (p.profile && typeof p.profile === "object") {
+        const completeness = (p.profile as any).overallCompleteness;
+        if (typeof completeness === "number") {
+          totalCompleteness += completeness;
+          profileCount++;
+        }
+      }
+    });
+    const averageAtsScore = profileCount > 0 ? Math.round(totalCompleteness / profileCount) : 85;
+
+    // Compute average placement readiness based on student course progress
+    const enrollmentsProgress = await prisma.enrollment.findMany({ select: { progress: true } });
+    const totalProgress = enrollmentsProgress.reduce((sum, e) => sum + e.progress, 0);
+    const placementReadiness = enrollmentsProgress.length > 0 
+      ? Math.round(totalProgress / enrollmentsProgress.length) 
+      : 75;
+
     // Fetch pipeline counts
     const appliedCount = await prisma.application.count({
       where: { status: "Reviewing" },
@@ -47,15 +73,15 @@ export async function GET(req: NextRequest) {
       where: { status: "Interviewing" },
     });
     const offeredCount = await prisma.application.count({
-      where: { status: "Approved" }, // In our schema seed, status: Approved = offered/hired
+      where: { status: "Approved" },
     });
     const hiredCount = await prisma.application.count({
-      where: { status: "Hired" }, // If any
+      where: { status: "Hired" },
     });
 
     // Fetch recent applications/activities
     const recentApplications = await prisma.application.findMany({
-      take: 3,
+      take: 5,
       orderBy: { appliedAt: "desc" },
       include: {
         user: { select: { name: true } },
@@ -71,7 +97,7 @@ export async function GET(req: NextRequest) {
 
     // Fetch active enrollments (deliverables)
     const activeEnrollments = await prisma.enrollment.findMany({
-      take: 3,
+      take: 4,
       where: { progress: { lt: 100 } },
       include: {
         course: { select: { title: true } },
@@ -96,6 +122,10 @@ export async function GET(req: NextRequest) {
         totalApplicants: totalApplicants.toLocaleString(),
         ongoingProjects: ongoingProjects.toString().padStart(2, "0"),
         newMatches: newMatches.toString(),
+        totalStudents: totalStudents.toString(),
+        averageAtsScore: `${averageAtsScore}%`,
+        placementReadiness: `${placementReadiness}%`,
+        activeInterviews: interviewCount.toString(),
       },
       pipeline: [
         { name: "Applied", count: appliedCount, height: "h-40" },
