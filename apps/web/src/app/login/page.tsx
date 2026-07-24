@@ -3,10 +3,11 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, ShieldCheck, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 import DnaCanvas from "@/components/common/DnaCanvas";
+import Image from "next/image";
 
 function LoginForm() {
   const router = useRouter();
@@ -88,10 +89,15 @@ function LoginForm() {
         <DnaCanvas />
 
         <div className="relative z-10 flex items-center space-x-2">
-          <span className="rounded-lg bg-slate-900/60 p-1.5 border border-slate-800/40 backdrop-blur-md">
-            <ShieldCheck className="h-6 w-6 text-orange-500" />
-          </span>
-          <span className="font-display text-xl font-bold tracking-tight">
+          <Image
+            src="/images/Epitome_logo_white.png"
+            alt="EpitomeTRC Logo"
+            width={499}
+            height={390}
+            className="h-10 w-auto object-contain"
+            priority
+          />
+          <span className="font-display text-xl font-bold tracking-tight text-white">
             Epitome<span className="text-orange-500">TRC</span>
           </span>
         </div>
@@ -125,9 +131,14 @@ function LoginForm() {
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:text-left space-y-2">
             <div className="flex items-center justify-center lg:justify-start space-x-2 lg:hidden mb-6">
-              <span className="rounded-lg bg-[#0b172a] p-1.5">
-                <ShieldCheck className="h-6 w-6 text-orange-500" />
-              </span>
+              <Image
+                src="/images/Epitome_logo_black.png"
+                alt="EpitomeTRC Logo"
+                width={499}
+                height={390}
+                className="h-10 w-auto object-contain"
+                priority
+              />
               <span className="font-display text-xl font-bold tracking-tight text-[#0b172a]">
                 Epitome<span className="text-orange-500">TRC</span>
               </span>

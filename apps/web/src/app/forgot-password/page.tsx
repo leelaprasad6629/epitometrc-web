@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Mail, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Mail, CheckCircle2 } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -25,10 +26,15 @@ export default function ForgotPasswordPage() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl border border-slate-100 shadow-sm text-center">
-        <div className="flex justify-center space-x-2">
-          <span className="rounded-lg bg-[#0b172a] p-1.5">
-            <ShieldCheck className="h-6 w-6 text-orange-500" />
-          </span>
+        <div className="flex justify-center items-center space-x-2">
+          <Image
+            src="/images/Epitome_logo_black.png"
+            alt="EpitomeTRC Logo"
+            width={499}
+            height={390}
+            className="h-10 w-auto object-contain"
+            priority
+          />
           <span className="font-display text-xl font-bold tracking-tight text-[#0b172a]">
             Epitome<span className="text-orange-500">TRC</span>
           </span>

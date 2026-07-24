@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, Mail, Phone, MapPin, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, ArrowRight } from "lucide-react";
 import { FaFacebook, FaInstagram, FaLinkedin } from "react-icons/fa";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import {
   footerServicesLinks,
   footerCompanyLinks,
@@ -54,9 +55,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12">
           <div className="flex flex-col space-y-6 md:col-span-4">
             <Link href="/" className="flex items-center space-x-2">
-              <span className="rounded-lg border border-slate-800 bg-slate-900 p-1.5">
-                <ShieldCheck className="h-6 w-6 text-orange-500" />
-              </span>
+              <Image
+                src="/images/Epitome_logo_white.png"
+                alt="EpitomeTRC Logo"
+                width={499}
+                height={390}
+                className="h-11 w-auto object-contain"
+              />
               <span className="font-display text-2xl font-bold tracking-tight text-white">
                 Epitome<span className="text-orange-500">TRC</span>
               </span>

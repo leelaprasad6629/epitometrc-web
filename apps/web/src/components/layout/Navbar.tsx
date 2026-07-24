@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, ArrowRight, ShieldCheck, ChevronDown } from "lucide-react";
+import { Menu, X, ArrowRight, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import MobileMenu from "@/components/layout/MobileMenu";
+import Image from "next/image";
 
 type DesktopNavItem = {
   name: string;
@@ -198,9 +199,14 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-12 items-center justify-between">
           <Link href="/" className="flex shrink-0 items-center space-x-2">
-            <span className="rounded-lg bg-[#0b172a] p-1.5">
-              <ShieldCheck className="h-6 w-6 text-orange-500" />
-            </span>
+            <Image
+              src="/images/Epitome_logo_black.png"
+              alt="EpitomeTRC Logo"
+              width={499}
+              height={390}
+              className="h-10 w-auto object-contain"
+              priority
+            />
             <span className="font-display text-xl font-bold tracking-tight text-[#0b172a] sm:text-2xl">
               Epitome<span className="text-orange-500">TRC</span>
             </span>

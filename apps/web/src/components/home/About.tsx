@@ -128,6 +128,7 @@ export default function About({ persona }: AboutProps) {
                   width={450}
                   height={520}
                   className="w-full h-[450px] lg:h-[520px] object-cover hover:scale-102 transition-transform duration-500"
+                  style={{ width: 'auto' }}
                 />
               </motion.div>
             </div>

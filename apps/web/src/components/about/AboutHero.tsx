@@ -50,6 +50,7 @@ export default function AboutHero() {
                 width={600}
                 height={480}
                 className="h-[360px] w-full object-cover sm:h-[420px]"
+                style={{ width: 'auto' }}
                 priority
               />
             </div>

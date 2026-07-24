@@ -13,7 +13,6 @@ import {
   Calendar,
   Settings,
   BarChart3,
-  ShieldCheck,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -21,6 +20,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 type SidebarItem = {
   name: string;
@@ -124,11 +124,19 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
       <div>
         <div className="flex h-16 items-center justify-between px-4 border-b border-slate-100">
           <Link href="/" className="flex items-center space-x-2 overflow-hidden">
-            <span className="rounded-lg bg-[#0b172a] p-1.5 shrink-0">
-              <ShieldCheck className="h-5 w-5 text-orange-500" />
-            </span>
+            <Image
+              src="/images/Epitome_logo_black.png"
+              alt="EpitomeTRC Logo"
+              width={499}
+              height={390}
+              className={cn(
+                "object-contain transition-all duration-300 shrink-0",
+                collapsed ? "h-7 w-auto" : "h-9 w-auto"
+              )}
+              priority
+            />
             {!collapsed && (
-              <span className="font-display text-lg font-bold tracking-tight text-[#0b172a]">
+              <span className="font-display text-lg font-bold tracking-tight text-[#0b172a] whitespace-nowrap">
                 Epitome<span className="text-orange-500">TRC</span>
               </span>
             )}
