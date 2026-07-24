@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 // @ts-ignore
-import * as pdfParse from "pdf-parse";
+import { PdfReader } from "pdfreader";
 import mammoth from "mammoth";
 
 export const maxDuration = 60; // 60s Vercel serverless function timeout
@@ -8,19 +8,34 @@ export const maxDuration = 60; // 60s Vercel serverless function timeout
 const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
-// PDF Parser using pdf-parse buffer loader
+// PDF Parser using pdfreader buffer reader (layout-preserving)
 async function parsePdfBuffer(buffer: Buffer): Promise<string> {
-  try {
-    // @ts-ignore
-    const parseFn = typeof pdfParse === "function" ? pdfParse : (pdfParse.default || pdfParse);
-    if (typeof parseFn === "function") {
-      const data = await parseFn(buffer);
-      if (data && data.text) return data.text;
+  return new Promise((resolve) => {
+    let rows: Record<number, any[]> = {};
+    try {
+      new PdfReader().parseBuffer(buffer, (err: any, item: any) => {
+        if (err) {
+          console.warn("pdfreader failed, fallback to raw string decoding:", err);
+          resolve(buffer.toString("utf-8").replace(/[^\x20-\x7E\n\r\t]/g, " "));
+        } else if (!item) {
+          let text = "";
+          const yCoords = Object.keys(rows).map(Number).sort((a, b) => a - b);
+          for (const y of yCoords) {
+            const rowItems = rows[y].sort((a, b) => a.x - b.x);
+            text += rowItems.map(it => it.text).join(" ") + "\n";
+          }
+          resolve(text);
+        } else if (item.text) {
+          const y = Math.round(item.y * 100);
+          if (!rows[y]) rows[y] = [];
+          rows[y].push(item);
+        }
+      });
+    } catch (e) {
+      console.warn("pdfreader parsing crashed, falling back:", e);
+      resolve(buffer.toString("utf-8").replace(/[^\x20-\x7E\n\r\t]/g, " "));
     }
-  } catch (e) {
-    console.warn("pdf-parse failed, fallback to raw text string:", e);
-  }
-  return buffer.toString("utf-8").replace(/[^\x20-\x7E\n\r\t]/g, " ");
+  });
 }
 
 // DOCX Parser using mammoth
@@ -141,6 +156,8 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanedText = cleanText(rawText);
+    console.log("Raw text length:", rawText.length);
+    console.log("Cleaned text preview:", cleanedText.substring(0, 500));
 
     if (!GROQ_API_KEY) {
       return NextResponse.json({ success: false, error: "Groq API Key is not configured." }, { status: 500 });
@@ -260,8 +277,11 @@ Output ONLY a valid JSON object matching this exact structure:
 
     let parsedObj: any = {};
     try {
+      console.log("Raw generated JSON text from Groq:", generatedText);
       parsedObj = JSON.parse(generatedText);
+      console.log("Parsed JSON object:", parsedObj);
     } catch (e: any) {
+      console.error("Failed to parse JSON from Groq:", e);
       return NextResponse.json({ success: false, error: "Failed to parse structured JSON from LLM: " + e.message }, { status: 500 });
     }
 
