@@ -268,7 +268,10 @@ export default function AICareerCopilotPage() {
   };
 
   const startLiveMockSession = () => {
-    if (!parsedResumeDetails) return;
+    if (!parsedResumeDetails) {
+      alert("Please upload and optimize your resume in the 'Resume Optimizer' tab first to provide personalized profile context for the interview.");
+      return;
+    }
     setShowFullscreenWarning(true);
   };
 
