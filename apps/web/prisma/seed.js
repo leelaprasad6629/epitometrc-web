@@ -19,7 +19,7 @@ async function main() {
   const student = await prisma.user.create({
     data: {
       name: "Alex Thompson",
-      email: "alex.t@epitome.com",
+      email: "alex.t@epitometrc.com",
       passwordHash,
       role: "Student",
     },
@@ -28,7 +28,7 @@ async function main() {
   const employee = await prisma.user.create({
     data: {
       name: "Marcus Thorne",
-      email: "m.thorne@epitome.com",
+      email: "m.thorne@epitometrc.com",
       passwordHash,
       role: "Employee",
     },
@@ -37,7 +37,7 @@ async function main() {
   const admin = await prisma.user.create({
     data: {
       name: "Sarah Jennings",
-      email: "s.jennings@epitome.com",
+      email: "s.jennings@epitometrc.com",
       passwordHash,
       role: "Admin",
     },
@@ -94,7 +94,7 @@ async function main() {
     data: {
       title: "Senior Full Stack Developer",
       category: "Engineering",
-      location: "London, UK",
+      location: "Indore, India",
       type: "Full Time",
       description: "Lead the development of high-performance enterprise applications using React, Node.js, and AWS.",
     },
@@ -104,7 +104,7 @@ async function main() {
     data: {
       title: "Strategy Consultant",
       category: "Consulting",
-      location: "New York, USA",
+      location: "Indore, India",
       type: "Full Time",
       description: "Advise Fortune 500 executives on digital transformation and market entry strategies. Requires strong analytical skills.",
     },
@@ -114,7 +114,7 @@ async function main() {
     data: {
       title: "Technical Recruiter",
       category: "Staffing",
-      location: "London, UK",
+      location: "Indore, India",
       type: "Full Time",
       description: "Shape our engineering teams by identifying, attracting, and onboarding top talent for our clients in the technology sector.",
     },
