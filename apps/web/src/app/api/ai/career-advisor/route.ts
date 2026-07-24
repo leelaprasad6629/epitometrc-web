@@ -5,8 +5,7 @@ export async function POST(req: NextRequest) {
   try {
     const { skills, projects, courses, goal, interviewScores, academicInfo } = await req.json();
 
-    const prompt = `
-Act as a professional ATS Career Advisor and mentor. Provide personalized career guidance based on this candidate profile:
+    const prompt = `Act as a professional ATS Career Advisor and mentor. Provide personalized career guidance based on this candidate profile:
 Skills: ${JSON.stringify(skills)}
 Projects: ${JSON.stringify(projects)}
 Courses: ${JSON.stringify(courses)}
@@ -15,9 +14,12 @@ Previous Interview Scores: ${JSON.stringify(interviewScores)}
 Academic Information: ${JSON.stringify(academicInfo)}
 
 Analyze the profile, calculate a career readiness score (0-100), and recommend career roadmaps.
+CRITICAL: If there is no real resume data (i.e. skills, projects, and courses are all empty or null), you MUST return "careerReadinessScore": null and set "insufficientData": true. Do not generate fake statistics.
+
 Return strictly JSON with no comments:
 {
   "careerReadinessScore": 78,
+  "insufficientData": false,
   "recommendedCareerPaths": ["Frontend Development", "Full Stack Development"],
   "missingSkills": ["Docker", "Kubernetes", "Next.js"],
   "suggestedCertifications": ["AWS Certified Developer Associate", "Prisma ORM Specialist Certificate"],
@@ -28,8 +30,7 @@ Return strictly JSON with no comments:
   "roadmap90": ["Day 61-75: Apply for junior full-stack internship positions", "Day 76-90: Practice mock verbal and coding interview screens"],
   "strengths": ["Strong core JavaScript/React programming skills", "Completed relevant strategy & management coursework"],
   "weaknesses": ["Lack of deployment/cloud systems containerization experience", "No production database configurations portfolio project"]
-}
-    `.trim();
+}`;
 
     const aiResponse = await getAICompletion(prompt);
 

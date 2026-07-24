@@ -11,8 +11,10 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import { cn } from "@/lib/utils";
 import ProgressBar, { ProgressRing } from "@/components/dashboard/ProgressBar";
 import PriorityAlert, { PriorityItem } from "@/components/dashboard/PriorityAlert";
+import { useResumeStore } from "@/lib/ai/store/resumeStore";
 
 export default function StudentDashboard() {
+  const { parsedResumeDetails, atsScore, loadProfileFromServer, missingSkills } = useResumeStore();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -29,6 +31,8 @@ export default function StudentDashboard() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    loadProfileFromServer();
+    
     // Fetch current user
     fetch("/api/auth/me")
       .then((res) => res.json())
@@ -49,7 +53,7 @@ export default function StudentDashboard() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [loadProfileFromServer]);
 
   // Call timer and WebRTC camera stream hook
   useEffect(() => {
@@ -154,35 +158,51 @@ export default function StudentDashboard() {
     },
   ];
 
-  const priorityItems: PriorityItem[] = [
-    {
-      id: "skills-missing",
-      title: "Add missing skills to your resume",
+  // Dynamic Priority Items from real profile data
+  const priorityItems: PriorityItem[] = [];
+  if (!parsedResumeDetails) {
+    priorityItems.push({
+      id: "upload-resume",
+      title: "Upload your resume to calculate ATS fit",
       type: "attention",
-      description: "AWS and Docker are missing. Adding them will improve your ATS Score by 15%.",
-      actionLabel: "Edit Profile",
+      description: "No resume has been verified yet. Uploading a resume allows the AI engine to evaluate your ATS score against job roles.",
+      actionLabel: "Go to Profile",
       onAction: () => { window.location.href = "/student/profile"; }
-    },
-    {
+    });
+  } else {
+    if (missingSkills && missingSkills.length > 0) {
+      priorityItems.push({
+        id: "skills-missing",
+        title: "Add missing skills to your profile",
+        type: "attention",
+        description: `Missing skills: ${missingSkills.slice(0, 3).join(", ")}. Adding them will improve your overall ATS match score.`,
+        actionLabel: "Edit Profile",
+        onAction: () => { window.location.href = "/student/profile"; }
+      });
+    }
+    priorityItems.push({
       id: "mock-practice",
       title: "Practice AI Mock Interview",
       type: "today",
-      description: "You have an upcoming Frontend interview simulated slot ready.",
+      description: "Practice mock interview slots corresponding to your experience to boost score.",
       actionLabel: "Start Practice",
       onAction: () => {
         const widget = document.getElementById("mock-interview-widget");
         if (widget) widget.scrollIntoView({ behavior: "smooth" });
       }
-    },
-    {
+    });
+  }
+
+  if (data?.stats?.activeCourses > 0) {
+    priorityItems.push({
       id: "course-due",
-      title: "Submit Market Research Draft",
+      title: "Complete pending assignments",
       type: "next",
-      description: "Your course assignment is due today by 11:59 PM.",
-      actionLabel: "Go to Course",
+      description: `You have ${data.stats.pendingAssignments} pending assignments to complete.`,
+      actionLabel: "Go to Courses",
       onAction: () => { window.location.href = "/student/courses"; }
-    }
-  ];
+    });
+  }
 
   return (
     <motion.div
@@ -202,7 +222,9 @@ export default function StudentDashboard() {
             Welcome back, {currentUser?.name || "Student"}.
           </h1>
           <p className="text-slate-500 text-[11px] font-medium leading-relaxed max-w-2xl">
-            EpitomeTRC AI Advisor: "Your profile is 80% complete. We found 3 new matches matching your expertise. Practice mock interviews to boost matching."
+            {parsedResumeDetails 
+              ? `EpitomeTRC AI Advisor: "Your profile is ${parsedResumeDetails.overallCompleteness}% complete. Your ATS score is ${atsScore > 0 ? `${atsScore}%` : 'N/A (Please run matching analysis in Profile)'}. Practice mock interviews to boost matching."`
+              : `EpitomeTRC AI Advisor: "Your profile is incomplete. Please upload and verify your resume in the Profile section to unlock matching analytics."`}
           </p>
         </div>
         <Button href="/student/courses" variant="primary" className="h-10 rounded-xl px-5 font-bold shrink-0 self-start md:self-auto relative z-10 shadow-md shadow-orange-500/10">
@@ -222,11 +244,11 @@ export default function StudentDashboard() {
           <DashboardCard glowColor="indigo" title="AI Profile Health" subtitle="Summary checklist credentials status">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col items-center p-3 bg-indigo-50/20 rounded-2xl border border-indigo-100/30">
-                <ProgressRing percent={80} size={76} strokeWidth={6} variant="indigo" label="Profile" />
+                <ProgressRing percent={parsedResumeDetails ? parsedResumeDetails.overallCompleteness : null} size={76} strokeWidth={6} variant="indigo" label="Profile" />
                 <span className="text-[10px] font-bold text-indigo-600 mt-2">Completed</span>
               </div>
               <div className="flex flex-col items-center p-3 bg-purple-50/20 rounded-2xl border border-purple-100/30">
-                <ProgressRing percent={85} size={76} strokeWidth={6} variant="purple" label="ATS Score" />
+                <ProgressRing percent={parsedResumeDetails && atsScore > 0 ? atsScore : null} size={76} strokeWidth={6} variant="purple" label="ATS Score" />
                 <span className="text-[10px] font-bold text-purple-600 mt-2">Resume Fit</span>
               </div>
             </div>

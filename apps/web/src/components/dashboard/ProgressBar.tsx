@@ -56,7 +56,7 @@ export default function ProgressBar({
 // Radial Circular Progress Ring Component
 // ----------------------------------------------------
 interface ProgressRingProps {
-  percent: number;
+  percent: number | null | undefined;
   size?: number;
   strokeWidth?: number;
   variant?: "blue" | "indigo" | "purple" | "orange";
@@ -72,7 +72,8 @@ export function ProgressRing({
   className,
   label
 }: ProgressRingProps) {
-  const roundedPercent = Math.min(100, Math.max(0, Math.round(percent)));
+  const isInsufficient = percent === null || percent === undefined || percent < 0;
+  const roundedPercent = isInsufficient ? 0 : Math.min(100, Math.max(0, Math.round(percent)));
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (roundedPercent / 100) * circumference;
@@ -101,28 +102,30 @@ export function ProgressRing({
             cy={size / 2}
             r={radius}
             fill="transparent"
-            stroke={bgColors[variant]}
+            stroke={isInsufficient ? "#f1f5f9" : bgColors[variant]}
             strokeWidth={strokeWidth}
           />
           {/* Animated active progress circle */}
-          <motion.circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="transparent"
-            stroke={strokeColors[variant]}
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            strokeLinecap="round"
-          />
+          {!isInsufficient && (
+            <motion.circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="transparent"
+              stroke={strokeColors[variant]}
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              initial={{ strokeDashoffset: circumference }}
+              animate={{ strokeDashoffset: offset }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              strokeLinecap="round"
+            />
+          )}
         </svg>
         {/* Centered Percentage Text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <span className="text-[11px] font-black text-slate-800 leading-none">
-            {roundedPercent}%
+            {isInsufficient ? "N/A" : `${roundedPercent}%`}
           </span>
           {label && (
             <span className="text-[8px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">

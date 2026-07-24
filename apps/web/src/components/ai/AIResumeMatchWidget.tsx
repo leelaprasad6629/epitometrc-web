@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { 
   Sparkles, CheckCircle2, AlertTriangle, Lightbulb, FileText, Upload, 
   User, Mail, Phone, BookOpen, Briefcase, Trash2, Globe, Award, 
-  Check, Plus, Trash, Info, RefreshCw 
+  Check, Plus, Trash, Info, RefreshCw, X, FileUp, ClipboardList
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -14,56 +14,25 @@ import {
 import { Input } from "@/components/ui/input";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 
-const ROLE_SKILLS_MAP: Record<string, { mustHave: string[]; preferred: string[] }> = {
-  "Full Stack Developer": {
-    mustHave: ["javascript", "react", "node.js", "express", "sql", "git"],
-    preferred: ["docker", "aws", "typescript", "mongodb"]
-  },
-  "Frontend Developer": {
-    mustHave: ["javascript", "react", "html", "css", "tailwind", "git"],
-    preferred: ["next.js", "typescript", "zustand", "framer motion"]
-  },
-  "Backend Developer": {
-    mustHave: ["node.js", "express", "postgresql", "rest apis", "git", "sql"],
-    preferred: ["docker", "aws", "redis", "graphql", "prisma"]
-  },
-  "Python Developer": {
-    mustHave: ["python", "django", "fastapi", "flask", "sql", "git"],
-    preferred: ["docker", "aws", "redis", "postgresql"]
-  },
-  "Java Developer": {
-    mustHave: ["java", "spring boot", "hibernate", "sql", "git", "maven"],
-    preferred: ["docker", "aws", "microservices", "kubernetes"]
-  },
-  "Data Analyst": {
-    mustHave: ["python", "sql", "excel", "tableau", "statistics", "pandas"],
-    preferred: ["power bi", "r", "machine learning", "matplotlib"]
-  },
-  "AI/ML Engineer": {
-    mustHave: ["python", "tensorflow", "pytorch", "scikit-learn", "statistics", "git"],
-    preferred: ["docker", "aws", "nlp", "computer vision", "transformers"]
-  }
-};
-
 export default function AIResumeMatchWidget() {
   const {
     fileName,
-    selectedJobRole,
     parsedResumeDetails,
     verified,
     confidenceScores,
     atsScore,
     matchScore,
     skillMatchPercentage,
-    completeness,
     matchedSkills,
     missingSkills,
+    missingKeywords,
     recommendations,
     strengths,
     improvements,
+    certRecommendations,
+    projectRecommendations,
     setResumeData,
     updateParsedDetails,
-    setSelectedJobRole,
     setVerified,
     updateAnalysis,
     deleteResume,
@@ -74,97 +43,127 @@ export default function AIResumeMatchWidget() {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
   const [activeEditorTab, setActiveEditorTab] = useState<"personal" | "education" | "experience" | "projects" | "skills" | "certs">("personal");
-  const [activeWidgetMode, setActiveWidgetMode] = useState<"review" | "analysis">("review");
+  
+  // Platform Jobs List
+  const [platformJobs, setPlatformJobs] = useState<any[]>([]);
+  
+  // Job Description Input States
+  const [jdText, setJdText] = useState("");
+  const [targetTitle, setTargetTitle] = useState("");
+  const [selectedJobId, setSelectedJobId] = useState("");
+  const [jdMode, setJdMode] = useState<"paste" | "select" | "file">("paste");
 
-  // Load profile from server on mount
+  // Load profile and platform jobs on mount
   useEffect(() => {
-    loadProfileFromServer().then(() => {
-      if (verified) {
-        setActiveWidgetMode("analysis");
-      }
-    });
-  }, [loadProfileFromServer, verified]);
+    loadProfileFromServer();
+    fetch("/api/jobs")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.jobs) {
+          setPlatformJobs(data.jobs);
+        }
+      })
+      .catch(err => console.error("Failed to load platform jobs:", err));
+  }, [loadProfileFromServer]);
 
-  // Run matching analytics
-  const runMatchingAnalytics = async (currentDetails: ParsedResume, role: string) => {
+  // Handle platform job select
+  const handleJobSelect = (jobId: string) => {
+    setSelectedJobId(jobId);
+    const job = platformJobs.find(j => j.id === jobId);
+    if (job) {
+      setTargetTitle(job.title);
+      setJdText(`Job Title: ${job.title}\nDepartment: ${job.category}\nLocation: ${job.location}\n\nJob Description:\n${job.description}`);
+    }
+  };
+
+  // Handle JD File Upload
+  const handleJdFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      setJdText(text);
+      setTargetTitle(file.name.replace(/\.[^/.]+$/, ""));
+    };
+    reader.readAsText(file);
+  };
+
+  // Run Real-world ATS Match Analysis via LLM
+  const runRealAtsAnalysis = async () => {
+    if (!jdText.trim()) {
+      setError("Please paste, select, or upload a target Job Description.");
+      return;
+    }
+    if (!parsedResumeDetails) {
+      setError("No verified profile data found. Please upload and verify your resume first.");
+      return;
+    }
+
     setAnalyzing(true);
+    setError("");
     try {
-      const completenessVal = currentDetails.overallCompleteness || 0;
-      const requirements = ROLE_SKILLS_MAP[role] || { mustHave: [], preferred: [] };
-      const userSkills = [
-        ...(currentDetails.technicalSkills || []),
-        ...(currentDetails.programmingLanguages || []),
-        ...(currentDetails.frontend || []),
-        ...(currentDetails.backend || []),
-        ...(currentDetails.frameworks || []),
-        ...(currentDetails.databases || []),
-        ...(currentDetails.cloud || []),
-        ...(currentDetails.devops || []),
-        ...(currentDetails.tools || [])
-      ].map(s => s.trim().toLowerCase());
-
-      const matchedMust = requirements.mustHave.filter(s => userSkills.includes(s));
-      const matchedPref = requirements.preferred.filter(s => userSkills.includes(s));
-
-      const totalRequired = requirements.mustHave.length + requirements.preferred.length;
-      const totalMatched = matchedMust.length + matchedPref.length;
-
-      const skillMatchVal = totalRequired > 0 ? Math.round((totalMatched / totalRequired) * 100) : 0;
-      const matchScoreVal = Math.min(100, Math.round((matchedMust.length / (requirements.mustHave.length || 1)) * 70 + (matchedPref.length / (requirements.preferred.length || 1)) * 30));
-      const atsScoreVal = Math.min(100, Math.round((matchScoreVal * 0.7) + (completenessVal * 0.3)));
-
-      const matchedList = [...matchedMust, ...matchedPref].map(s => s.toUpperCase());
-      const missingList = [...requirements.mustHave, ...requirements.preferred]
-        .filter(s => !userSkills.includes(s))
-        .map(s => s.toUpperCase());
-
-      // Fetch dynamic insights
       const res = await fetch("/api/ai/resume-match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          selectedJobRole: role,
-          atsScore: atsScoreVal,
-          matchScore: matchScoreVal,
-          skillMatchPercentage: skillMatchVal,
-          matchedSkills: matchedList,
-          missingSkills: missingList,
-          fullName: currentDetails.fullName
+          resumeText: JSON.stringify(parsedResumeDetails),
+          jobDescription: jdText
         })
       });
 
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && data.success && data.result) {
+        const r = data.result;
         updateAnalysis({
-          atsScore: atsScoreVal,
-          matchScore: matchScoreVal,
-          skillMatchPercentage: skillMatchVal,
-          completeness: completenessVal,
-          matchedSkills: matchedList,
-          missingSkills: missingList,
-          missingKeywords: missingList.slice(0, 3),
-          strengths: data.result.strengths || [],
-          improvements: data.result.weaknesses || [],
-          recommendations: data.result.suggestions || [],
-          certRecommendations: data.result.certRecommendations || [],
-          projectRecommendations: data.result.techRecommendations || []
+          atsScore: r.overallAtsScore || 0,
+          matchScore: r.jobMatchPercentage || 0,
+          skillMatchPercentage: r.skillMatchPercentage || 0,
+          keywordMatchPercentage: r.keywordMatchPercentage || 0,
+          experienceMatchPercentage: r.experienceMatchPercentage || 0,
+          matchedSkills: r.matchedSkills || [],
+          missingSkills: r.missingSkills || [],
+          missingKeywords: r.missingKeywords || [],
+          strengths: r.strengths || [],
+          improvements: r.weaknesses || [],
+          recommendations: r.suggestions || [],
+          certRecommendations: r.certRecommendations || [],
+          projectRecommendations: r.techRecommendations || []
         });
+      } else {
+        setError(data.error || "Failed to analyze target alignment.");
       }
-    } catch (err) {
-      console.error("Match analytics failed:", err);
+    } catch (err: any) {
+      setError("Failed to communicate with matching engine: " + err.message);
     } finally {
       setAnalyzing(false);
     }
   };
 
-  useEffect(() => {
-    if (parsedResumeDetails && verified) {
-      runMatchingAnalytics(parsedResumeDetails, selectedJobRole);
-    }
-  }, [selectedJobRole]);
+  // Reset/Re-evaluate with new JD
+  const handleResetAnalysis = () => {
+    updateAnalysis({
+      atsScore: 0,
+      matchScore: 0,
+      skillMatchPercentage: 0,
+      keywordMatchPercentage: 0,
+      experienceMatchPercentage: 0,
+      matchedSkills: [],
+      missingSkills: [],
+      missingKeywords: [],
+      strengths: [],
+      improvements: [],
+      recommendations: [],
+      certRecommendations: [],
+      projectRecommendations: []
+    });
+    setJdText("");
+    setTargetTitle("");
+    setSelectedJobId("");
+  };
 
-  // Handle resume uploading
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle original resume uploading
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -193,13 +192,13 @@ export default function AIResumeMatchWidget() {
         const data = await res.json();
         if (data.success) {
           setResumeData(file.name, base64Data, file.type || "application/pdf", data.result, data.confidenceScores);
-          setActiveWidgetMode("review");
+          setVerified(false);
           setActiveEditorTab("personal");
         } else {
           setError(data.error || "Parsing failed.");
         }
       } catch (err: any) {
-        setError(err.message || "Failed to parse file.");
+        setError("Network error parsing resume: " + err.message);
       } finally {
         setLoading(false);
       }
@@ -207,261 +206,153 @@ export default function AIResumeMatchWidget() {
     reader.readAsDataURL(file);
   };
 
-  // Populate Profile & Save
-  const handleSaveAndVerify = async () => {
-    if (!parsedResumeDetails) return;
+  const handleSaveAndVerify = () => {
     setVerified(true);
-    setActiveWidgetMode("analysis");
-    await runMatchingAnalytics(parsedResumeDetails, selectedJobRole);
   };
 
-  // Re-upload action
   const handleReset = () => {
     deleteResume();
-    setActiveWidgetMode("review");
     setError("");
   };
 
-  // Helper: render confidence badge
-  const renderConfidenceBadge = (score: number | undefined) => {
-    if (score === undefined || score < 0) return null;
-    if (score >= 80) return <span className="px-2 py-0.5 rounded-full text-[8.5px] font-black bg-emerald-50 border border-emerald-100 text-emerald-600 font-sans uppercase">High</span>;
-    if (score >= 50) return <span className="px-2 py-0.5 rounded-full text-[8.5px] font-black bg-amber-50 border border-amber-100 text-amber-600 font-sans uppercase">Medium</span>;
-    return <span className="px-2 py-0.5 rounded-full text-[8.5px] font-black bg-rose-50 border border-rose-100 text-rose-600 font-sans uppercase">Low</span>;
+  // Section Helpers
+  const renderConfidenceBadge = (score: number) => {
+    const s = score || 0;
+    if (s >= 80) return <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-600 text-[8.5px] font-bold border border-emerald-100">HIGH ({s}%)</span>;
+    if (s >= 50) return <span className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-600 text-[8.5px] font-bold border border-amber-100">MED ({s}%)</span>;
+    return <span className="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-600 text-[8.5px] font-bold border border-rose-100">LOW ({s}%)</span>;
   };
 
-  if (loading) {
-    return (
-      <DashboardCard glowColor="purple" className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-        <div className="relative">
-          <RefreshCw className="h-10 w-10 text-purple-600 animate-spin" />
-          <Sparkles className="h-4 w-4 text-orange-500 absolute -top-1 -right-1 animate-pulse" />
-        </div>
-        <div>
-          <h3 className="font-display font-black text-slate-800 text-sm">Resume Intelligence Engine Active</h3>
-          <p className="text-[10px] text-slate-400 font-medium mt-1">Groq llama-3.3 parsing layout, extracting sections, & calculating confidence matrices...</p>
-        </div>
-      </DashboardCard>
-    );
-  }
-
-  // Upload state
+  // 1. Initial State: No parsed resume uploaded yet
   if (!parsedResumeDetails) {
     return (
-      <DashboardCard glowColor="blue" className="p-8 text-center space-y-6">
-        <div className="max-w-md mx-auto space-y-4">
-          <div className="h-12 w-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto text-blue-600">
-            <Upload className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="font-display font-bold text-slate-900 text-sm">Upload Candidate Resume</h3>
-            <p className="text-[10px] text-slate-400 mt-1.5 font-medium leading-relaxed">
-              Upload PDF or Word layout formats. Groq Intelligence will parse and populate details automatically.
-            </p>
-          </div>
+      <DashboardCard glowColor="blue" className="text-center p-8 space-y-6">
+        <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500 shadow-inner">
+          <Upload className="h-6 w-6" />
+        </div>
+        <div className="space-y-1.5">
+          <h4 className="font-display font-black text-slate-800 text-sm uppercase tracking-wider">AI Resume Intelligence Engine</h4>
+          <p className="text-slate-400 text-[10.5px] font-sans leading-relaxed max-w-sm mx-auto">
+            Upload your resume (PDF, Word, or ATS template) to build your dynamic profile instantly and run matching diagnostics.
+          </p>
+        </div>
 
-          <label className="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-3xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all bg-slate-50/50 hover:bg-white group">
-            <FileText className="h-8 w-8 text-slate-400 group-hover:text-blue-500 transition-colors" />
-            <span className="text-[10.5px] font-bold text-slate-700 mt-2 block">Choose PDF or DOCX file</span>
-            <input type="file" onChange={handleFileUpload} accept=".pdf,.docx" className="hidden" />
+        {error && (
+          <div className="p-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-[10.5px] font-semibold">
+            {error}
+          </div>
+        )}
+
+        <div className="flex flex-col items-center gap-2">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all shadow-sm">
+            {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+            {loading ? "Analyzing resume contents..." : "Select Resume File"}
+            <input type="file" accept=".pdf,.docx,.doc,.txt" onChange={handleResumeUpload} className="hidden" disabled={loading} />
           </label>
-
-          {error && (
-            <div className="flex items-center gap-2 p-3 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-[10px] text-left">
-              <AlertTriangle className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+          <span className="text-[9px] text-slate-400 font-medium">Supports PDF, DOCX up to 10MB</span>
         </div>
       </DashboardCard>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Mode Selection Tabs */}
-      <div className="flex justify-between items-center bg-white p-2 rounded-2xl border border-slate-100 shadow-xs">
-        <div className="flex gap-1">
-          <button
-            onClick={() => setActiveWidgetMode("review")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeWidgetMode === "review" ? "bg-slate-900 text-white shadow-xs" : "text-slate-500 hover:bg-slate-50"
-            }`}
-          >
-            1. Review & Edit Fields
-          </button>
-          <button
-            onClick={() => {
-              if (verified) {
-                setActiveWidgetMode("analysis");
-              }
-            }}
-            disabled={!verified}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              !verified ? "opacity-50 cursor-not-allowed text-slate-300" :
-              activeWidgetMode === "analysis" ? "bg-slate-900 text-white shadow-xs" : "text-slate-500 hover:bg-slate-50"
-            }`}
-          >
-            2. Match Analysis
-          </button>
+  // 2. Review State: Resume parsed but not verified/confirmed by student yet
+  if (!verified) {
+    return (
+      <div className="space-y-6 text-left">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h4 className="font-display font-black text-slate-800 text-sm uppercase tracking-wider">Review & Edit Wizard</h4>
+            <p className="text-[10px] text-slate-400 mt-0.5">Please review the extracted data before saving to profile.</p>
+          </div>
+          <span className="px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-bold">
+            Parsed: {fileName}
+          </span>
         </div>
-        <button
-          onClick={handleReset}
-          className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-1"
-        >
-          <RefreshCw className="h-3 w-3" /> Re-upload
-        </button>
-      </div>
 
-      {activeWidgetMode === "review" ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Editor Left Column */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Editor Sections Navigation */}
-            <div className="flex flex-wrap gap-1.5 pb-1">
+            <div className="flex flex-wrap gap-1.5 border-b border-slate-50 pb-2">
               {[
                 { id: "personal", label: "Personal Info", icon: User },
                 { id: "education", label: "Education", icon: BookOpen },
-                { id: "experience", label: "Experience", icon: Briefcase },
-                { id: "projects", label: "Projects", icon: FileText },
-                { id: "skills", label: "Skills", icon: Globe },
-                { id: "certs", label: "Certs & Awards", icon: Award }
-              ].map((tab) => {
-                const Icon = tab.icon;
+                { id: "experience", label: "Work History", icon: Briefcase },
+                { id: "projects", label: "Projects", icon: ClipboardList },
+                { id: "skills", label: "Skills Inventory", icon: Sparkles },
+                { id: "certs", label: "Certificates", icon: Award }
+              ].map(t => {
+                const Icon = t.icon;
                 return (
                   <button
-                    key={tab.id}
-                    onClick={() => setActiveEditorTab(tab.id as any)}
-                    className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black flex items-center gap-1.5 border transition-all ${
-                      activeEditorTab === tab.id
-                        ? "bg-blue-600 text-white border-blue-600 shadow-xs"
-                        : "bg-white text-slate-600 border-slate-100 hover:bg-slate-50"
+                    key={t.id}
+                    onClick={() => setActiveEditorTab(t.id as any)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10.5px] font-bold transition-all ${
+                      activeEditorTab === t.id 
+                        ? "bg-slate-900 text-white shadow-xs" 
+                        : "bg-white border border-slate-150 text-slate-655 hover:bg-slate-50"
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
-                    {tab.label}
+                    {t.label}
                   </button>
                 );
               })}
             </div>
 
-            {/* Editor details body */}
-            <DashboardCard glowColor="blue" className="text-left space-y-4">
-              {/* Personal Details */}
+            <DashboardCard glowColor="blue" className="p-5">
               {activeEditorTab === "personal" && (
-                <div className="space-y-4 font-sans">
-                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Candidate Personal Details</h4>
-                    {renderConfidenceBadge(confidenceScores.fullName)}
-                  </div>
+                <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400">Full Name</span>
-                      <Input
-                        type="text"
-                        value={parsedResumeDetails.fullName || ""}
-                        onChange={(e) => updateParsedDetails({ fullName: e.target.value })}
-                        className="h-8 text-xs font-semibold"
-                      />
+                      <span className="text-[9.5px] font-bold text-slate-450 uppercase tracking-wider block">Full Name</span>
+                      <Input type="text" value={parsedResumeDetails.fullName || ""} onChange={e => updateParsedDetails({ fullName: e.target.value })} className="h-8.5 text-xs font-semibold" />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400">Headline</span>
-                      <Input
-                        type="text"
-                        value={parsedResumeDetails.headline || ""}
-                        onChange={(e) => updateParsedDetails({ headline: e.target.value })}
-                        className="h-8 text-xs font-semibold"
-                      />
+                      <span className="text-[9.5px] font-bold text-slate-450 uppercase tracking-wider block">Headline</span>
+                      <Input type="text" value={parsedResumeDetails.headline || ""} onChange={e => updateParsedDetails({ headline: e.target.value })} className="h-8.5 text-xs" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-450 uppercase tracking-wider block">Email</span>
+                      <Input type="email" value={parsedResumeDetails.email || ""} onChange={e => updateParsedDetails({ email: e.target.value })} className="h-8.5 text-xs" />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400">Email</span>
-                      <Input
-                        type="email"
-                        value={parsedResumeDetails.email || ""}
-                        onChange={(e) => updateParsedDetails({ email: e.target.value })}
-                        className="h-8 text-xs font-semibold"
-                      />
+                      <span className="text-[9.5px] font-bold text-slate-450 uppercase tracking-wider block">Phone</span>
+                      <Input type="text" value={parsedResumeDetails.phone || ""} onChange={e => updateParsedDetails({ phone: e.target.value })} className="h-8.5 text-xs" />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400">Phone</span>
-                      <Input
-                        type="text"
-                        value={parsedResumeDetails.phone || ""}
-                        onChange={(e) => updateParsedDetails({ phone: e.target.value })}
-                        className="h-8 text-xs font-semibold"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400">Location</span>
-                      <Input
-                        type="text"
-                        value={parsedResumeDetails.location || ""}
-                        onChange={(e) => updateParsedDetails({ location: e.target.value })}
-                        className="h-8 text-xs font-semibold"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400">LinkedIn URL</span>
-                      <Input
-                        type="text"
-                        value={parsedResumeDetails.linkedin || ""}
-                        onChange={(e) => updateParsedDetails({ linkedin: e.target.value })}
-                        className="h-8 text-xs font-semibold"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400">GitHub URL</span>
-                      <Input
-                        type="text"
-                        value={parsedResumeDetails.github || ""}
-                        onChange={(e) => updateParsedDetails({ github: e.target.value })}
-                        className="h-8 text-xs font-semibold"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400">Portfolio</span>
-                      <Input
-                        type="text"
-                        value={parsedResumeDetails.portfolioWebsite || ""}
-                        onChange={(e) => updateParsedDetails({ portfolioWebsite: e.target.value })}
-                        className="h-8 text-xs font-semibold"
-                      />
+                      <span className="text-[9.5px] font-bold text-slate-450 uppercase tracking-wider block">Location</span>
+                      <Input type="text" value={parsedResumeDetails.location || ""} onChange={e => updateParsedDetails({ location: e.target.value })} className="h-8.5 text-xs" />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400">Career Summary / Bio</span>
-                    <textarea
-                      value={parsedResumeDetails.bio || ""}
-                      onChange={(e) => updateParsedDetails({ bio: e.target.value })}
-                      className="w-full rounded-2xl border border-slate-200 p-3 text-xs leading-relaxed outline-none h-24 font-medium resize-none bg-white transition-all focus:border-slate-800"
-                    />
+                    <span className="text-[9.5px] font-bold text-slate-450 uppercase tracking-wider block">Career Profile Bio</span>
+                    <textarea value={parsedResumeDetails.bio || ""} onChange={e => updateParsedDetails({ bio: e.target.value })} className="w-full rounded-2xl border border-slate-200 p-3 text-xs h-20 focus:outline-none focus:border-slate-800 bg-white" />
                   </div>
                 </div>
               )}
 
-              {/* Education section */}
               {activeEditorTab === "education" && (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Education Details</h4>
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-50">
+                    <h5 className="font-bold text-slate-700 text-xs">Education History</h5>
                     <button
                       onClick={() => {
-                        const current = parsedResumeDetails.education || [];
-                        updateParsedDetails({
-                          education: [...current, { degree: "", branch: "", institution: "", university: "", startYear: "", endYear: "", cgpa: "" }]
-                        });
+                        const current = [...(parsedResumeDetails.education || [])];
+                        current.push({ degree: "", branch: "", institution: "", university: "", startYear: "", endYear: "", cgpa: "" });
+                        updateParsedDetails({ education: current });
                       }}
-                      className="text-blue-600 hover:text-blue-700 font-bold text-[10px] flex items-center gap-0.5 bg-blue-50/50 px-2 py-1 rounded-lg"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-[10px]"
                     >
-                      <Plus className="h-3 w-3" /> Add Edu
+                      <Plus className="h-3.5 w-3.5" /> Add Degree
                     </button>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-3.5">
                     {(parsedResumeDetails.education || []).map((item, idx) => (
-                      <div key={idx} className="p-3 border border-slate-100 rounded-2xl relative space-y-3 bg-slate-50/20">
+                      <div key={idx} className="p-4 bg-slate-50/30 border border-slate-100 rounded-2xl relative space-y-3">
                         <button
                           onClick={() => {
-                            const current = parsedResumeDetails.education || [];
+                            const current = [...(parsedResumeDetails.education || [])];
                             updateParsedDetails({ education: current.filter((_, i) => i !== idx) });
                           }}
                           className="absolute top-2.5 right-2.5 text-slate-400 hover:text-red-500"
@@ -471,115 +362,82 @@ export default function AIResumeMatchWidget() {
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
                             <span className="text-[9.5px] font-bold text-slate-400">Degree</span>
-                            <Input
-                              type="text"
-                              value={item.degree}
-                              onChange={(e) => {
-                                const current = [...(parsedResumeDetails.education || [])];
-                                current[idx].degree = e.target.value;
-                                updateParsedDetails({ education: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
+                            <Input type="text" value={item.degree} onChange={e => {
+                              const current = [...(parsedResumeDetails.education || [])];
+                              current[idx].degree = e.target.value;
+                              updateParsedDetails({ education: current });
+                            }} className="h-7 text-[10.5px]" />
                           </div>
                           <div className="space-y-1">
-                            <span className="text-[9.5px] font-bold text-slate-400">Branch</span>
-                            <Input
-                              type="text"
-                              value={item.branch}
-                              onChange={(e) => {
-                                const current = [...(parsedResumeDetails.education || [])];
-                                current[idx].branch = e.target.value;
-                                updateParsedDetails({ education: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
+                            <span className="text-[9.5px] font-bold text-slate-400">Branch/Stream</span>
+                            <Input type="text" value={item.branch} onChange={e => {
+                              const current = [...(parsedResumeDetails.education || [])];
+                              current[idx].branch = e.target.value;
+                              updateParsedDetails({ education: current });
+                            }} className="h-7 text-[10.5px]" />
                           </div>
                           <div className="space-y-1">
                             <span className="text-[9.5px] font-bold text-slate-400">Institution</span>
-                            <Input
-                              type="text"
-                              value={item.institution}
-                              onChange={(e) => {
-                                const current = [...(parsedResumeDetails.education || [])];
-                                current[idx].institution = e.target.value;
-                                updateParsedDetails({ education: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
+                            <Input type="text" value={item.institution} onChange={e => {
+                              const current = [...(parsedResumeDetails.education || [])];
+                              current[idx].institution = e.target.value;
+                              updateParsedDetails({ education: current });
+                            }} className="h-7 text-[10.5px]" />
                           </div>
-                          <div className="space-y-1">
-                            <span className="text-[9.5px] font-bold text-slate-400">CGPA/Marks</span>
-                            <Input
-                              type="text"
-                              value={item.cgpa}
-                              onChange={(e) => {
-                                const current = [...(parsedResumeDetails.education || [])];
-                                current[idx].cgpa = e.target.value;
-                                updateParsedDetails({ education: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[9.5px] font-bold text-slate-400">Start Year</span>
-                            <Input
-                              type="text"
-                              value={item.startYear}
-                              onChange={(e) => {
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-1">
+                              <span className="text-[9.5px] font-bold text-slate-400">Start</span>
+                              <Input type="text" value={item.startYear} onChange={e => {
                                 const current = [...(parsedResumeDetails.education || [])];
                                 current[idx].startYear = e.target.value;
                                 updateParsedDetails({ education: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[9.5px] font-bold text-slate-400">End Year</span>
-                            <Input
-                              type="text"
-                              value={item.endYear}
-                              onChange={(e) => {
+                              }} className="h-7 text-[10.5px]" />
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9.5px] font-bold text-slate-400">End</span>
+                              <Input type="text" value={item.endYear} onChange={e => {
                                 const current = [...(parsedResumeDetails.education || [])];
                                 current[idx].endYear = e.target.value;
                                 updateParsedDetails({ education: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
+                              }} className="h-7 text-[10.5px]" />
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9.5px] font-bold text-slate-400">CGPA</span>
+                              <Input type="text" value={item.cgpa} onChange={e => {
+                                const current = [...(parsedResumeDetails.education || [])];
+                                current[idx].cgpa = e.target.value;
+                                updateParsedDetails({ education: current });
+                              }} className="h-7 text-[10.5px]" />
+                            </div>
                           </div>
                         </div>
                       </div>
                     ))}
-                    {(parsedResumeDetails.education || []).length === 0 && (
-                      <p className="text-slate-400 italic text-[10px]">No education records. Click Add Edu to create one.</p>
-                    )}
                   </div>
                 </div>
               )}
 
-              {/* Experience section */}
               {activeEditorTab === "experience" && (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Professional Experience</h4>
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-50">
+                    <h5 className="font-bold text-slate-700 text-xs">Work History</h5>
                     <button
                       onClick={() => {
-                        const current = parsedResumeDetails.experience || [];
-                        updateParsedDetails({
-                          experience: [...current, { companyName: "", role: "", employmentType: "Full-Time", startDate: "", endDate: "", duration: "", responsibilities: "", technologiesUsed: [] }]
-                        });
+                        const current = [...(parsedResumeDetails.experience || [])];
+                        current.push({ companyName: "", role: "", employmentType: "Full-Time", startDate: "", endDate: "", duration: "", responsibilities: "" });
+                        updateParsedDetails({ experience: current });
                       }}
-                      className="text-blue-600 hover:text-blue-700 font-bold text-[10px] flex items-center gap-0.5 bg-blue-50/50 px-2 py-1 rounded-lg"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-[10px]"
                     >
-                      <Plus className="h-3 w-3" /> Add Exp
+                      <Plus className="h-3.5 w-3.5" /> Add Experience
                     </button>
                   </div>
                   <div className="space-y-4">
                     {(parsedResumeDetails.experience || []).map((item, idx) => (
-                      <div key={idx} className="p-3 border border-slate-100 rounded-2xl relative space-y-3 bg-slate-50/20 text-[10.5px]">
+                      <div key={idx} className="p-4 bg-slate-50/30 border border-slate-100 rounded-2xl relative space-y-3">
                         <button
                           onClick={() => {
-                            const current = parsedResumeDetails.experience || [];
+                            const current = [...(parsedResumeDetails.experience || [])];
                             updateParsedDetails({ experience: current.filter((_, i) => i !== idx) });
                           }}
                           className="absolute top-2.5 right-2.5 text-slate-400 hover:text-red-500"
@@ -588,215 +446,155 @@ export default function AIResumeMatchWidget() {
                         </button>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <span className="text-[9.5px] font-bold text-slate-400">Company Name</span>
-                            <Input
-                              type="text"
-                              value={item.companyName}
-                              onChange={(e) => {
-                                const current = [...(parsedResumeDetails.experience || [])];
-                                current[idx].companyName = e.target.value;
-                                updateParsedDetails({ experience: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
+                            <span className="text-[9.5px] font-bold text-slate-400">Company</span>
+                            <Input type="text" value={item.companyName} onChange={e => {
+                              const current = [...(parsedResumeDetails.experience || [])];
+                              current[idx].companyName = e.target.value;
+                              updateParsedDetails({ experience: current });
+                            }} className="h-7 text-[10.5px]" />
                           </div>
                           <div className="space-y-1">
                             <span className="text-[9.5px] font-bold text-slate-400">Role</span>
-                            <Input
-                              type="text"
-                              value={item.role}
-                              onChange={(e) => {
-                                const current = [...(parsedResumeDetails.experience || [])];
-                                current[idx].role = e.target.value;
-                                updateParsedDetails({ experience: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
+                            <Input type="text" value={item.role} onChange={e => {
+                              const current = [...(parsedResumeDetails.experience || [])];
+                              current[idx].role = e.target.value;
+                              updateParsedDetails({ experience: current });
+                            }} className="h-7 text-[10.5px]" />
                           </div>
-                          <div className="space-y-1">
-                            <span className="text-[9.5px] font-bold text-slate-400">Start Date</span>
-                            <Input
-                              type="text"
-                              value={item.startDate}
-                              onChange={(e) => {
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <span className="text-[9.5px] font-bold text-slate-400">Start Date</span>
+                              <Input type="text" value={item.startDate} onChange={e => {
                                 const current = [...(parsedResumeDetails.experience || [])];
                                 current[idx].startDate = e.target.value;
                                 updateParsedDetails({ experience: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[9.5px] font-bold text-slate-400">End Date</span>
-                            <Input
-                              type="text"
-                              value={item.endDate}
-                              onChange={(e) => {
+                              }} className="h-7 text-[10.5px]" />
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9.5px] font-bold text-slate-400">End Date</span>
+                              <Input type="text" value={item.endDate} onChange={e => {
                                 const current = [...(parsedResumeDetails.experience || [])];
                                 current[idx].endDate = e.target.value;
                                 updateParsedDetails({ experience: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
+                              }} className="h-7 text-[10.5px]" />
+                            </div>
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[9.5px] font-bold text-slate-400 font-sans">Responsibilities & Key Tasks</span>
-                          <textarea
-                            value={item.responsibilities}
-                            onChange={(e) => {
-                              const current = [...(parsedResumeDetails.experience || [])];
-                              current[idx].responsibilities = e.target.value;
-                              updateParsedDetails({ experience: current });
-                            }}
-                            className="w-full rounded-2xl border border-slate-200 p-2.5 text-[10.5px] outline-none h-16 resize-none font-medium bg-white"
-                          />
+                          <span className="text-[9.5px] font-bold text-slate-400">Responsibilities</span>
+                          <textarea value={item.responsibilities} onChange={e => {
+                            const current = [...(parsedResumeDetails.experience || [])];
+                            current[idx].responsibilities = e.target.value;
+                            updateParsedDetails({ experience: current });
+                          }} className="w-full rounded-xl border border-slate-200 p-2.5 text-[10.5px] h-16 bg-white focus:outline-none" />
                         </div>
                       </div>
                     ))}
-                    {(parsedResumeDetails.experience || []).length === 0 && (
-                      <p className="text-slate-400 italic text-[10px]">No work history recorded. Click Add Exp to create one.</p>
-                    )}
                   </div>
                 </div>
               )}
 
-              {/* Projects section */}
               {activeEditorTab === "projects" && (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Projects Portfolio</h4>
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-50">
+                    <h5 className="font-bold text-slate-700 text-xs">Technical Projects</h5>
                     <button
                       onClick={() => {
-                        const current = parsedResumeDetails.projects || [];
-                        updateParsedDetails({
-                          projects: [...current, { projectTitle: "", description: "", technologiesUsed: [], githubLink: "", liveUrl: "", duration: "" }]
-                        });
+                        const current = [...(parsedResumeDetails.projects || [])];
+                        current.push({ projectTitle: "", description: "", technologiesUsed: [], githubLink: "", liveUrl: "", duration: "" });
+                        updateParsedDetails({ projects: current });
                       }}
-                      className="text-blue-600 hover:text-blue-700 font-bold text-[10px] flex items-center gap-0.5 bg-blue-50/50 px-2 py-1 rounded-lg"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-[10px]"
                     >
-                      <Plus className="h-3 w-3" /> Add Project
+                      <Plus className="h-3.5 w-3.5" /> Add Project
                     </button>
                   </div>
                   <div className="space-y-4">
                     {(parsedResumeDetails.projects || []).map((item, idx) => (
-                      <div key={idx} className="p-3 border border-slate-100 rounded-2xl relative space-y-3 bg-slate-50/20 text-[10.5px]">
+                      <div key={idx} className="p-4 bg-slate-50/30 border border-slate-100 rounded-2xl relative space-y-3">
                         <button
                           onClick={() => {
-                            const current = parsedResumeDetails.projects || [];
+                            const current = [...(parsedResumeDetails.projects || [])];
                             updateParsedDetails({ projects: current.filter((_, i) => i !== idx) });
                           }}
                           className="absolute top-2.5 right-2.5 text-slate-400 hover:text-red-500"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <span className="text-[9.5px] font-bold text-slate-400">Project Title</span>
-                            <Input
-                              type="text"
-                              value={item.projectTitle}
-                              onChange={(e) => {
-                                const current = [...(parsedResumeDetails.projects || [])];
-                                current[idx].projectTitle = e.target.value;
-                                updateParsedDetails({ projects: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[9.5px] font-bold text-slate-400">Github Link</span>
-                            <Input
-                              type="text"
-                              value={item.githubLink}
-                              onChange={(e) => {
-                                const current = [...(parsedResumeDetails.projects || [])];
-                                current[idx].githubLink = e.target.value;
-                                updateParsedDetails({ projects: current });
-                              }}
-                              className="h-7 text-[10.5px]"
-                            />
-                          </div>
+                        <div className="space-y-1">
+                          <span className="text-[9.5px] font-bold text-slate-400">Project Title</span>
+                          <Input type="text" value={item.projectTitle} onChange={e => {
+                            const current = [...(parsedResumeDetails.projects || [])];
+                            current[idx].projectTitle = e.target.value;
+                            updateParsedDetails({ projects: current });
+                          }} className="h-7.5 text-xs font-semibold" />
                         </div>
                         <div className="space-y-1">
                           <span className="text-[9.5px] font-bold text-slate-400">Description</span>
-                          <textarea
-                            value={item.description}
-                            onChange={(e) => {
-                              const current = [...(parsedResumeDetails.projects || [])];
-                              current[idx].description = e.target.value;
-                              updateParsedDetails({ projects: current });
-                            }}
-                            className="w-full rounded-2xl border border-slate-200 p-2.5 text-[10.5px] outline-none h-16 resize-none font-medium bg-white"
-                          />
+                          <textarea value={item.description} onChange={e => {
+                            const current = [...(parsedResumeDetails.projects || [])];
+                            current[idx].description = e.target.value;
+                            updateParsedDetails({ projects: current });
+                          }} className="w-full rounded-xl border border-slate-200 p-2.5 text-[10.5px] h-16 bg-white focus:outline-none" />
                         </div>
                       </div>
                     ))}
-                    {(parsedResumeDetails.projects || []).length === 0 && (
-                      <p className="text-slate-400 italic text-[10px]">No projects listed. Click Add Project to create one.</p>
-                    )}
                   </div>
                 </div>
               )}
 
-              {/* Skills Editor */}
               {activeEditorTab === "skills" && (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Skills Inventory</h4>
-                  </div>
-                  <div className="space-y-3 font-sans">
+                  <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">Skills & Languages</span>
+                  <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <span className="text-[10px] font-bold text-slate-400">Technical Skills</span>
+                      <span className="text-[10px] font-bold text-slate-500">Technical Skills (Comma separated)</span>
                       <textarea
-                        value={(parsedResumeDetails.technicalSkills || []).join(", ")}
-                        onChange={(e) => {
+                        value={(parsedResumeDetails.verifiedSkills || []).join(", ")}
+                        onChange={e => {
                           const list = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
-                          updateParsedDetails({ technicalSkills: list });
+                          updateParsedDetails({ verifiedSkills: list });
                         }}
-                        placeholder="React, TypeScript, Node.js"
-                        className="w-full rounded-2xl border border-slate-200 p-3 text-xs leading-relaxed outline-none h-20 font-medium resize-none bg-white focus:border-slate-800"
+                        className="w-full rounded-xl border border-slate-200 p-2.5 text-xs h-24 bg-white"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <span className="text-[10px] font-bold text-slate-400">Soft Skills</span>
-                      <textarea
-                        value={(parsedResumeDetails.softSkills || []).join(", ")}
-                        onChange={(e) => {
+                      <span className="text-[10px] font-bold text-slate-500">Languages (Comma separated)</span>
+                      <Input
+                        type="text"
+                        value={(parsedResumeDetails.languagesKnown || []).join(", ")}
+                        onChange={e => {
                           const list = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
-                          updateParsedDetails({ softSkills: list });
+                          updateParsedDetails({ languagesKnown: list });
                         }}
-                        placeholder="Communication, Teamwork, Problem Solving"
-                        className="w-full rounded-2xl border border-slate-200 p-3 text-xs leading-relaxed outline-none h-20 font-medium resize-none bg-white focus:border-slate-800"
+                        className="h-8.5 text-xs"
                       />
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Certifications and Achievements */}
               {activeEditorTab === "certs" && (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-                    <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Certifications & Achievements</h4>
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-50">
+                    <h5 className="font-bold text-slate-700 text-xs">Certifications</h5>
                     <button
                       onClick={() => {
-                        const current = parsedResumeDetails.certifications || [];
-                        updateParsedDetails({
-                          certifications: [...current, { certificationName: "", organization: "", date: "", credentialId: "" }]
-                        });
+                        const current = [...(parsedResumeDetails.certifications || [])];
+                        current.push({ certificationName: "", organization: "", date: "", credentialId: "" });
+                        updateParsedDetails({ certifications: current });
                       }}
-                      className="text-blue-600 hover:text-blue-700 font-bold text-[10px] flex items-center gap-0.5 bg-blue-50/50 px-2 py-1 rounded-lg"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-[10px]"
                     >
-                      <Plus className="h-3 w-3" /> Add Cert
+                      <Plus className="h-3.5 w-3.5" /> Add Cert
                     </button>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-3.5">
                     {(parsedResumeDetails.certifications || []).map((item, idx) => (
-                      <div key={idx} className="p-3 border border-slate-100 rounded-2xl relative space-y-3 bg-slate-50/20 text-[10.5px]">
+                      <div key={idx} className="p-3.5 bg-slate-50/30 border border-slate-100 rounded-2xl relative space-y-2">
                         <button
                           onClick={() => {
-                            const current = parsedResumeDetails.certifications || [];
+                            const current = [...(parsedResumeDetails.certifications || [])];
                             updateParsedDetails({ certifications: current.filter((_, i) => i !== idx) });
                           }}
                           className="absolute top-2.5 right-2.5 text-slate-400 hover:text-red-500"
@@ -809,7 +607,7 @@ export default function AIResumeMatchWidget() {
                             <Input
                               type="text"
                               value={item.certificationName}
-                              onChange={(e) => {
+                              onChange={e => {
                                 const current = [...(parsedResumeDetails.certifications || [])];
                                 current[idx].certificationName = e.target.value;
                                 updateParsedDetails({ certifications: current });
@@ -822,7 +620,7 @@ export default function AIResumeMatchWidget() {
                             <Input
                               type="text"
                               value={item.organization}
-                              onChange={(e) => {
+                              onChange={e => {
                                 const current = [...(parsedResumeDetails.certifications || [])];
                                 current[idx].organization = e.target.value;
                                 updateParsedDetails({ certifications: current });
@@ -833,16 +631,12 @@ export default function AIResumeMatchWidget() {
                         </div>
                       </div>
                     ))}
-                    {(parsedResumeDetails.certifications || []).length === 0 && (
-                      <p className="text-slate-400 italic text-[10px]">No certifications listed. Click Add Cert to create one.</p>
-                    )}
                   </div>
                 </div>
               )}
             </DashboardCard>
           </div>
 
-          {/* Right Persistence Details & Metrics Bar */}
           <div className="space-y-6">
             <DashboardCard glowColor="indigo" className="text-left space-y-5">
               <div>
@@ -850,7 +644,6 @@ export default function AIResumeMatchWidget() {
                 <p className="text-[10px] text-slate-400 mt-0.5">Resume Parser structured validation metrics</p>
               </div>
 
-              {/* Confidence Gauges */}
               <div className="space-y-3 border-t border-b border-slate-50 py-4">
                 <h5 className="font-black text-slate-500 text-[9px] uppercase tracking-wider">Section Confidence levels</h5>
                 <div className="space-y-2.5">
@@ -875,7 +668,6 @@ export default function AIResumeMatchWidget() {
                 </div>
               </div>
 
-              {/* Save CTAs */}
               <div className="space-y-3.5 pt-1">
                 <button
                   onClick={handleSaveAndVerify}
@@ -893,39 +685,270 @@ export default function AIResumeMatchWidget() {
             </DashboardCard>
           </div>
         </div>
-      ) : (
-        /* Match Analysis view mode */
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
-          <div className="lg:col-span-2 space-y-6">
-            {/* ATS Score card */}
-            <DashboardCard glowColor="purple" className="flex flex-col md:flex-row items-center gap-6">
-              <div className="relative h-24 w-24 flex items-center justify-center shrink-0">
-                <svg className="h-full w-full -rotate-90">
-                  <circle cx="48" cy="48" r="40" className="stroke-slate-50 fill-transparent stroke-[6px]" />
-                  <circle
-                    cx="48"
-                    cy="48"
-                    r="40"
-                    className="fill-transparent stroke-[6px] stroke-purple-600 transition-all duration-700"
-                    strokeDasharray={2 * Math.PI * 40}
-                    strokeDashoffset={2 * Math.PI * 40 - (atsScore / 100) * (2 * Math.PI * 40)}
-                  />
-                </svg>
-                <span className="absolute text-xl font-black text-slate-900 font-mono">{atsScore}%</span>
+      </div>
+    );
+  }
+
+  // 3. Verified State: Resume is verified.
+  // Display Target JD Selection interface OR dynamic scorecard matching.
+  const hasResult = atsScore > 0;
+
+  return (
+    <div className="w-full text-left">
+      <AnimatePresence mode="wait">
+        {!hasResult ? (
+          /* JD Input panel */
+          <motion.div
+            key="jd-input"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="max-w-3xl mx-auto space-y-6"
+          >
+            <DashboardCard glowColor="purple" className="p-6 space-y-5">
+              <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+                <div className="space-y-1">
+                  <h3 className="font-display font-black text-slate-800 text-sm uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="h-4.5 w-4.5 text-purple-500 animate-pulse" /> Real-World ATS Evaluation setup
+                  </h3>
+                  <p className="text-[10px] text-slate-450 leading-relaxed font-sans">
+                    Configure a target Job Description to dynamically evaluate your resume's keyword, skill, and formatting compatibility metrics.
+                  </p>
+                </div>
+                <button onClick={handleReset} className="text-[10px] font-bold text-red-500 hover:underline">Change Resume</button>
               </div>
-              <div className="space-y-1.5 text-center md:text-left">
-                <span className="px-2 py-0.5 rounded-full bg-purple-50 border border-purple-100 text-purple-600 font-black text-[9px] uppercase tracking-wider font-sans">
-                  ATS Score Analysis
-                </span>
-                <h4 className="font-display font-black text-slate-900 text-sm">Overall Profile ATS Score</h4>
-                <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-                  Calculated based on skill match rates for {selectedJobRole}, education completeness, and professional work formatting.
-                </p>
+
+              {error && (
+                <div className="p-3.5 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-[10.5px] font-semibold flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              {/* JD Entry Modes */}
+              <div className="flex gap-1.5 border-b border-slate-50 pb-2">
+                {[
+                  { id: "paste", label: "Paste JD Text", icon: FileText },
+                  { id: "select", label: "Select Job from Platform", icon: ClipboardList },
+                  { id: "file", label: "Upload JD File", icon: FileUp }
+                ].map(mode => (
+                  <button
+                    key={mode.id}
+                    onClick={() => {
+                      setJdMode(mode.id as any);
+                      setError("");
+                    }}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                      jdMode === mode.id 
+                        ? "bg-slate-900 text-white shadow-xs" 
+                        : "bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-655"
+                    }`}
+                  >
+                    <mode.icon className="h-3.5 w-3.5" />
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Mode Fields */}
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <span className="text-[9.5px] font-bold text-slate-450 uppercase block tracking-wider">Target Job Title</span>
+                  <Input 
+                    type="text" 
+                    placeholder="e.g. Senior React Developer" 
+                    value={targetTitle} 
+                    onChange={e => setTargetTitle(e.target.value)} 
+                    className="h-9 text-xs" 
+                  />
+                </div>
+
+                {jdMode === "paste" && (
+                  <div className="space-y-1">
+                    <span className="text-[9.5px] font-bold text-slate-450 uppercase block tracking-wider">Job Description Details</span>
+                    <textarea
+                      placeholder="Paste the target responsibilities, qualifications, and requirements of the role here..."
+                      value={jdText}
+                      onChange={e => setJdText(e.target.value)}
+                      className="w-full rounded-2xl border border-slate-200 p-3 text-xs h-32 focus:outline-none focus:border-slate-800 bg-white font-medium"
+                    />
+                  </div>
+                )}
+
+                {jdMode === "select" && (
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-450 uppercase block tracking-wider">Select Platform Job Opening</span>
+                      <select
+                        value={selectedJobId}
+                        onChange={e => handleJobSelect(e.target.value)}
+                        className="w-full h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold outline-none focus:border-slate-800 focus:bg-white"
+                      >
+                        <option value="">-- Choose Job Opening --</option>
+                        {platformJobs.map(j => (
+                          <option key={j.id} value={j.id}>{j.title} ({j.category})</option>
+                        ))}
+                      </select>
+                    </div>
+                    {jdText && (
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase block tracking-wider">Extracted Details</span>
+                        <pre className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-[9px] text-slate-500 font-mono overflow-auto max-h-24 whitespace-pre-wrap">{jdText}</pre>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {jdMode === "file" && (
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-450 uppercase block tracking-wider">Upload Job Description File</span>
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <FileUp className="h-6 w-6 text-slate-400 mb-1" />
+                        <span className="text-[10px] font-bold text-slate-600">Choose Text / Markdown / Word Document</span>
+                        <input type="file" accept=".txt,.md,.docx,.doc" onChange={handleJdFileUpload} className="hidden" />
+                      </label>
+                    </div>
+                    {jdText && (
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase block tracking-wider">Extracted Details</span>
+                        <pre className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-[9px] text-slate-500 font-mono overflow-auto max-h-24 whitespace-pre-wrap">{jdText}</pre>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2 border-t border-slate-50">
+                <button
+                  onClick={runRealAtsAnalysis}
+                  disabled={analyzing}
+                  className="w-full rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3 text-xs shadow-md shadow-purple-500/10 hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                >
+                  {analyzing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 animate-pulse" />}
+                  {analyzing ? "Evaluating resume against Job Description..." : "Analyze ATS & Job Match Compatibility"}
+                </button>
               </div>
             </DashboardCard>
+          </motion.div>
+        ) : (
+          /* Match scorecard view */
+          <motion.div
+            key="scorecard"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="space-y-6"
+          >
+            {/* ATS Score Overview */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* ATS radial score card */}
+              <div className="lg:col-span-2">
+                <DashboardCard glowColor="purple" className="flex flex-col md:flex-row items-center gap-6 p-6">
+                  <div className="relative h-24 w-24 flex items-center justify-center shrink-0">
+                    <svg className="h-full w-full -rotate-90">
+                      <circle cx="48" cy="48" r="40" className="stroke-slate-50 fill-transparent stroke-[6px]" />
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r="40"
+                        className="fill-transparent stroke-[6px] stroke-purple-600 transition-all duration-700"
+                        strokeDasharray={2 * Math.PI * 40}
+                        strokeDashoffset={2 * Math.PI * 40 - (atsScore / 100) * (2 * Math.PI * 40)}
+                      />
+                    </svg>
+                    <span className="absolute text-xl font-black text-slate-900 font-mono">{atsScore}%</span>
+                  </div>
+                  <div className="space-y-1.5 text-center md:text-left flex-1">
+                    <span className="px-2 py-0.5 rounded-full bg-purple-50 border border-purple-100 text-purple-600 font-black text-[9px] uppercase tracking-wider font-sans">
+                      ATS Evaluation Scorecard
+                    </span>
+                    <h4 className="font-display font-black text-slate-900 text-sm">Target: {targetTitle || "Software Engineer"}</h4>
+                    <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                      This scorecard displays metrics evaluated by the AI Matching Engine comparing your resume data against the specific target Job Description.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleResetAnalysis}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 text-[10px] transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" /> Re-evaluate
+                  </button>
+                </DashboardCard>
+              </div>
 
-            {/* Strengths and Improvements */}
+              {/* Dynamic ATS Metrics Breakdown */}
+              <div>
+                <DashboardCard glowColor="indigo" className="p-5 space-y-3.5">
+                  <h5 className="font-black text-slate-800 text-[10px] uppercase tracking-wider">ATS Score Breakdown</h5>
+                  <div className="space-y-2 text-[10px] font-sans">
+                    {[
+                      { label: "Job Match %", val: matchScore },
+                      { label: "Keyword Match %", val: useResumeStore.getState().keywordMatchPercentage },
+                      { label: "Skills Match %", val: skillMatchPercentage },
+                      { label: "Experience Match %", val: useResumeStore.getState().experienceMatchPercentage }
+                    ].map(metric => (
+                      <div key={metric.label} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                        <span className="font-semibold text-slate-500">{metric.label}</span>
+                        <span className="font-black text-slate-800 font-mono">{metric.val !== undefined && metric.val > 0 ? `${metric.val}%` : "Insufficient Data"}</span>
+                      </div>
+                    ))}
+                  </div>
+                </DashboardCard>
+              </div>
+            </div>
+
+            {/* Keyword matching analysis */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Matched vs Missing skills */}
+              <DashboardCard glowColor="blue" className="space-y-4">
+                <h4 className="font-display font-black text-slate-900 text-xs flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-blue-500" /> Target Skills Check
+                </h4>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Matched Skills</span>
+                    <div className="flex flex-wrap gap-1">
+                      {matchedSkills.map(skill => (
+                        <span key={skill} className="px-2 py-0.5 rounded bg-emerald-50 border border-emerald-100 text-emerald-600 font-black text-[9px] uppercase tracking-wider font-mono">{skill}</span>
+                      ))}
+                      {matchedSkills.length === 0 && <span className="text-slate-400 italic text-[9.5px]">None matched.</span>}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 pt-2 border-t border-slate-50">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Missing Skills</span>
+                    <div className="flex flex-wrap gap-1">
+                      {missingSkills.map(skill => (
+                        <span key={skill} className="px-2 py-0.5 rounded bg-rose-50 border border-rose-100 text-rose-600 font-black text-[9px] uppercase tracking-wider font-mono">{skill}</span>
+                      ))}
+                      {missingSkills.length === 0 && <span className="text-slate-400 italic text-[9.5px]">No missing skills.</span>}
+                    </div>
+                  </div>
+                </div>
+              </DashboardCard>
+
+              {/* Missing keywords list */}
+              <DashboardCard glowColor="orange" className="space-y-4">
+                <h4 className="font-display font-black text-slate-900 text-xs flex items-center gap-1.5">
+                  <AlertTriangle className="h-4 w-4 text-orange-500 animate-pulse" /> Missing JD Keywords
+                </h4>
+                <p className="text-[9.5px] text-slate-450 leading-relaxed font-sans">
+                  The following keywords were identified in the Job Description but are completely absent from your profile. Incorporate them in descriptions to score higher:
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {missingKeywords.map(keyword => (
+                    <span key={keyword} className="px-2 py-0.5 rounded bg-amber-50 border border-amber-100 text-amber-600 font-black text-[9px] uppercase tracking-wider font-mono">{keyword}</span>
+                  ))}
+                  {missingKeywords.length === 0 && <span className="text-slate-400 italic text-[9.5px]">No missing keywords detected.</span>}
+                </div>
+              </DashboardCard>
+            </div>
+
+            {/* Strengths & Rewrite suggestions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
               <DashboardCard glowColor="blue" className="space-y-4">
                 <h4 className="font-display font-black text-slate-900 text-xs flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Resume Strengths
@@ -937,67 +960,60 @@ export default function AIResumeMatchWidget() {
                       <span>{str}</span>
                     </li>
                   ))}
-                  {strengths.length === 0 && <li className="text-slate-400 italic">Calculating matching highlights...</li>}
+                  {strengths.length === 0 && <li className="text-slate-400 italic">No strengths calculated.</li>}
                 </ul>
               </DashboardCard>
 
-              <DashboardCard glowColor="orange" className="space-y-4">
+              <DashboardCard glowColor="purple" className="space-y-4">
                 <h4 className="font-display font-black text-slate-900 text-xs flex items-center gap-1.5">
-                  <AlertTriangle className="h-4 w-4 text-orange-500" /> Improvement Areas
+                  <Lightbulb className="h-4 w-4 text-purple-500 animate-pulse" /> Actionable Rewrite Suggestions
                 </h4>
                 <ul className="space-y-2 text-[10.5px] text-slate-655 font-medium leading-relaxed">
-                  {improvements.map((imp, idx) => (
+                  {recommendations.map((rec, idx) => (
                     <li key={idx} className="flex items-start gap-1">
-                      <span className="text-orange-500 font-bold">•</span>
-                      <span>{imp}</span>
+                      <span className="text-purple-500 font-bold">•</span>
+                      <span>{rec}</span>
                     </li>
                   ))}
-                  {improvements.length === 0 && <li className="text-slate-400 italic">Calculating improvement areas...</li>}
+                  {recommendations.length === 0 && <li className="text-slate-400 italic">No suggestions calculated.</li>}
                 </ul>
               </DashboardCard>
             </div>
-          </div>
 
-          {/* Job Target selector */}
-          <div className="space-y-6">
-            <DashboardCard glowColor="indigo" className="space-y-4">
-              <div>
-                <h4 className="font-display font-black text-slate-800 text-[11px] uppercase tracking-wider">Target Job Role</h4>
-                <p className="text-[9.5px] text-slate-400 mt-0.5">Select a role to analyze ATS compatibility</p>
-              </div>
-              <select
-                value={selectedJobRole}
-                onChange={(e) => setSelectedJobRole(e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold outline-none focus:border-slate-800 focus:bg-white"
-              >
-                {Object.keys(ROLE_SKILLS_MAP).map((role) => (
-                  <option key={role} value={role}>{role}</option>
-                ))}
-              </select>
+            {/* Recommendations */}
+            {(certRecommendations.length > 0 || projectRecommendations.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {certRecommendations.length > 0 && (
+                  <DashboardCard glowColor="indigo" className="space-y-3">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Recommended Certifications</span>
+                    <div className="space-y-1.5">
+                      {certRecommendations.map((cert, idx) => (
+                        <div key={idx} className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-semibold text-slate-700">
+                          {cert}
+                        </div>
+                      ))}
+                    </div>
+                  </DashboardCard>
+                )}
 
-              <div className="pt-2 border-t border-slate-50 space-y-3">
-                <h5 className="font-black text-slate-400 text-[9px] uppercase tracking-wider">Matched Skills</h5>
-                <div className="flex flex-wrap gap-1">
-                  {matchedSkills.map((skill) => (
-                    <span key={skill} className="px-2 py-0.5 rounded bg-emerald-50 border border-emerald-100 text-emerald-600 font-black text-[9px] uppercase tracking-wider">{skill}</span>
-                  ))}
-                  {matchedSkills.length === 0 && <span className="text-slate-400 italic text-[9.5px]">No match.</span>}
-                </div>
+                {projectRecommendations.length > 0 && (
+                  <DashboardCard glowColor="orange" className="space-y-3">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Target Portfolio Projects to Build</span>
+                    <div className="space-y-1.5">
+                      {projectRecommendations.map((proj, idx) => (
+                        <div key={idx} className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-semibold text-slate-700">
+                          {proj}
+                        </div>
+                      ))}
+                    </div>
+                  </DashboardCard>
+                )}
               </div>
-
-              <div className="pt-2 border-t border-slate-50 space-y-3">
-                <h5 className="font-black text-slate-400 text-[9px] uppercase tracking-wider">Missing Skills</h5>
-                <div className="flex flex-wrap gap-1">
-                  {missingSkills.map((skill) => (
-                    <span key={skill} className="px-2 py-0.5 rounded bg-rose-50 border border-rose-100 text-rose-600 font-black text-[9px] uppercase tracking-wider">{skill}</span>
-                  ))}
-                  {missingSkills.length === 0 && <span className="text-slate-400 italic text-[9.5px]">No missing skills.</span>}
-                </div>
-              </div>
-            </DashboardCard>
-          </div>
-        </div>
-      )}
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

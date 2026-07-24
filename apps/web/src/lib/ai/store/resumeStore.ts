@@ -176,6 +176,8 @@ export interface ResumeStore {
   atsScore: number;
   matchScore: number;
   skillMatchPercentage: number;
+  keywordMatchPercentage: number;
+  experienceMatchPercentage: number;
   completeness: number;
 
   // Analysis insights
@@ -199,10 +201,12 @@ export interface ResumeStore {
   updateParsedDetails: (details: Partial<ParsedResume>) => void;
   setSelectedJobRole: (role: string) => void;
   setVerified: (verified: boolean) => void;
-  updateAnalysis: (analysis: {
+  updateAnalysis: (analysis: Partial<{
     atsScore: number;
     matchScore: number;
     skillMatchPercentage: number;
+    keywordMatchPercentage: number;
+    experienceMatchPercentage: number;
     completeness: number;
     matchedSkills: string[];
     missingSkills: string[];
@@ -212,7 +216,7 @@ export interface ResumeStore {
     recommendations: string[];
     certRecommendations: string[];
     projectRecommendations: string[];
-  }) => void;
+  }>) => void;
   deleteResume: () => void;
   loadProfileFromServer: () => Promise<void>;
 }
@@ -357,6 +361,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   atsScore: 0,
   matchScore: 0,
   skillMatchPercentage: 0,
+  keywordMatchPercentage: 0,
+  experienceMatchPercentage: 0,
   completeness: 0,
 
   matchedSkills: [],
@@ -496,6 +502,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       atsScore: 0,
       matchScore: 0,
       skillMatchPercentage: 0,
+      keywordMatchPercentage: 0,
+      experienceMatchPercentage: 0,
       completeness: 0,
       matchedSkills: [],
       missingSkills: [],
