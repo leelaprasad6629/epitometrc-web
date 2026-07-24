@@ -36,6 +36,33 @@ const isValidUrl = (url: string) => {
   }
 };
 
+const ensureAbsoluteUrl = (url: string, platformName?: string) => {
+  if (!url) return "#";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  
+  if (trimmed.includes(".")) {
+    return `https://${trimmed}`;
+  }
+
+  if (platformName) {
+    const name = platformName.toLowerCase();
+    if (name === "linkedin") return `https://linkedin.com/in/${trimmed}`;
+    if (name === "github") return `https://github.com/${trimmed}`;
+    if (name === "leetcode") return `https://leetcode.com/${trimmed}`;
+    if (name === "hackerrank") return `https://hackerrank.com/${trimmed}`;
+    if (name === "codechef") return `https://codechef.com/users/${trimmed}`;
+    if (name === "codeforces") return `https://codeforces.com/profile/${trimmed}`;
+    if (name === "kaggle") return `https://kaggle.com/${trimmed}`;
+    if (name === "medium") return `https://medium.com/@${trimmed}`;
+    if (name === "stackoverflow") return `https://stackoverflow.com/users/${trimmed}`;
+  }
+
+  return `https://${trimmed}`;
+};
+
 export default function StudentProfilePage() {
   const { 
     parsedResumeDetails, 
@@ -724,7 +751,7 @@ export default function StudentProfilePage() {
                           return (
                             <a
                               key={item.name}
-                              href={item.url}
+                              href={ensureAbsoluteUrl(item.url, item.name)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-slate-100 hover:border-slate-200 transition-all font-semibold text-slate-800 text-[10.5px]"
