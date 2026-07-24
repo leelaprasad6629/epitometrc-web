@@ -63,6 +63,26 @@ const ensureAbsoluteUrl = (url: string, platformName?: string) => {
   return `https://${trimmed}`;
 };
 
+const isCleanUrl = (url: string) => {
+  if (!url) return false;
+  const lower = url.trim().toLowerCase();
+  if (
+    lower === "" ||
+    lower === "not specified" ||
+    lower === "not-specified" ||
+    lower === "not specified." ||
+    lower === "n/a" ||
+    lower === "n/a." ||
+    lower === "none" ||
+    lower === "null" ||
+    lower === "undefined" ||
+    lower === "#"
+  ) {
+    return false;
+  }
+  return true;
+};
+
 export default function StudentProfilePage() {
   const { 
     parsedResumeDetails, 
@@ -747,7 +767,7 @@ export default function StudentProfilePage() {
                           { name: "LeetCode", url: leetcode, icon: <SiLeetcode className="h-4 w-4 text-orange-500" /> },
                           { name: "HackerRank", url: hackerrank, icon: <FaHackerrank className="h-4 w-4 text-green-500" /> }
                         ].map((item) => {
-                          if (!item.url) return null;
+                          if (!isCleanUrl(item.url)) return null;
                           return (
                             <a
                               key={item.name}

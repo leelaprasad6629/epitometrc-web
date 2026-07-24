@@ -284,7 +284,40 @@ Output ONLY a valid JSON object matching this exact structure:
     try {
       console.log("Raw generated JSON text from Groq:", generatedText);
       parsedObj = JSON.parse(generatedText);
-      console.log("Parsed JSON object:", parsedObj);
+      
+      // Clean up placeholders in string values (e.g. "Not specified", "N/A")
+      const cleanPlaceholders = (val: any): any => {
+        if (typeof val === "string") {
+          const trimmed = val.trim();
+          const lower = trimmed.toLowerCase();
+          if (
+            lower === "not specified" ||
+            lower === "not-specified" ||
+            lower === "n/a" ||
+            lower === "none" ||
+            lower === "null" ||
+            lower === "undefined" ||
+            lower === "not specified." ||
+            lower === "n/a."
+          ) {
+            return "";
+          }
+          return trimmed;
+        }
+        if (Array.isArray(val)) {
+          return val.map(cleanPlaceholders);
+        }
+        if (val && typeof val === "object") {
+          const res: any = {};
+          for (const key of Object.keys(val)) {
+            res[key] = cleanPlaceholders(val[key]);
+          }
+          return res;
+        }
+        return val;
+      };
+      parsedObj = cleanPlaceholders(parsedObj);
+      console.log("Parsed JSON object (after cleaning placeholders):", parsedObj);
     } catch (e: any) {
       console.error("Failed to parse JSON from Groq:", e);
       return NextResponse.json({ success: false, error: "Failed to parse structured JSON from LLM: " + e.message }, { status: 500 });
