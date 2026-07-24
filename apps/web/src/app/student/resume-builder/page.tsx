@@ -1701,6 +1701,38 @@ export default function AICareerCopilotPage() {
             {/* Tab: Mock Interview */}
             {activeTab === "interview" && (
               <div className="space-y-6 text-left">
+                {/* Onboarding Fullscreen Warning Modal */}
+                {showFullscreenWarning && (
+                  <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-200 shadow-2xl space-y-4 text-center">
+                      <div className="h-12 w-12 rounded-full bg-amber-50 border border-amber-100 text-amber-500 flex items-center justify-center mx-auto animate-pulse">
+                        <AlertCircle className="h-6 w-6" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Interview Integrity Check</h4>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                          This mock screen runs in **Browser Full-Screen Mode** to simulate official placement assessments. 
+                          Exiting full-screen, switching tabs, or losing window focus will register integrity warnings. 
+                          Exceeding **3 warnings** terminates the session immediately with failure.
+                        </p>
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <button 
+                          onClick={() => setShowFullscreenWarning(false)}
+                          className="flex-1 h-9 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={enterFullscreenAndStart}
+                          className="flex-1 h-9 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-md shadow-violet-500/10"
+                        >
+                          I Agree, Enter Fullscreen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1 border-b border-slate-200 pb-3">
                   <h3 className="text-base font-bold text-slate-800 flex items-center gap-1">
                     <MessageSquare className="h-5 w-5 text-violet-600 animate-pulse" /> Live AI Mock Screen
@@ -1910,38 +1942,6 @@ export default function AICareerCopilotPage() {
                 ) : (
                   /* Active Live Mock Session */
                   <div className="space-y-4">
-                    {/* Onboarding Fullscreen Warning Modal */}
-                    {showFullscreenWarning && (
-                      <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-                        <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-200 shadow-2xl space-y-4 text-center">
-                          <div className="h-12 w-12 rounded-full bg-amber-50 border border-amber-100 text-amber-500 flex items-center justify-center mx-auto animate-pulse">
-                            <AlertCircle className="h-6 w-6" />
-                          </div>
-                          <div className="space-y-1.5">
-                            <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Interview Integrity Check</h4>
-                            <p className="text-xs text-slate-500 leading-relaxed">
-                              This mock screen runs in **Browser Full-Screen Mode** to simulate official placement assessments. 
-                              Exiting full-screen, switching tabs, or losing window focus will register integrity warnings. 
-                              Exceeding **3 warnings** terminates the session immediately with failure.
-                            </p>
-                          </div>
-                          <div className="flex gap-3 pt-2">
-                            <button 
-                              onClick={() => setShowFullscreenWarning(false)}
-                              className="flex-1 h-9 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50"
-                            >
-                              Cancel
-                            </button>
-                            <button 
-                              onClick={enterFullscreenAndStart}
-                              className="flex-1 h-9 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-md shadow-violet-500/10"
-                            >
-                              I Agree, Enter Fullscreen
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Integrity Warnings Popup Banner */}
                     {showViolationAlert && (
