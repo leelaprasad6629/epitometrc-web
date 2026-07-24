@@ -1705,7 +1705,7 @@ export default function AICareerCopilotPage() {
             )}
             {/* Tab: Mock Interview */}
             {activeTab === "interview" && (
-              <div className="space-y-6 text-left">
+              <div ref={interviewContainerRef} className="space-y-6 text-left p-6 bg-slate-50/50 rounded-3xl overflow-y-auto w-full h-full">
                 {/* Onboarding Fullscreen Warning Modal */}
                 {showFullscreenWarning && (
                   <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
@@ -1946,7 +1946,7 @@ export default function AICareerCopilotPage() {
                   </div>
                 ) : (
                   /* Active Live Mock Session */
-                  <div ref={interviewContainerRef} className="space-y-4 bg-slate-50 p-6 rounded-3xl overflow-y-auto w-full h-full">
+                  <div className="space-y-4 bg-white p-6 rounded-3xl overflow-y-auto w-full h-full">
 
                     {/* Integrity Warnings Popup Banner */}
                     {showViolationAlert && (
