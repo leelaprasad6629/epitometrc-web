@@ -111,6 +111,16 @@ export interface ResumeVersion {
   jobMatchScore: number;
 }
 
+export interface InterviewSession {
+  sessionId: string;
+  timestamp: string;
+  role: string;
+  company: string;
+  score: number;
+  hiringRecommendation: string;
+  report: any;
+}
+
 export interface ParsedResume {
   fullName: string;
   headline: string;
@@ -188,6 +198,7 @@ export interface ParsedResume {
   resumeVersions?: ResumeVersion[];
   completedCourses?: string[];
   rejectedSuggestions?: string[];
+  interviewHistory?: InterviewSession[];
 }
 
 export interface ResumeStore {
@@ -252,6 +263,7 @@ export interface ResumeStore {
   rollbackToVersion: (versionId: string) => void;
   completeCourseInStore: (courseId: string, skill: string) => void;
   rejectSuggestionInStore: (sugId: string) => void;
+  saveInterviewSession: (session: InterviewSession) => void;
 }
 
 const initialParsedResume: ParsedResume = {
@@ -324,7 +336,8 @@ const initialParsedResume: ParsedResume = {
   careerGoal: null,
   resumeVersions: [],
   completedCourses: [],
-  rejectedSuggestions: []
+  rejectedSuggestions: [],
+  interviewHistory: []
 };
 
 // Helper cookie read/write utilities
@@ -667,6 +680,17 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       rejectedSuggestions: rejections.includes(sugId) ? rejections : [...rejections, sugId]
     };
     
+    set({ parsedResumeDetails: updatedProfile });
+    syncProfileToClientStorage(updatedProfile, get().confidenceScores);
+  },
+
+  saveInterviewSession: (session) => {
+    const profile = get().parsedResumeDetails || { ...initialParsedResume };
+    const history = profile.interviewHistory || [];
+    const updatedProfile = {
+      ...profile,
+      interviewHistory: [...history, session]
+    };
     set({ parsedResumeDetails: updatedProfile });
     syncProfileToClientStorage(updatedProfile, get().confidenceScores);
   }

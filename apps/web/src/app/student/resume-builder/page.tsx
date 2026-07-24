@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Sparkles, FileText, CheckCircle2, XCircle, Lightbulb, Save, User, 
   FileCheck, Edit3, MessageSquare, Play, Mic, MicOff, Volume2, 
   Briefcase, GraduationCap, Target, Compass, BookOpen, CheckSquare, 
   Map, Award, TrendingUp, AlertCircle, RefreshCw, Star, Trash2, ArrowRight,
-  Globe, FileUp, Copy, Download, Check, Info, Calendar, ChevronRight, Loader2
+  Globe, FileUp, Copy, Download, Check, Info, Calendar, ChevronRight, Loader2,
+  Send, Brain
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
@@ -42,7 +43,8 @@ export default function AICareerCopilotPage() {
     rollbackToVersion,
     completeCourseInStore,
     rejectSuggestionInStore,
-    setResumeData
+    setResumeData,
+    saveInterviewSession
   } = useResumeStore();
 
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
@@ -77,6 +79,179 @@ export default function AICareerCopilotPage() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [interviewLoading, setInterviewLoading] = useState(false);
   const [companyProfile, setCompanyProfile] = useState<any>(null);
+
+  // New Live Mock Interview Session states
+  const [mockSessionActive, setMockSessionActive] = useState(false);
+  const [mockLoading, setMockLoading] = useState(false);
+  const [mockQuestion, setMockQuestion] = useState("");
+  const [mockAnswer, setMockAnswer] = useState("");
+  const [mockCount, setMockCount] = useState(0);
+  const [mockHistory, setMockHistory] = useState<any[]>([]);
+  const [mockFinished, setMockFinished] = useState(false);
+  const [mockReport, setMockReport] = useState<any | null>(null);
+  const [mockIsListening, setMockIsListening] = useState(false);
+  const [mockError, setMockError] = useState("");
+  const [mockSpeakActive, setMockSpeakActive] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize speech recognition for live mock
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recog = new SpeechRecognition();
+        recog.continuous = true;
+        recog.interimResults = false;
+        recog.lang = "en-US";
+
+        recog.onresult = (event: any) => {
+          const resultText = event.results[event.results.length - 1][0].transcript;
+          setMockAnswer(prev => (prev ? prev + " " + resultText : resultText));
+        };
+
+        recog.onerror = (event: any) => {
+          console.error("Speech Recognition Error:", event.error);
+          setMockError(`Microphone connection error: ${event.error}. Please type manually if needed.`);
+          setMockIsListening(false);
+        };
+
+        recog.onend = () => {
+          setMockIsListening(false);
+        };
+
+        recognitionRef.current = recog;
+      }
+    }
+  }, []);
+
+  const speakMockText = (text: string) => {
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.onstart = () => setMockSpeakActive(true);
+      utterance.onend = () => setMockSpeakActive(false);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const startLiveMockSession = () => {
+    if (!parsedResumeDetails) return;
+    setMockHistory([]);
+    setMockFinished(false);
+    setMockReport(null);
+    setMockAnswer("");
+    setMockError("");
+
+    const primaryLang = parsedResumeDetails.programmingLanguages?.[0] || parsedResumeDetails.technicalSkills?.[0] || "Software Engineering principles";
+    const primaryProject = parsedResumeDetails.projects?.[0]?.projectTitle || "your projects list";
+
+    const initialQ = `Hello! Welcome to your AI mock interview screening for the ${targetTitle} role at ${targetCompany}. Looking at your technical profile highlighting experience in ${primaryLang} and projects like "${primaryProject}", could you explain the architecture of this project and describe the most difficult system scaling challenge you solved?`;
+
+    setMockCount(1);
+    setMockQuestion(initialQ);
+    setMockSessionActive(true);
+
+    setTimeout(() => speakMockText(initialQ), 400);
+  };
+
+  const toggleMockListening = () => {
+    if (!recognitionRef.current) {
+      setMockError("Speech Recognition API is not supported in this browser. Please use Google Chrome or type manually.");
+      return;
+    }
+
+    setMockError("");
+    if (mockIsListening) {
+      recognitionRef.current.stop();
+      setMockIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setMockIsListening(true);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const submitMockAnswer = async () => {
+    if (!mockAnswer.trim() || mockLoading) return;
+    setMockLoading(true);
+
+    if (mockIsListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setMockIsListening(false);
+    }
+
+    try {
+      const res = await fetch("/api/ai/mock-interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: targetTitle,
+          company: targetCompany,
+          jobDescription: targetJd,
+          question: mockQuestion,
+          answer: mockAnswer,
+          history: mockHistory,
+          resumeContext: parsedResumeDetails
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.result) {
+        const r = data.result;
+        
+        // Append user turn to history
+        const updatedHistory = [
+          ...mockHistory,
+          { role: "assistant", content: mockQuestion },
+          { role: "user", content: mockAnswer }
+        ];
+        setMockHistory(updatedHistory);
+
+        if (r.report) {
+          setMockFinished(true);
+          setMockReport(r.report);
+          
+          // Save interview session to database store
+          const session = {
+            sessionId: `INT_${new Date().getTime()}`,
+            timestamp: new Date().toLocaleTimeString() + " " + new Date().toLocaleDateString(),
+            role: targetTitle,
+            company: targetCompany,
+            score: r.report.overallScore || 80,
+            hiringRecommendation: r.report.recruiterScorecard?.hiringRecommendation || "Hold",
+            report: r.report
+          };
+          saveInterviewSession(session);
+        } else {
+          setMockCount(prev => prev + 1);
+          setMockQuestion(r.nextQuestion);
+          setMockAnswer("");
+          setTimeout(() => speakMockText(r.nextQuestion), 400);
+        }
+      } else {
+        setMockError("Failed to parse interview response.");
+      }
+    } catch (err: any) {
+      setMockError("Connection error. Please try again: " + err.message);
+    } finally {
+      setMockLoading(false);
+    }
+  };
+
+  const closeMockSession = () => {
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    if (mockIsListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setMockSessionActive(false);
+  };
 
   // Fetch jobs on mount
   useEffect(() => {
@@ -1317,98 +1492,347 @@ export default function AICareerCopilotPage() {
                 </div>
               </div>
             )}
-
             {/* Tab: Mock Interview */}
             {activeTab === "interview" && (
               <div className="space-y-6 text-left">
                 <div className="space-y-1 border-b border-slate-200 pb-3">
                   <h3 className="text-base font-bold text-slate-800 flex items-center gap-1">
-                    <MessageSquare className="h-5 w-5 text-violet-600" /> Interview Preparation Simulator
+                    <MessageSquare className="h-5 w-5 text-violet-600 animate-pulse" /> Live AI Mock Screen
                   </h3>
-                  <p className="text-xs text-slate-500 leading-normal">Generate contextual technical, behavioral, and resume-specific mock interview questions tailored to {targetCompany}'s hiring rounds.</p>
+                  <p className="text-xs text-slate-500 leading-normal">
+                    Conduct voice-activated, adaptive mock interviews with the virtual assistant based on your profile targeting {targetCompany}.
+                  </p>
                 </div>
 
-                {/* Company OA & coding rounds information */}
-                {companyProfile && (
-                  <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-1">
-                      <span className="text-[9.5px] font-black text-slate-400 uppercase block">Interview Style & Rounds</span>
-                      <p className="text-xs font-bold text-slate-800">{companyProfile.rounds}</p>
-                      <p className="text-[10px] text-slate-500 leading-relaxed">{companyProfile.style}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[9.5px] font-black text-slate-400 uppercase block">OA Pattern & Coding focus</span>
-                      <p className="text-xs font-bold text-slate-800">{companyProfile.oaPattern}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[9.5px] font-black text-slate-400 uppercase block">Behavioral bar-raiser focus</span>
-                      <p className="text-xs font-bold text-slate-800">{companyProfile.behavioral}</p>
-                    </div>
-                  </div>
-                )}
+                {!mockSessionActive ? (
+                  /* Initial setup and history view */
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    {/* Left start panel */}
+                    <div className="lg:col-span-1 bg-white border border-slate-200 p-5 rounded-2xl space-y-4 shadow-xs">
+                      <div className="space-y-1 text-center py-4">
+                        <div className="h-14 w-14 rounded-full bg-violet-50 flex items-center justify-center mx-auto border border-violet-100 mb-2">
+                          <Brain className="h-7 w-7 text-violet-500 animate-pulse" />
+                        </div>
+                        <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Start Screen Simulation</h4>
+                        <p className="text-[10px] text-slate-450 leading-relaxed max-w-xs mx-auto">
+                          Conduct an adaptive, 5-question mock technical screen utilizing speech-to-text inputs.
+                        </p>
+                      </div>
 
-                {/* Generate button */}
-                {questions.length === 0 ? (
-                  <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200/60 space-y-4">
-                    <Sparkles className="h-10 w-10 text-violet-500 mx-auto animate-pulse" />
-                    <div className="space-y-1">
-                      <h4 className="text-xs font-bold text-slate-800">Generate Personalized Questions</h4>
-                      <p className="text-[10px] text-slate-500 max-w-sm mx-auto leading-relaxed">
-                        Uses your resume projects, target company OA rounds, and role requirements to synthesize real-world interview prompts.
-                      </p>
-                    </div>
-                    <button 
-                      disabled={interviewLoading}
-                      onClick={handleGenerateQuestions}
-                      className="h-9 px-5 rounded-xl bg-violet-600 hover:bg-violet-550 text-white font-black text-xs transition-all flex items-center justify-center gap-1.5 mx-auto shadow-md"
-                    >
-                      {interviewLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" /> Synthesizing questions catalog...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4" /> Generate Mock Questions
-                        </>
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  /* Questions display */
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Mock Prep Questions Catalog</h4>
-                      <button onClick={handleGenerateQuestions} className="text-xs font-bold text-violet-600 hover:text-violet-500 flex items-center gap-1">
-                        <RefreshCw className="h-3.5 w-3.5" /> Re-generate
+                      <button 
+                        onClick={startLiveMockSession}
+                        className="w-full h-10 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-md"
+                      >
+                        <Play className="h-4 w-4 fill-current" /> Start Live Voice Mock
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
-                      {questions.map((q, idx) => (
-                        <div key={idx} className="bg-white border border-slate-200/60 p-5 rounded-2xl space-y-3 shadow-xs">
-                          <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[9.5px] font-black uppercase bg-violet-55 bg-violet-50 text-violet-600 border border-violet-100 px-2 py-0.5 rounded-md">
-                                {q.category || "Technical"}
-                              </span>
-                              <span className="text-[9.5px] text-slate-400 font-bold font-mono">Question {idx + 1}</span>
+                    {/* Right history list */}
+                    <div className="lg:col-span-2 space-y-3">
+                      <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Verbal Screen History</h4>
+                      
+                      {parsedResumeDetails?.interviewHistory && parsedResumeDetails.interviewHistory.length > 0 ? (
+                        <div className="flex flex-col gap-3">
+                          {parsedResumeDetails.interviewHistory.map((sess: any, idx: number) => (
+                            <div key={idx} className="bg-white border border-slate-200/60 p-4 rounded-xl flex justify-between items-center shadow-xs">
+                              <div className="text-left space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-black text-violet-600 font-mono">{sess.sessionId}</span>
+                                  <span className="text-[9px] font-bold text-slate-400">{sess.timestamp}</span>
+                                </div>
+                                <h5 className="text-xs font-bold text-slate-800">Target: {sess.company} &bull; {sess.role}</h5>
+                                <p className="text-[10px] text-slate-500 leading-normal">{sess.report?.recruiterScorecard?.interviewSummary || "Mock completed successfully."}</p>
+                              </div>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <div className="text-right">
+                                  <span className="text-xs font-black text-slate-800 block">{sess.score}%</span>
+                                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                    sess.hiringRecommendation === "Strong Hire" || sess.hiringRecommendation === "Hire"
+                                      ? "bg-green-50 text-green-600"
+                                      : "bg-amber-50 text-amber-600"
+                                  }`}>{sess.hiringRecommendation}</span>
+                                </div>
+                                <button 
+                                  onClick={() => {
+                                    setMockFinished(true);
+                                    setMockReport(sess.report);
+                                    setMockSessionActive(true);
+                                  }}
+                                  className="h-7 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-[10px]"
+                                >
+                                  Report
+                                </button>
+                              </div>
                             </div>
-                            <span className="text-[10px] text-orange-600 font-bold uppercase">{q.difficulty || "Medium"}</span>
-                          </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-10 bg-slate-50 border border-slate-200/60 rounded-2xl text-slate-450 text-xs font-mono uppercase tracking-wider">
+                          No interview sessions conducted yet.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : mockFinished ? (
+                  /* Final feedback report scorecard view */
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                      <div className="text-left">
+                        <span className="text-[10px] font-black bg-green-50 text-green-600 border border-green-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          Recruiter Scorecard
+                        </span>
+                        <h4 className="text-sm font-bold text-slate-800 pt-1">Interview Performance Intelligence Report</h4>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setMockSessionActive(false);
+                          setMockFinished(false);
+                        }}
+                        className="h-8.5 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-bold text-xs"
+                      >
+                        Back to List
+                      </button>
+                    </div>
 
-                          <div className="space-y-1 text-left">
-                            <p className="text-xs font-bold text-slate-805 leading-relaxed">{q.question}</p>
-                          </div>
-
-                          {/* "Why this question?" Box */}
-                          <div className="bg-amber-50/50 p-3.5 border border-amber-200/60 rounded-xl space-y-1 text-xs text-left">
-                            <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[10px] uppercase font-mono">
-                              <Info className="h-3.5 w-3.5 text-orange-600" /> Why this question?
+                    {/* Gauges stats scorecard grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {[
+                        { label: "Overall Score", value: mockReport?.overallScore || 80, color: "stroke-violet-500" },
+                        { label: "Technical Depth", value: mockReport?.technicalScore || 80, color: "stroke-indigo-500" },
+                        { label: "Communication", value: mockReport?.communicationScore || 85, color: "stroke-emerald-500" },
+                        { label: "Confidence", value: mockReport?.confidenceScore || 85, color: "stroke-orange-500" },
+                        { label: "Problem Solving", value: mockReport?.problemSolvingScore || 80, color: "stroke-blue-500" }
+                      ].map((gauge, idx) => {
+                        const radius = 22;
+                        const circ = 2 * Math.PI * radius;
+                        return (
+                          <div key={idx} className="bg-white border border-slate-200/60 p-4 rounded-xl flex flex-col items-center justify-center text-center shadow-xs">
+                            <div className="relative h-12 w-12 flex items-center justify-center mb-1">
+                              <svg className="h-full w-full -rotate-90">
+                                <circle cx="24" cy="24" r={radius} className="stroke-slate-100 fill-transparent stroke-2.5" />
+                                <circle cx="24" cy="24" r={radius} className={`fill-transparent stroke-2.5 transition-all duration-500 ${gauge.color}`} strokeDasharray={circ} strokeDashoffset={circ - (gauge.value / 100) * circ} strokeLinecap="round" />
+                              </svg>
+                              <span className="absolute text-[10px] font-black text-slate-800 font-mono">{gauge.value}%</span>
                             </div>
-                            <p className="text-[10.5px] text-slate-600 leading-relaxed">{q.explanation || `${targetCompany} frequently tests this format for ${targetTitle} roles.`}</p>
+                            <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-wider">{gauge.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Recommendation scorecard and details */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      
+                      {/* Recruiter recommendation */}
+                      <div className="md:col-span-1 bg-white border border-slate-200 p-5 rounded-2xl space-y-4 shadow-xs">
+                        <div className="space-y-0.5 border-b border-slate-100 pb-2">
+                          <span className="text-[9px] font-black text-slate-400 uppercase">Hiring Recommendation</span>
+                          <p className="text-base font-black text-slate-800">{mockReport?.recruiterScorecard?.hiringRecommendation || "Hire"}</p>
+                        </div>
+                        <div className="space-y-0.5 border-b border-slate-100 pb-2">
+                          <span className="text-[9px] font-black text-slate-400 uppercase">Candidate Readiness</span>
+                          <p className="text-xs font-bold text-slate-700">{mockReport?.recruiterScorecard?.candidateReadiness || "Job Ready"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-black text-slate-400 uppercase block">Suitable Roles</span>
+                          <div className="flex flex-wrap gap-1">
+                            {mockReport?.recruiterScorecard?.suitableRoles?.map((r: any, idx: number) => (
+                              <span key={idx} className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[9px] font-bold border border-slate-200">{r}</span>
+                            )) || <span className="text-xs text-slate-500 italic">None suggested</span>}
                           </div>
                         </div>
-                      ))}
+                      </div>
+
+                      {/* Strengths & Weaknesses */}
+                      <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="bg-white border border-slate-200 p-4.5 rounded-2xl space-y-2.5 shadow-xs">
+                          <h5 className="text-[10px] font-black text-green-600 uppercase tracking-wider flex items-center gap-1">
+                            <CheckCircle2 className="h-4 w-4" /> Demonstrated Strengths
+                          </h5>
+                          <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-4 leading-relaxed">
+                            {mockReport?.strengths?.map((s: any, idx: number) => (
+                              <li key={idx}>{s}</li>
+                            )) || <li>Solid system design architecture logic.</li>}
+                          </ul>
+                        </div>
+
+                        <div className="bg-white border border-slate-200 p-4.5 rounded-2xl space-y-2.5 shadow-xs">
+                          <h5 className="text-[10px] font-black text-red-650 uppercase tracking-wider flex items-center gap-1">
+                            <XCircle className="h-4 w-4" /> Detected Gaps
+                          </h5>
+                          <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-4 leading-relaxed">
+                            {mockReport?.weaknesses?.map((w: any, idx: number) => (
+                              <li key={idx}>{w}</li>
+                            )) || <li>Add concurrency lock detail descriptions.</li>}
+                          </ul>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Actionable coaching learning bridges */}
+                    <div className="bg-white border border-slate-200 p-5 rounded-2xl space-y-4 shadow-xs">
+                      <div className="text-left space-y-0.5">
+                        <h5 className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                          <BookOpen className="h-4.5 w-4.5 text-violet-500 animate-pulse" /> Actionable Learning Bridging Gaps
+                        </h5>
+                        <p className="text-[10px] text-slate-450">Specific training recommendations matching the weaknesses flagged in the screening session.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {mockReport?.learningTopics?.slice(0, 3).map((topic: string, idx: number) => (
+                          <div key={idx} className="bg-slate-50 border border-slate-200/60 p-4 rounded-xl flex flex-col justify-between gap-3 text-left">
+                            <div className="space-y-1">
+                              <span className="text-[8.5px] font-mono font-black text-violet-600 uppercase tracking-wider">Concept Gap</span>
+                              <h6 className="text-xs font-bold text-slate-800 leading-snug">{topic}</h6>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                alert(`Enrolling in Epitome path for ${topic}...`);
+                                setActiveTab("learning");
+                              }}
+                              className="h-8.5 w-full rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-[10px] transition-all flex items-center justify-center gap-1"
+                            >
+                              Explore Path <ArrowRight className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Active Live Mock Session */
+                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    
+                    {/* Left Avatar panel */}
+                    <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-2xl flex flex-col items-center justify-between text-center min-h-[300px] shadow-xs">
+                      <div className="space-y-3 w-full">
+                        <div className="relative h-20 w-20 mx-auto">
+                          {/* Shifting visualizer pulse ring */}
+                          {mockSpeakActive && (
+                            <div className="absolute inset-0 rounded-full border border-violet-400/50 animate-ping" />
+                          )}
+                          <div className={`h-20 w-20 rounded-full bg-violet-50 flex items-center justify-center border transition-all duration-300 ${
+                            mockSpeakActive 
+                              ? "border-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.3)] scale-105" 
+                              : "border-slate-200"
+                          }`}>
+                            <Sparkles className={`h-10 w-10 text-violet-500 ${mockSpeakActive ? "animate-bounce" : ""}`} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <h4 className="text-xs font-black text-slate-805">Interviewer Avatar</h4>
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-black border ${
+                            mockSpeakActive 
+                              ? "bg-violet-50 border-violet-200 text-violet-650"
+                              : mockIsListening 
+                                ? "bg-orange-50 border-orange-200 text-orange-650 animate-pulse"
+                                : "bg-slate-50 border-slate-200 text-slate-500"
+                          }`}>
+                            {mockSpeakActive ? "Speaking..." : mockIsListening ? "Listening..." : "Idle"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Listening Visualizer wave animation bars */}
+                      {mockIsListening && (
+                        <div className="flex gap-1 justify-center items-end h-8 my-4 w-full">
+                          {[1.5, 3.5, 2, 4.5, 2.5, 3.5, 1.5, 4, 2].map((h, idx) => (
+                            <div 
+                              key={idx} 
+                              className="bg-orange-500 w-1 rounded-full animate-pulse transition-all duration-300"
+                              style={{ 
+                                height: `${h * 6}px`,
+                                animationDelay: `${idx * 80}ms` 
+                              }} 
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      <button 
+                        onClick={closeMockSession}
+                        className="w-full h-8.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 font-bold text-xs"
+                      >
+                        Exit Interview Screen
+                      </button>
+                    </div>
+
+                    {/* Right active QA panel */}
+                    <div className="lg:col-span-3 space-y-4 text-left">
+                      
+                      {/* Current Question panel */}
+                      <div className="bg-slate-50 border border-slate-200/60 p-5 rounded-2xl space-y-3">
+                        <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                          <span className="px-2 py-0.5 rounded-md bg-violet-50 border border-violet-100 text-[9px] font-black text-violet-650">
+                            Question {mockCount}
+                          </span>
+                          <button 
+                            onClick={() => speakMockText(mockQuestion)}
+                            className="text-[9.5px] font-bold text-slate-400 hover:text-slate-700 flex items-center gap-1"
+                          >
+                            <Volume2 className="h-4 w-4" /> Repeat Audio
+                          </button>
+                        </div>
+                        <p className="text-xs font-bold text-slate-800 leading-relaxed font-sans">{mockQuestion}</p>
+                      </div>
+
+                      {/* Transcribed response textarea */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Your Verbal Response</span>
+                          <button 
+                            onClick={toggleMockListening}
+                            className={`h-8 px-3 rounded-lg border text-[10px] font-black transition-all flex items-center gap-1.5 ${
+                              mockIsListening 
+                                ? "bg-orange-500 border-orange-600 text-white shadow-md animate-pulse"
+                                : "bg-white border-slate-200 hover:bg-slate-50 text-slate-600"
+                            }`}
+                          >
+                            {mockIsListening ? (
+                              <>
+                                <MicOff className="h-3.5 w-3.5" /> Stop Voice Stream
+                              </>
+                            ) : (
+                              <>
+                                <Mic className="h-3.5 w-3.5 text-violet-500" /> Speak Answer
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        <textarea 
+                          placeholder="Speak or type your technical response details here..."
+                          value={mockAnswer}
+                          onChange={e => setMockAnswer(e.target.value)}
+                          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-800 h-36 focus:outline-none focus:border-slate-350"
+                        />
+
+                        {mockError && (
+                          <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-[10px] text-red-650 flex items-center gap-1.5">
+                            <AlertCircle className="h-4 w-4 shrink-0" /> {mockError}
+                          </div>
+                        )}
+
+                        <button 
+                          disabled={mockLoading || !mockAnswer.trim()}
+                          onClick={submitMockAnswer}
+                          className="w-full h-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                        >
+                          {mockLoading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" /> Evaluating answer details...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="h-4 w-4" /> Submit Response
+                            </>
+                          )}
+                        </button>
+                      </div>
+
                     </div>
                   </div>
                 )}
