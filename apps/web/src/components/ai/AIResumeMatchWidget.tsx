@@ -171,19 +171,9 @@ export default function AIResumeMatchWidget() {
     setLoading(true);
     setError("");
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const base64Data = event.target?.result?.toString().split(",")[1] || "";
-        const res = await fetch("/api/ai/parse-resume", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fileName: file.name,
-            fileMimeType: file.type || "application/pdf",
-            fileBase64: base64Data
-          })
-        });
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
         if (!res.ok) {
           setError(`Parsing service unavailable (${res.status}).`);
