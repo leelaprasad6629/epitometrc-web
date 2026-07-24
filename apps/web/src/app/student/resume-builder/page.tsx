@@ -5,12 +5,15 @@ import {
   Sparkles, FileText, CheckCircle2, XCircle, Lightbulb, Save, User, 
   FileCheck, Edit3, MessageSquare, Play, Mic, MicOff, Volume2, 
   Briefcase, GraduationCap, Target, Compass, BookOpen, CheckSquare, 
-  Map, Award, TrendingUp, AlertCircle, RefreshCw, Star, Trash2, ArrowRight
+  Map, Award, TrendingUp, AlertCircle, RefreshCw, Star, Trash2, ArrowRight,
+  Globe, FileUp, Copy, Download, Check, Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
 import AudioVisualizer from "@/components/ai/AudioVisualizer";
 import { useResumeStore } from "@/lib/ai/store/resumeStore";
+import { Input } from "@/components/ui/input";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 type TabId = "resume" | "interview" | "questions" | "career" | "jobs" | "learning";
 
@@ -39,53 +42,263 @@ export default function AIResumeCoachPage() {
   const studentEducation = parsedResumeDetails?.education || [];
 
   // ==========================================
+  // ==========================================
   // TAB 1: RESUME OPTIMIZER STATES & HANDLERS
   // ==========================================
   const [resumeLoading, setResumeLoading] = useState(false);
   const [optimizedResume, setOptimizedResume] = useState<any>(null);
-  const [resumeBioDraft, setResumeBioDraft] = useState("");
+  const [targetTitle, setTargetTitle] = useState("");
+  const [targetCompany, setTargetCompany] = useState("");
+  const [targetJd, setTargetJd] = useState("");
+  const [jdMode, setJdMode] = useState<"paste" | "select" | "file">("paste");
+  
+  // Suggestion review statuses
+  const [acceptedSuggestions, setAcceptedSuggestions] = useState<Record<string, boolean>>({});
+  const [rejectedSuggestions, setRejectedSuggestions] = useState<Record<string, boolean>>({});
+  const [editingSuggestionId, setEditingSuggestionId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [activeSuggestionTab, setActiveSuggestionTab] = useState<"summary" | "experience" | "projects" | "skills" | "certs">("summary");
 
+  // Compiled tailored resume mode
+  const [compiledMode, setCompiledMode] = useState(false);
+  const [platformJobs, setPlatformJobs] = useState<any[]>([]);
+
+  // Load platform jobs list
   useEffect(() => {
-    if (parsedResumeDetails?.bio) {
-      setResumeBioDraft(parsedResumeDetails.bio);
+    fetch("/api/jobs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setPlatformJobs(data);
+      })
+      .catch((e) => console.error("Failed to load jobs list", e));
+  }, []);
+
+  // Pre-fill target role if set in store
+  useEffect(() => {
+    if (selectedJobRole) {
+      setTargetTitle(selectedJobRole);
     }
-  }, [parsedResumeDetails]);
+  }, [selectedJobRole]);
+
+  const handleJdFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result?.toString() || "";
+      setTargetJd(text);
+    };
+    reader.readAsText(file);
+  };
 
   const handleOptimizeResume = async () => {
+    if (!targetJd.trim()) {
+      alert("Please provide a target Job Description to guide optimization.");
+      return;
+    }
     setResumeLoading(true);
+    setOptimizedResume(null);
+    setAcceptedSuggestions({});
+    setRejectedSuggestions({});
+    setCompiledMode(false);
     try {
       const response = await fetch("/api/ai/resume-builder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          bio: resumeBioDraft,
-          experience: studentExperience,
-          projects: studentProjects,
-          skills: studentSkills,
-          role: selectedJobRole
+          jobTitle: targetTitle,
+          companyName: targetCompany,
+          jobDescription: targetJd,
+          bio: parsedResumeDetails?.bio || "",
+          experience: parsedResumeDetails?.experience || [],
+          projects: parsedResumeDetails?.projects || [],
+          skills: parsedResumeDetails?.verifiedSkills || [],
+          certifications: parsedResumeDetails?.certifications || [],
+          education: parsedResumeDetails?.education || []
         })
       });
       const data = await response.json();
       if (data.success && data.result) {
         setOptimizedResume(data.result);
+        // Switch to the first available category suggestion tab
+        if (data.result.summary) setActiveSuggestionTab("summary");
+        else if (data.result.experience?.length > 0) setActiveSuggestionTab("experience");
+        else if (data.result.projects?.length > 0) setActiveSuggestionTab("projects");
+        else if (data.result.skills?.length > 0) setActiveSuggestionTab("skills");
+        else if (data.result.certifications?.length > 0) setActiveSuggestionTab("certs");
+      } else {
+        alert(data.error || "Failed to generate suggestions.");
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      alert("Error generating suggestions: " + e.message);
     } finally {
       setResumeLoading(false);
     }
   };
 
-  const handleAcceptOptimization = (type: "bio" | "experience" | "projects") => {
-    if (!optimizedResume) return;
-    if (type === "bio") {
-      updateParsedDetails({ bio: optimizedResume.optimizedBio });
-      setResumeBioDraft(optimizedResume.optimizedBio);
+  const handleAcceptSuggestion = (sug: any, type: "summary" | "experience" | "projects" | "skills" | "certs") => {
+    if (!parsedResumeDetails) return;
+
+    if (type === "summary") {
+      updateParsedDetails({ bio: sug.suggestedText });
+      setAcceptedSuggestions(prev => ({ ...prev, summary: true }));
     } else if (type === "experience") {
-      updateParsedDetails({ experience: optimizedResume.optimizedExperience });
+      const updated = [...(parsedResumeDetails.experience || [])];
+      if (updated[sug.index]) {
+        updated[sug.index].responsibilities = sug.suggestedText;
+        updateParsedDetails({ experience: updated });
+      }
+      setAcceptedSuggestions(prev => ({ ...prev, [`exp-${sug.index}`]: true }));
     } else if (type === "projects") {
-      updateParsedDetails({ projects: optimizedResume.optimizedProjects });
+      const updated = [...(parsedResumeDetails.projects || [])];
+      if (updated[sug.index]) {
+        updated[sug.index].description = sug.suggestedText;
+        updateParsedDetails({ projects: updated });
+      }
+      setAcceptedSuggestions(prev => ({ ...prev, [`proj-${sug.index}`]: true }));
+    } else if (type === "skills") {
+      const current = parsedResumeDetails.verifiedSkills || [];
+      if (!current.includes(sug.skillName)) {
+        updateParsedDetails({ verifiedSkills: [...current, sug.skillName] });
+      }
+      setAcceptedSuggestions(prev => ({ ...prev, [`skill-${sug.skillName}`]: true }));
+    } else if (type === "certs") {
+      const updated = [...(parsedResumeDetails.certifications || [])];
+      if (updated[sug.index]) {
+        updated[sug.index].certificationName = sug.suggestedText;
+        updateParsedDetails({ certifications: updated });
+      }
+      setAcceptedSuggestions(prev => ({ ...prev, [`cert-${sug.index}`]: true }));
     }
+  };
+
+  const handleRejectSuggestion = (sugId: string) => {
+    setRejectedSuggestions(prev => ({ ...prev, [sugId]: true }));
+  };
+
+  const startEditSuggestion = (sugId: string, initialText: string) => {
+    setEditingSuggestionId(sugId);
+    setEditingText(initialText);
+  };
+
+  const saveEditedSuggestion = (sug: any, type: "summary" | "experience" | "projects" | "certs") => {
+    if (!parsedResumeDetails) return;
+
+    const finalValue = editingText.trim();
+    if (!finalValue) return;
+
+    if (type === "summary") {
+      updateParsedDetails({ bio: finalValue });
+      setAcceptedSuggestions(prev => ({ ...prev, summary: true }));
+    } else if (type === "experience") {
+      const updated = [...(parsedResumeDetails.experience || [])];
+      if (updated[sug.index]) {
+        updated[sug.index].responsibilities = finalValue;
+        updateParsedDetails({ experience: updated });
+      }
+      setAcceptedSuggestions(prev => ({ ...prev, [`exp-${sug.index}`]: true }));
+    } else if (type === "projects") {
+      const updated = [...(parsedResumeDetails.projects || [])];
+      if (updated[sug.index]) {
+        updated[sug.index].description = finalValue;
+        updateParsedDetails({ projects: updated });
+      }
+      setAcceptedSuggestions(prev => ({ ...prev, [`proj-${sug.index}`]: true }));
+    } else if (type === "certs") {
+      const updated = [...(parsedResumeDetails.certifications || [])];
+      if (updated[sug.index]) {
+        updated[sug.index].certificationName = finalValue;
+        updateParsedDetails({ certifications: updated });
+      }
+      setAcceptedSuggestions(prev => ({ ...prev, [`cert-${sug.index}`]: true }));
+    }
+
+    setEditingSuggestionId(null);
+  };
+
+  const getCompiledResumeText = () => {
+    if (!parsedResumeDetails) return "";
+    const p = parsedResumeDetails;
+    let res = "";
+    res += `# ${p.fullName || "Candidate Name"}\n`;
+    res += `${p.email || ""} | ${p.phone || ""} | ${p.location || ""}\n`;
+    const links = [p.linkedin, p.github, p.portfolioWebsite].filter(Boolean);
+    if (links.length > 0) {
+      res += `${links.join(" | ")}\n`;
+    }
+    res += `\n---\n\n`;
+    
+    if (p.bio) {
+      res += `## PROFESSIONAL SUMMARY\n${p.bio}\n\n`;
+    }
+    
+    if (p.verifiedSkills && p.verifiedSkills.length > 0) {
+      res += `## CORE TECHNOLOGIES & SKILLS\n${p.verifiedSkills.join(" • ")}\n\n`;
+    }
+    
+    if (p.experience && p.experience.length > 0) {
+      res += `## PROFESSIONAL EXPERIENCE\n`;
+      p.experience.forEach(exp => {
+        res += `### ${exp.role} | ${exp.companyName}\n`;
+        res += `${exp.startDate || ""} - ${exp.endDate || ""} ${exp.duration ? `(${exp.duration})` : ""}\n`;
+        if (exp.responsibilities) {
+          const lines = exp.responsibilities.split("\n").map(l => l.trim()).filter(Boolean);
+          lines.forEach(l => {
+            res += `- ${l.startsWith("-") ? l.substring(1).trim() : l}\n`;
+          });
+        }
+        res += `\n`;
+      });
+    }
+    
+    if (p.projects && p.projects.length > 0) {
+      res += `## TECHNICAL PROJECTS\n`;
+      p.projects.forEach(proj => {
+        res += `### ${proj.projectTitle}\n`;
+        if (proj.description) {
+          const lines = proj.description.split("\n").map(l => l.trim()).filter(Boolean);
+          lines.forEach(l => {
+            res += `- ${l.startsWith("-") ? l.substring(1).trim() : l}\n`;
+          });
+        }
+        res += `\n`;
+      });
+    }
+    
+    if (p.education && p.education.length > 0) {
+      res += `## EDUCATION\n`;
+      p.education.forEach(edu => {
+        res += `### ${edu.degree} in ${edu.branch} | ${edu.institution}\n`;
+        res += `${edu.startYear || ""} - ${edu.endYear || ""} ${edu.cgpa ? `(CGPA: ${edu.cgpa})` : ""}\n\n`;
+      });
+    }
+    
+    if (p.certifications && p.certifications.length > 0) {
+      res += `## CERTIFICATIONS\n`;
+      p.certifications.forEach(cert => {
+        res += `- ${cert.certificationName} | ${cert.organization} (${cert.date || ""})\n`;
+      });
+    }
+    
+    return res;
+  };
+
+  const handleDownloadMarkdown = () => {
+    const text = getCompiledResumeText();
+    const element = document.createElement("a");
+    const file = new Blob([text], {type: 'text/markdown'});
+    element.href = URL.createObjectURL(file);
+    element.download = `${(parsedResumeDetails?.fullName || "Resume").replace(/\s+/g, "_")}_Tailored_Resume.md`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleCopyText = () => {
+    const text = getCompiledResumeText();
+    navigator.clipboard.writeText(text);
+    alert("Tailored resume content copied to clipboard!");
   };
 
   // ==========================================
@@ -481,7 +694,7 @@ export default function AIResumeCoachPage() {
       {/* Main content window */}
       <div className="bg-white rounded-2xl border border-slate-100 p-6 min-h-[500px] shadow-sm relative">
         <AnimatePresence mode="wait">
-          {/* TAB 1: RESUME OPTIMIZER */}
+          {/* TAB 1: RESUME OPTIMIZER (AI RESUME ASSISTANT) */}
           {activeTab === "resume" && (
             <motion.div
               key="resume"
@@ -490,123 +703,617 @@ export default function AIResumeCoachPage() {
               exit={{ opacity: 0, y: -5 }}
               className="space-y-6"
             >
-              <div className="space-y-1">
-                <h2 className="font-display text-base font-bold text-[#0b172a]">
-                  ATS Resume Optimizer
-                </h2>
-                <p className="text-slate-400 text-xs font-medium font-sans">
-                  Optimize your bio biography, project descriptions, and experience using high-impact recruiter keywords.
-                </p>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-50 pb-3">
+                <div className="space-y-1">
+                  <h2 className="font-display text-base font-bold text-[#0b172a] flex items-center gap-1.5">
+                    <Sparkles className="h-5 w-5 text-orange-500" /> AI Resume Assistant
+                  </h2>
+                  <p className="text-slate-400 text-xs font-medium font-sans">
+                    Contextual role-specific optimizations tailored to your target job, company, and description.
+                  </p>
+                </div>
+                {optimizedResume && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCompiledMode(c => !c)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 ${
+                        compiledMode
+                          ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                          : "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
+                      }`}
+                    >
+                      {compiledMode ? (
+                        <>
+                          <Edit3 className="h-4 w-4" /> Back to Suggestions
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="h-4 w-4 animate-pulse" /> View Optimized Resume
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setOptimizedResume(null);
+                        setCompiledMode(false);
+                      }}
+                      className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-655 font-bold text-xs"
+                    >
+                      Reset Assistant
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Inputs Draft Column */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Biography Summary
-                    </label>
-                    <textarea
-                      value={resumeBioDraft}
-                      onChange={(e) => setResumeBioDraft(e.target.value)}
-                      rows={4}
-                      className="w-full p-3.5 rounded-xl border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-500 font-sans"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Active Skills Stack
-                    </label>
-                    <div className="flex flex-wrap gap-1.5 p-3 rounded-xl border border-slate-200 bg-slate-50/50">
-                      {studentSkills.map((s) => (
-                        <span key={s} className="px-2.5 py-1 bg-white border border-slate-100 rounded-lg text-[10px] font-bold text-slate-600">
-                          {s}
-                        </span>
-                      ))}
+              {!optimizedResume ? (
+                /* 1. CONFIGURATION VIEW: Inputs panel */
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Job Title</span>
+                        <Input
+                          type="text"
+                          placeholder="e.g. Senior Frontend Engineer"
+                          value={targetTitle}
+                          onChange={(e: any) => setTargetTitle(e.target.value)}
+                          className="h-9 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Company</span>
+                        <Input
+                          type="text"
+                          placeholder="e.g. Stripe, Google, Vercel"
+                          value={targetCompany}
+                          onChange={(e: any) => setTargetCompany(e.target.value)}
+                          className="h-9 text-xs"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <Button
-                    onClick={handleOptimizeResume}
-                    disabled={resumeLoading}
-                    variant="primary"
-                    className="w-full h-10 rounded-xl font-bold"
-                  >
-                    {resumeLoading ? (
-                      <span className="flex items-center gap-1.5 justify-center">
-                        <RefreshCw className="h-4 w-4 animate-spin" /> Optimizing...
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1.5 justify-center">
-                        <Sparkles className="h-4 w-4" /> Optimize Resume
-                      </span>
-                    )}
-                  </Button>
-                </div>
-
-                {/* Optimizations Comparison Column */}
-                <div className="space-y-4">
-                  {optimizedResume ? (
-                    <div className="space-y-4">
-                      {/* Bio comparison box */}
-                      <div className="rounded-xl border border-slate-100 p-4 space-y-3 bg-slate-50/20">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-orange-500 uppercase tracking-wider">
-                            Optimized Bio summary
-                          </span>
+                    <div className="space-y-3">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Job Description</span>
+                      
+                      <div className="flex gap-2 border-b border-slate-100 pb-2">
+                        {[
+                          { id: "paste", label: "Paste JD Text" },
+                          { id: "select", label: "Select Platform Job" },
+                          { id: "file", label: "Upload JD File" }
+                        ].map((mode) => (
                           <button
-                            onClick={() => handleAcceptOptimization("bio")}
-                            className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg"
+                            key={mode.id}
+                            onClick={() => {
+                              setJdMode(mode.id as any);
+                              if (mode.id === "select" && platformJobs.length > 0) {
+                                const job = platformJobs[0];
+                                setTargetTitle(job.title || "");
+                                setTargetCompany(job.company || "");
+                                setTargetJd(job.description || "");
+                              }
+                            }}
+                            className={`px-3 py-1 rounded-xl text-[10.5px] font-bold transition-all ${
+                              jdMode === mode.id
+                                ? "bg-slate-900 text-white shadow-xs"
+                                : "bg-slate-50 text-slate-550 border border-slate-150 hover:bg-slate-100"
+                            }`}
                           >
-                            <FileCheck className="h-3 w-3" /> Accept
+                            {mode.label}
                           </button>
-                        </div>
-                        <p className="text-xs text-slate-700 leading-relaxed font-sans font-medium">
-                          {optimizedResume.optimizedBio}
-                        </p>
+                        ))}
                       </div>
 
-                      {/* Keywords suggested box */}
-                      <div className="rounded-xl border border-dashed border-slate-200 p-4 space-y-3 bg-slate-50/10">
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-500 uppercase tracking-wider">
-                          <Lightbulb className="h-4 w-4" /> Suggested ATS Keywords
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {optimizedResume.suggestedKeywords?.map((kw: string) => (
-                            <span key={kw} className="px-2 py-0.5 rounded-lg bg-indigo-50 text-[10px] font-bold text-indigo-700 border border-indigo-100">
-                              {kw}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                      {jdMode === "paste" && (
+                        <textarea
+                          placeholder="Paste the target job description requirements here..."
+                          value={targetJd}
+                          onChange={(e) => setTargetJd(e.target.value)}
+                          rows={6}
+                          className="w-full p-3 border border-slate-200 rounded-2xl text-xs focus:outline-none focus:border-slate-800 bg-white font-sans"
+                        />
+                      )}
 
-                      {/* Missing skills box */}
-                      {optimizedResume.missingSkills?.length > 0 && (
-                        <div className="rounded-xl border border-amber-100 bg-amber-50/20 p-4 space-y-2">
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 uppercase tracking-wider">
-                            <AlertCircle className="h-4 w-4 text-amber-500" /> Missing Resume Sections / Skills
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {optimizedResume.missingSkills.map((sk: string) => (
-                              <span key={sk} className="px-2 py-0.5 rounded-lg bg-amber-50 text-[10px] font-bold text-amber-700 border border-amber-200">
-                                {sk}
-                              </span>
+                      {jdMode === "select" && (
+                        <div className="space-y-3">
+                          <select
+                            onChange={(e) => {
+                              const job = platformJobs.find(j => j.id === e.target.value);
+                              if (job) {
+                                setTargetTitle(job.title || "");
+                                setTargetCompany(job.company || "");
+                                setTargetJd(job.description || "");
+                              }
+                            }}
+                            className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white"
+                          >
+                            {platformJobs.map((job) => (
+                              <option key={job.id} value={job.id}>
+                                {job.title} at {job.company}
+                              </option>
                             ))}
-                          </div>
+                          </select>
+                          <textarea
+                            value={targetJd}
+                            readOnly
+                            rows={5}
+                            className="w-full p-3 border border-slate-200 rounded-2xl text-xs bg-slate-50 text-slate-500 font-sans"
+                          />
+                        </div>
+                      )}
+
+                      {jdMode === "file" && (
+                        <div className="space-y-3">
+                          <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                            <FileUp className="h-6 w-6 text-slate-400 mb-1" />
+                            <span className="text-[10px] font-bold text-slate-600">Choose Text / Markdown / Word Document</span>
+                            <input type="file" accept=".txt,.md,.docx,.doc" onChange={handleJdFileUpload} className="hidden" />
+                          </label>
+                          {targetJd && (
+                            <textarea
+                              value={targetJd}
+                              onChange={(e) => setTargetJd(e.target.value)}
+                              rows={4}
+                              className="w-full p-3 border border-slate-200 rounded-2xl text-xs focus:outline-none focus:border-slate-800 bg-white font-sans"
+                            />
+                          )}
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div className="h-full flex flex-col items-center justify-center border border-dashed border-slate-100 rounded-xl p-8 text-center bg-slate-50/20">
-                      <FileText className="h-10 w-10 text-slate-300" />
-                      <p className="text-xs font-bold text-slate-400 mt-3">
-                        Optimize your details to compare original vs AI refactored keywords.
+
+                    <button
+                      onClick={handleOptimizeResume}
+                      disabled={resumeLoading}
+                      className="w-full rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 text-xs shadow-md shadow-orange-500/10 hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                    >
+                      {resumeLoading ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 animate-spin" /> Analyzing resume & matching targets...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 animate-pulse" /> Analyze & Generate Optimizer Suggestions
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <DashboardCard glowColor="blue" className="p-4 space-y-3 bg-blue-50/10">
+                      <div className="flex items-center gap-1.5 text-[10.5px] font-black text-blue-600 uppercase tracking-wider">
+                        <Info className="h-4 w-4" /> AI Optimizer Guide
+                      </div>
+                      <p className="text-[10.5px] text-slate-500 leading-relaxed font-sans">
+                        Our AI Assistant compares your current resume credentials with the target Job Description to highlight matches and suggest dynamic enhancements.
                       </p>
-                    </div>
-                  )}
+                      <ul className="space-y-2 text-[10.5px] text-slate-655 font-medium pl-4 list-disc">
+                        <li>Optimizes summary summaries.</li>
+                        <li>Adapts work history descriptions.</li>
+                        <li>Verifies projects for key terms.</li>
+                        <li>Identifies missing targeted skills.</li>
+                      </ul>
+                    </DashboardCard>
+                  </div>
                 </div>
-              </div>
+              ) : compiledMode ? (
+                /* 2. COMPILED TAILORED RESUME PREVIEW: A4 Sheet layout */
+                <div className="max-w-4xl mx-auto space-y-6 text-left">
+                  <div className="flex justify-between items-center bg-slate-50 border border-slate-150 p-3 rounded-2xl">
+                    <span className="text-[10.5px] font-bold text-slate-600 flex items-center gap-1.5">
+                      <Check className="h-4 w-4 text-emerald-500" /> Factual tailored resume compiled successfully!
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCopyText}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-655 font-bold text-[10.5px] transition-all"
+                      >
+                        <Copy className="h-3.5 w-3.5" /> Copy Text
+                      </button>
+                      <button
+                        onClick={handleDownloadMarkdown}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10.5px] transition-all"
+                      >
+                        <Download className="h-3.5 w-3.5" /> Download MD
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* A4 sheet preview */}
+                  <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-8 sm:p-12 font-mono text-[11px] text-slate-800 leading-relaxed max-w-3xl mx-auto select-text whitespace-pre-wrap">
+                    {getCompiledResumeText()}
+                  </div>
+
+                  <div className="text-center pt-2">
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      Tip: You can use your browser's Print feature (Ctrl+P / Cmd+P) to save this page layout as a clean PDF document.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* 3. SUGGESTIONS WORKSPACE VIEW: Section tabs + Interactive list review */
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 text-left">
+                  {/* Left panel tabs selector */}
+                  <div className="lg:col-span-1 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+                    {[
+                      { id: "summary", label: "Profile Summary", count: optimizedResume.summary ? 1 : 0 },
+                      { id: "experience", label: "Work History", count: optimizedResume.experience?.length || 0 },
+                      { id: "projects", label: "Projects Portfolio", count: optimizedResume.projects?.length || 0 },
+                      { id: "skills", label: "Suggested Skills", count: optimizedResume.skills?.length || 0 },
+                      { id: "certs", label: "Certifications", count: optimizedResume.certifications?.length || 0 }
+                    ].map((sec) => (
+                      <button
+                        key={sec.id}
+                        onClick={() => {
+                          setActiveSuggestionTab(sec.id as any);
+                          setEditingSuggestionId(null);
+                        }}
+                        className={`flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all shrink-0 text-left ${
+                          activeSuggestionTab === sec.id
+                            ? "bg-slate-900 text-white shadow-xs"
+                            : "bg-slate-50 hover:bg-slate-100 text-slate-655 border border-slate-100"
+                        }`}
+                      >
+                        <span>{sec.label}</span>
+                        {sec.count > 0 && (
+                          <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-mono font-black ${
+                            activeSuggestionTab === sec.id ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+                          }`}>
+                            {sec.count}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Right panel suggestion lists */}
+                  <div className="lg:col-span-3 space-y-4">
+                    
+                    {/* Summary Tab Suggestions */}
+                    {activeSuggestionTab === "summary" && optimizedResume.summary && (
+                      (() => {
+                        const sug = optimizedResume.summary;
+                        const isAccepted = acceptedSuggestions["summary"];
+                        const isRejected = rejectedSuggestions["summary"];
+                        const isEditing = editingSuggestionId === "summary";
+
+                        if (isRejected) return <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-400 italic text-[11.5px]">Suggestion dismissed.</div>;
+
+                        return (
+                          <div className="border border-slate-150 rounded-2xl p-5 bg-slate-50/10 space-y-4 relative overflow-hidden">
+                            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                              <span className="text-[10px] font-bold text-orange-500 uppercase block tracking-wider">Tailored Summary Optimization</span>
+                              {isAccepted && (
+                                <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-600 text-[9px] font-bold flex items-center gap-1 border border-emerald-100">
+                                  <Check className="h-3 w-3" /> Updated in Profile
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="p-3.5 bg-slate-50/50 rounded-xl border border-slate-100 space-y-1.5">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Current Text</span>
+                                <p className="text-slate-500 leading-relaxed font-sans">{sug.originalText || "No summary provided."}</p>
+                              </div>
+
+                              <div className="p-3.5 bg-emerald-50/10 rounded-xl border border-emerald-100/30 space-y-1.5 relative">
+                                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-wider block">AI Suggested Wording</span>
+                                {isEditing ? (
+                                  <textarea
+                                    value={editingText}
+                                    onChange={(e) => setEditingText(e.target.value)}
+                                    rows={4}
+                                    className="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
+                                  />
+                                ) : (
+                                  <p className="text-slate-700 font-semibold leading-relaxed font-sans">{sug.suggestedText}</p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="p-3 bg-amber-50/20 border border-amber-100/50 rounded-xl text-[10.5px] text-slate-655 font-medium flex gap-2">
+                              <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-bold text-amber-800">Why this helps:</span> {sug.explanation}
+                              </div>
+                            </div>
+
+                            {!isAccepted && (
+                              <div className="flex gap-2 justify-end pt-2 border-t border-slate-50">
+                                {isEditing ? (
+                                  <>
+                                    <button onClick={() => setEditingSuggestionId(null)} className="px-2.5 py-1 text-[10px] font-bold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50">Cancel</button>
+                                    <button onClick={() => saveEditedSuggestion(sug, "summary")} className="px-3 py-1 text-[10px] font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-800">Save & Accept</button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button onClick={() => handleRejectSuggestion("summary")} className="px-2.5 py-1 text-[10px] font-bold text-slate-400 hover:text-slate-500">Dismiss</button>
+                                    <button onClick={() => startEditSuggestion("summary", sug.suggestedText)} className="px-2.5 py-1 text-[10px] font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-0.5"><Edit3 className="h-3 w-3" /> Edit</button>
+                                    <button onClick={() => handleAcceptSuggestion(sug, "summary")} className="px-3.5 py-1 text-[10px] font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-0.5"><Check className="h-3.5 w-3.5" /> Accept Suggestion</button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()
+                    )}
+
+                    {/* Experience Tab Suggestions */}
+                    {activeSuggestionTab === "experience" && (
+                      optimizedResume.experience && optimizedResume.experience.length > 0 ? (
+                        optimizedResume.experience.map((sug: any, idx: number) => {
+                          const sugId = `exp-${sug.index}`;
+                          const isAccepted = acceptedSuggestions[sugId];
+                          const isRejected = rejectedSuggestions[sugId];
+                          const isEditing = editingSuggestionId === sugId;
+
+                          if (isRejected) return <div key={idx} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-400 italic text-[11.5px]">Suggestion dismissed.</div>;
+
+                          return (
+                            <div key={idx} className="border border-slate-150 rounded-2xl p-5 bg-slate-50/10 space-y-4 relative">
+                              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <div>
+                                  <h4 className="font-bold text-slate-800 text-[11px]">{sug.companyName}</h4>
+                                  <span className="text-[9px] font-bold text-slate-450 uppercase tracking-wider block mt-0.5">Role: {sug.originalRole}</span>
+                                </div>
+                                {isAccepted && (
+                                  <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-600 text-[9px] font-bold flex items-center gap-1 border border-emerald-100">
+                                    <Check className="h-3 w-3" /> Updated in Profile
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-3.5 bg-slate-50/50 rounded-xl border border-slate-100 space-y-1.5">
+                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Current Text</span>
+                                  <p className="text-slate-550 leading-relaxed font-sans whitespace-pre-wrap">{sug.originalText || "No description provided."}</p>
+                                </div>
+
+                                <div className="p-3.5 bg-emerald-50/10 rounded-xl border border-emerald-100/30 space-y-1.5">
+                                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-wider block">AI Suggested STAR wording</span>
+                                  {isEditing ? (
+                                    <textarea
+                                      value={editingText}
+                                      onChange={(e) => setEditingText(e.target.value)}
+                                      rows={5}
+                                      className="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none font-sans"
+                                    />
+                                  ) : (
+                                    <p className="text-slate-700 font-semibold leading-relaxed font-sans whitespace-pre-wrap">{sug.suggestedText}</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="p-3 bg-amber-50/20 border border-amber-100/50 rounded-xl text-[10.5px] text-slate-655 font-medium flex gap-2">
+                                <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                <div>
+                                  <span className="font-bold text-amber-800">Why this helps:</span> {sug.explanation}
+                                </div>
+                              </div>
+
+                              {!isAccepted && (
+                                <div className="flex gap-2 justify-end pt-2 border-t border-slate-50">
+                                  {isEditing ? (
+                                    <>
+                                      <button onClick={() => setEditingSuggestionId(null)} className="px-2.5 py-1 text-[10px] font-bold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50">Cancel</button>
+                                      <button onClick={() => saveEditedSuggestion(sug, "experience")} className="px-3 py-1 text-[10px] font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-800 font-sans">Save & Accept</button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button onClick={() => handleRejectSuggestion(sugId)} className="px-2.5 py-1 text-[10px] font-bold text-slate-400 hover:text-slate-500">Dismiss</button>
+                                      <button onClick={() => startEditSuggestion(sugId, sug.suggestedText)} className="px-2.5 py-1 text-[10px] font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-0.5"><Edit3 className="h-3 w-3" /> Edit</button>
+                                      <button onClick={() => handleAcceptSuggestion(sug, "experience")} className="px-3 py-1 text-[10px] font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-0.5"><Check className="h-3.5 w-3.5" /> Accept Suggestion</button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400">
+                          No parsed work experience found to optimize.
+                        </div>
+                      )
+                    )}
+
+                    {/* Projects Tab Suggestions */}
+                    {activeSuggestionTab === "projects" && (
+                      optimizedResume.projects && optimizedResume.projects.length > 0 ? (
+                        optimizedResume.projects.map((sug: any, idx: number) => {
+                          const sugId = `proj-${sug.index}`;
+                          const isAccepted = acceptedSuggestions[sugId];
+                          const isRejected = rejectedSuggestions[sugId];
+                          const isEditing = editingSuggestionId === sugId;
+
+                          if (isRejected) return <div key={idx} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-400 italic text-[11.5px]">Suggestion dismissed.</div>;
+
+                          return (
+                            <div key={idx} className="border border-slate-150 rounded-2xl p-5 bg-slate-50/10 space-y-4 relative">
+                              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <h4 className="font-bold text-slate-800 text-[11px]">Project: {sug.projectTitle}</h4>
+                                {isAccepted && (
+                                  <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-600 text-[9px] font-bold flex items-center gap-1 border border-emerald-100">
+                                    <Check className="h-3 w-3" /> Updated in Profile
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-3.5 bg-slate-50/50 rounded-xl border border-slate-100 space-y-1.5">
+                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Current Text</span>
+                                  <p className="text-slate-550 leading-relaxed font-sans whitespace-pre-wrap">{sug.originalText || "No project description provided."}</p>
+                                </div>
+
+                                <div className="p-3.5 bg-emerald-50/10 rounded-xl border border-emerald-100/30 space-y-1.5">
+                                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-wider block">AI Suggested wording</span>
+                                  {isEditing ? (
+                                    <textarea
+                                      value={editingText}
+                                      onChange={(e) => setEditingText(e.target.value)}
+                                      rows={5}
+                                      className="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none font-sans"
+                                    />
+                                  ) : (
+                                    <p className="text-slate-700 font-semibold leading-relaxed font-sans whitespace-pre-wrap">{sug.suggestedText}</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="p-3 bg-amber-50/20 border border-amber-100/50 rounded-xl text-[10.5px] text-slate-655 font-medium flex gap-2">
+                                <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                <div>
+                                  <span className="font-bold text-amber-800">Why this helps:</span> {sug.explanation}
+                                </div>
+                              </div>
+
+                              {!isAccepted && (
+                                <div className="flex gap-2 justify-end pt-2 border-t border-slate-50">
+                                  {isEditing ? (
+                                    <>
+                                      <button onClick={() => setEditingSuggestionId(null)} className="px-2.5 py-1 text-[10px] font-bold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50">Cancel</button>
+                                      <button onClick={() => saveEditedSuggestion(sug, "projects")} className="px-3 py-1 text-[10px] font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-800 font-sans">Save & Accept</button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button onClick={() => handleRejectSuggestion(sugId)} className="px-2.5 py-1 text-[10px] font-bold text-slate-400 hover:text-slate-500">Dismiss</button>
+                                      <button onClick={() => startEditSuggestion(sugId, sug.suggestedText)} className="px-2.5 py-1 text-[10px] font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-0.5"><Edit3 className="h-3 w-3" /> Edit</button>
+                                      <button onClick={() => handleAcceptSuggestion(sug, "projects")} className="px-3 py-1 text-[10px] font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-0.5"><Check className="h-3.5 w-3.5" /> Accept Suggestion</button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400">
+                          No parsed technical projects found to optimize.
+                        </div>
+                      )
+                    )}
+
+                    {/* Skills Tab Suggestions */}
+                    {activeSuggestionTab === "skills" && (
+                      optimizedResume.skills && optimizedResume.skills.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {optimizedResume.skills.map((sug: any, idx: number) => {
+                            const sugId = `skill-${sug.skillName}`;
+                            const isAccepted = acceptedSuggestions[sugId];
+                            const isRejected = rejectedSuggestions[sugId];
+
+                            if (isRejected) return null;
+
+                            return (
+                              <div key={idx} className="border border-slate-150 rounded-2xl p-4 bg-slate-50/10 flex flex-col justify-between gap-3 text-left">
+                                <div className="space-y-1.5">
+                                  <div className="flex justify-between items-center">
+                                    <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 font-bold text-[10.5px]">
+                                      {sug.skillName}
+                                    </span>
+                                    {isAccepted && (
+                                      <span className="text-[9px] font-bold text-emerald-600 flex items-center gap-0.5">
+                                        <Check className="h-3 w-3" /> Added
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-slate-500 leading-relaxed font-sans pr-1">{sug.explanation}</p>
+                                </div>
+
+                                {!isAccepted && (
+                                  <div className="flex gap-2 justify-end pt-2 border-t border-slate-50">
+                                    <button onClick={() => handleRejectSuggestion(sugId)} className="text-[9px] font-bold text-slate-400 hover:text-slate-500">Dismiss</button>
+                                    <button onClick={() => handleAcceptSuggestion(sug, "skills")} className="px-2.5 py-1 text-[9px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg">Add to Profile</button>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400">
+                          No missing skill recommendations generated.
+                        </div>
+                      )
+                    )}
+
+                    {/* Certifications Tab Suggestions */}
+                    {activeSuggestionTab === "certs" && (
+                      optimizedResume.certifications && optimizedResume.certifications.length > 0 ? (
+                        optimizedResume.certifications.map((sug: any, idx: number) => {
+                          const sugId = `cert-${sug.index}`;
+                          const isAccepted = acceptedSuggestions[sugId];
+                          const isRejected = rejectedSuggestions[sugId];
+                          const isEditing = editingSuggestionId === sugId;
+
+                          if (isRejected) return <div key={idx} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-400 italic text-[11.5px]">Suggestion dismissed.</div>;
+
+                          return (
+                            <div key={idx} className="border border-slate-150 rounded-2xl p-5 bg-slate-50/10 space-y-4 relative">
+                              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <h4 className="font-bold text-slate-800 text-[11px]">Certification Title Enhancement</h4>
+                                {isAccepted && (
+                                  <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-600 text-[9px] font-bold flex items-center gap-1 border border-emerald-100">
+                                    <Check className="h-3 w-3" /> Updated in Profile
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-3.5 bg-slate-50/50 rounded-xl border border-slate-100 space-y-1.5">
+                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Current Text</span>
+                                  <p className="text-slate-555 leading-relaxed font-sans">{sug.originalText}</p>
+                                </div>
+
+                                <div className="p-3.5 bg-emerald-50/10 rounded-xl border border-emerald-100/30 space-y-1.5">
+                                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-wider block">AI Suggested wording</span>
+                                  {isEditing ? (
+                                    <Input
+                                      value={editingText}
+                                      onChange={(e) => setEditingText(e.target.value)}
+                                      className="h-8.5 text-xs bg-white"
+                                    />
+                                  ) : (
+                                    <p className="text-slate-700 font-semibold leading-relaxed font-sans">{sug.suggestedText}</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="p-3 bg-amber-50/20 border border-amber-100/50 rounded-xl text-[10.5px] text-slate-655 font-medium flex gap-2">
+                                <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                <div>
+                                  <span className="font-bold text-amber-800">Why this helps:</span> {sug.explanation}
+                                </div>
+                              </div>
+
+                              {!isAccepted && (
+                                <div className="flex gap-2 justify-end pt-2 border-t border-slate-50">
+                                  {isEditing ? (
+                                    <>
+                                      <button onClick={() => setEditingSuggestionId(null)} className="px-2.5 py-1 text-[10px] font-bold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50">Cancel</button>
+                                      <button onClick={() => saveEditedSuggestion(sug, "certs")} className="px-3 py-1 text-[10px] font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-800">Save & Accept</button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button onClick={() => handleRejectSuggestion(sugId)} className="px-2.5 py-1 text-[10px] font-bold text-slate-400 hover:text-slate-500">Dismiss</button>
+                                      <button onClick={() => startEditSuggestion(sugId, sug.suggestedText)} className="px-2.5 py-1 text-[10px] font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-0.5"><Edit3 className="h-3 w-3" /> Edit</button>
+                                      <button onClick={() => handleAcceptSuggestion(sug, "certs")} className="px-3 py-1 text-[10px] font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-0.5"><Check className="h-3.5 w-3.5" /> Accept Suggestion</button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400">
+                          No certifications parsed to optimize.
+                        </div>
+                      )
+                    )}
+
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
