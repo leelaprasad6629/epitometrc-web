@@ -38,7 +38,29 @@ const isValidUrl = (url: string) => {
 
 const ensureAbsoluteUrl = (url: string, platformName?: string) => {
   if (!url) return "#";
-  const trimmed = url.trim();
+  let trimmed = url.trim();
+
+  // If it is LinkedIn, check if we need to convert camelCase/PascalCase in the handle
+  if (platformName && platformName.toLowerCase() === "linkedin") {
+    // Extract handle from URL if present
+    let handle = trimmed;
+    if (trimmed.includes("linkedin.com/in/")) {
+      const parts = trimmed.split("linkedin.com/in/");
+      handle = parts[1]?.split("/")[0] || trimmed;
+    }
+    // Clean handle: convert camelCase/PascalCase and spaces to kebab-case
+    const cleanHandle = handle
+      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .toLowerCase();
+    
+    // Remove trailing/leading slashes if cleanHandle is just the name
+    const finalHandle = cleanHandle.replace(/^\/+|\/+$/g, "");
+    return `https://www.linkedin.com/in/${finalHandle}/`;
+  }
+
+  // General absolute URL check
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
     return trimmed;
   }
@@ -49,7 +71,6 @@ const ensureAbsoluteUrl = (url: string, platformName?: string) => {
 
   if (platformName) {
     const name = platformName.toLowerCase();
-    if (name === "linkedin") return `https://linkedin.com/in/${trimmed}`;
     if (name === "github") return `https://github.com/${trimmed}`;
     if (name === "leetcode") return `https://leetcode.com/${trimmed}`;
     if (name === "hackerrank") return `https://hackerrank.com/${trimmed}`;
