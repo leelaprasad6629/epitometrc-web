@@ -7,7 +7,7 @@ import {
   Briefcase, GraduationCap, Target, Compass, BookOpen, CheckSquare, 
   Map, Award, TrendingUp, AlertCircle, RefreshCw, Star, Trash2, ArrowRight,
   Globe, FileUp, Copy, Download, Check, Info, Calendar, ChevronRight, Loader2,
-  Send, Brain
+  Send, Brain, VideoOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
@@ -92,6 +92,8 @@ export default function AICareerCopilotPage() {
   const [mockIsListening, setMockIsListening] = useState(false);
   const [mockError, setMockError] = useState("");
   const [mockSpeakActive, setMockSpeakActive] = useState(false);
+  const [mockStream, setMockStream] = useState<MediaStream | null>(null);
+  const mockVideoRef = useRef<HTMLVideoElement | null>(null);
   const recognitionRef = useRef<any>(null);
 
   // Initialize speech recognition for live mock
@@ -143,6 +145,23 @@ export default function AICareerCopilotPage() {
     setMockReport(null);
     setMockAnswer("");
     setMockError("");
+
+    // Capture user webcam video stream
+    if (typeof navigator !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+        .then((stream) => {
+          setMockStream(stream);
+          setTimeout(() => {
+            if (mockVideoRef.current) {
+              mockVideoRef.current.srcObject = stream;
+            }
+          }, 300);
+        })
+        .catch((err) => {
+          console.warn("Camera request blocked or failed:", err);
+          setMockError("Webcam access failed/denied. Running in audio-only mode.");
+        });
+    }
 
     const primaryLang = parsedResumeDetails.programmingLanguages?.[0] || parsedResumeDetails.technicalSkills?.[0] || "Software Engineering principles";
     const primaryProject = parsedResumeDetails.projects?.[0]?.projectTitle || "your projects list";
@@ -216,6 +235,11 @@ export default function AICareerCopilotPage() {
           setMockFinished(true);
           setMockReport(r.report);
           
+          if (mockStream) {
+            mockStream.getTracks().forEach((track) => track.stop());
+            setMockStream(null);
+          }
+          
           // Save interview session to database store
           const session = {
             sessionId: `INT_${new Date().getTime()}`,
@@ -249,6 +273,10 @@ export default function AICareerCopilotPage() {
     }
     if (mockIsListening && recognitionRef.current) {
       recognitionRef.current.stop();
+    }
+    if (mockStream) {
+      mockStream.getTracks().forEach((track) => track.stop());
+      setMockStream(null);
     }
     setMockSessionActive(false);
   };
@@ -1704,27 +1732,48 @@ export default function AICareerCopilotPage() {
                 ) : (
                   /* Active Live Mock Session */
                   <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                    
-                    {/* Left Avatar panel */}
-                    <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-2xl flex flex-col items-center justify-between text-center min-h-[300px] shadow-xs">
-                      <div className="space-y-3 w-full">
-                        <div className="relative h-20 w-20 mx-auto">
-                          {/* Shifting visualizer pulse ring */}
-                          {mockSpeakActive && (
-                            <div className="absolute inset-0 rounded-full border border-violet-400/50 animate-ping" />
-                          )}
-                          <div className={`h-20 w-20 rounded-full bg-violet-50 flex items-center justify-center border transition-all duration-300 ${
+                                        {/* Left Avatar & Video panel */}
+                    <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-2xl flex flex-col items-center justify-between gap-4 text-center min-h-[360px] shadow-xs">
+                      
+                      {/* Live Video Feed Container */}
+                      <div className="w-full bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden relative h-52 flex items-center justify-center shadow-inner">
+                        {mockStream ? (
+                          <video 
+                            ref={mockVideoRef}
+                            autoPlay 
+                            playsInline 
+                            muted 
+                            className="w-full h-full object-cover transform -scale-x-100" 
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center gap-1.5 text-slate-500 text-xs font-mono">
+                            <VideoOff className="h-6 w-6 text-slate-600 animate-pulse" />
+                            <span>Camera Stream Offline</span>
+                          </div>
+                        )}
+                        
+                        {/* Interactive floating AI Interviewer mini-panel PIP */}
+                        <div className="absolute bottom-2.5 right-2.5 h-14 w-14 rounded-xl bg-white border border-slate-200 flex flex-col items-center justify-center shadow-md overflow-hidden z-20">
+                          <div className={`h-8 w-8 rounded-full bg-violet-50 flex items-center justify-center border transition-all duration-300 ${
                             mockSpeakActive 
-                              ? "border-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.3)] scale-105" 
-                              : "border-slate-200"
+                              ? "border-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.35)] scale-105" 
+                              : "border-slate-205"
                           }`}>
-                            <Sparkles className={`h-10 w-10 text-violet-500 ${mockSpeakActive ? "animate-bounce" : ""}`} />
+                            <Sparkles className={`h-4.5 w-4.5 text-violet-505 text-violet-500 ${mockSpeakActive ? "animate-spin" : ""}`} />
                           </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <h4 className="text-xs font-black text-slate-805">Interviewer Avatar</h4>
-                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-black border ${
+                        {/* Status tag */}
+                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[8.5px] font-black text-slate-200 font-mono tracking-wider">
+                          <div className={`h-1.5 w-1.5 rounded-full ${mockStream ? "bg-red-500 animate-ping" : "bg-slate-400"}`} />
+                          {mockStream ? "REC LIVE" : "STBY"}
+                        </div>
+                      </div>
+
+                      <div className="w-full space-y-1 text-left px-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Interviewer Avatar State</h4>
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[8.5px] font-black border ${
                             mockSpeakActive 
                               ? "bg-violet-50 border-violet-200 text-violet-650"
                               : mockIsListening 
@@ -1738,7 +1787,7 @@ export default function AICareerCopilotPage() {
 
                       {/* Listening Visualizer wave animation bars */}
                       {mockIsListening && (
-                        <div className="flex gap-1 justify-center items-end h-8 my-4 w-full">
+                        <div className="flex gap-1 justify-center items-end h-8 my-1 w-full">
                           {[1.5, 3.5, 2, 4.5, 2.5, 3.5, 1.5, 4, 2].map((h, idx) => (
                             <div 
                               key={idx} 
