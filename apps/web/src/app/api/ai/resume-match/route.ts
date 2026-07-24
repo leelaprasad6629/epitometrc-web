@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60; // 60s Vercel serverless function timeout
 
@@ -20,34 +21,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Groq API Key is not configured." }, { status: 500 });
     }
 
+    // Query local course catalog for semantic matching
+    const courses = await prisma.course.findMany({
+      select: { id: true, title: true, description: true, category: true, duration: true }
+    });
+
     const systemPrompt = `You are a real-world ATS (Applicant Tracking System) parser and evaluator.
 Your job is to match a candidate's resume text against a Job Description (JD) and perform a comprehensive ATS compatibility analysis.
 
-Evaluate the resume across:
-1. Keyword match rate (common terms, frameworks, tools mentioned in the JD that are present in the resume).
-2. Required vs missing skills (categorized as matched and missing).
-3. Experience relevance (does the candidate's experience align with the responsibilities and year requirements of the JD?).
-4. Education fit (does the candidate's degree match the education requirements of the JD?).
-5. Resume structure & formatting (is the resume structured cleanly with clear headings: Education, Experience, Skills, Projects?).
-6. Measurable achievements (does the candidate use metrics, percentages, numbers, or business outcomes in their work history?).
-7. Readability & general ATS compatibility.
+There are two primary scores you MUST calculate:
+1. overallAtsScore (0-100): General ATS compatibility. Evaluates layout, section presence (Education, Experience, Skills, Projects), readability, formatting, and general structure. Unrelated to the specific job description.
+2. jobMatchPercentage (0-100): Job Match Score. Evaluates the candidate's experience relevance, skill overlap, and keyword matches strictly against the target Job Description (JD).
 
-Compute these specific metrics (strictly calculated dynamically based on semantic overlap):
-- overallAtsScore (0-100)
-- jobMatchPercentage (0-100)
-- keywordMatchPercentage (0-100)
-- skillMatchPercentage (0-100)
-- experienceMatchPercentage (0-100)
+Here is the list of local courses available on the EpitomeTRC platform:
+${JSON.stringify(courses)}
 
-Provide lists of:
-- matchedSkills (skills from JD present in resume, formatted in UPPERCASE)
-- missingSkills (essential skills from JD missing in resume, formatted in UPPERCASE)
-- missingKeywords (important words/terms from JD missing in resume, formatted in UPPERCASE)
-- strengths (specific highlights of the resume matching the JD)
-- weaknesses (gaps between resume and JD)
-- suggestions (actionable resume rewrite advice)
-- certRecommendations (certifications that would help match the JD)
-- techRecommendations (technologies or projects to build to match the JD)
+For each missing skill, semantically map it to the most relevant local course from the catalog above. If no local course is a close semantic match (e.g. course description/title is not relevant), set recommendedCourseId and recommendedCourseTitle to null and suggest a high-quality, trusted externalLearningPath URL (e.g. documentation link or free tutorial website).
 
 Return strictly a JSON object matching this exact structure:
 {
@@ -57,7 +46,17 @@ Return strictly a JSON object matching this exact structure:
   "skillMatchPercentage": 85,
   "experienceMatchPercentage": 80,
   "matchedSkills": ["REACT", "TYPESCRIPT"],
-  "missingSkills": ["DOCKER", "AWS"],
+  "missingSkills": [
+    {
+      "name": "DOCKER",
+      "importance": "HIGH", // HIGH, MEDIUM, or LOW
+      "reason": "The JD lists containerization and deployment as a core responsibility, which is missing from the resume.",
+      "estimatedTime": "12 hours",
+      "recommendedCourseId": "uuid-here-or-null",
+      "recommendedCourseTitle": "Course Title here or null",
+      "externalLearningPath": "https://..." // external URL if no local course matches
+    }
+  ],
   "missingKeywords": ["CONTAINERIZATION", "MICROSERVICES"],
   "strengths": ["Clear React frontend experience", "Active GitHub project list"],
   "weaknesses": ["Gaps in cloud containerization systems", "No unit testing libraries in the stack"],

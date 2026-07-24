@@ -89,6 +89,28 @@ export interface VolunteerEntry {
   description: string;
 }
 
+export interface CareerGoal {
+  targetRole: string;
+  targetCompany: string;
+  targetJobDescription: string;
+  preferredLocation?: string;
+  preferredWorkMode?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ResumeVersion {
+  versionId: string;
+  timestamp: string;
+  targetCompany: string;
+  targetRole: string;
+  jobDescriptionText: string;
+  parsedResumeSnapshot: any;
+  changeSummary: string;
+  generalAtsScore: number;
+  jobMatchScore: number;
+}
+
 export interface ParsedResume {
   fullName: string;
   headline: string;
@@ -160,6 +182,12 @@ export interface ParsedResume {
   // Completeness metrics
   overallCompleteness: number;
   completenessMetrics: Record<string, number>;
+
+  // Unified Career Goal & AI Context Persistence
+  careerGoal?: CareerGoal | null;
+  resumeVersions?: ResumeVersion[];
+  completedCourses?: string[];
+  rejectedSuggestions?: string[];
 }
 
 export interface ResumeStore {
@@ -219,6 +247,11 @@ export interface ResumeStore {
   }>) => void;
   deleteResume: () => void;
   loadProfileFromServer: () => Promise<void>;
+  setCareerGoal: (goal: CareerGoal) => void;
+  addResumeVersion: (version: ResumeVersion) => void;
+  rollbackToVersion: (versionId: string) => void;
+  completeCourseInStore: (courseId: string, skill: string) => void;
+  rejectSuggestionInStore: (sugId: string) => void;
 }
 
 const initialParsedResume: ParsedResume = {
@@ -287,7 +320,11 @@ const initialParsedResume: ParsedResume = {
   suggestedTech: [],
   
   overallCompleteness: 0,
-  completenessMetrics: {}
+  completenessMetrics: {},
+  careerGoal: null,
+  resumeVersions: [],
+  completedCourses: [],
+  rejectedSuggestions: []
 };
 
 // Helper cookie read/write utilities
@@ -532,7 +569,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             parsedResumeDetails: profile,
             confidenceScores: confidence,
             fileName: profile.fullName ? `${profile.fullName.replace(/\s+/g, "_")}_Profile` : null,
-            verified: true
+            verified: true,
+            selectedJobRole: profile.careerGoal?.targetRole || get().selectedJobRole
           });
           return;
         }
@@ -557,11 +595,79 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
           parsedResumeDetails: textProfile,
           confidenceScores: confidence,
           fileName: textProfile.fullName ? `${textProfile.fullName.replace(/\s+/g, "_")}_Profile` : null,
-          verified: true
+          verified: true,
+          selectedJobRole: textProfile.careerGoal?.targetRole || get().selectedJobRole
         });
       }
     } catch (err) {
       console.error("Failed to load persistent student profile:", err);
     }
+  },
+
+  setCareerGoal: (goal) => {
+    const profile = get().parsedResumeDetails || { ...initialParsedResume };
+    const updatedProfile = { ...profile, careerGoal: goal };
+    set({
+      parsedResumeDetails: updatedProfile,
+      selectedJobRole: goal.targetRole
+    });
+    syncProfileToClientStorage(updatedProfile, get().confidenceScores);
+  },
+
+  addResumeVersion: (version) => {
+    const profile = get().parsedResumeDetails || { ...initialParsedResume };
+    const versions = profile.resumeVersions || [];
+    const updatedProfile = { ...profile, resumeVersions: [...versions, version] };
+    set({ parsedResumeDetails: updatedProfile });
+    syncProfileToClientStorage(updatedProfile, get().confidenceScores);
+  },
+
+  rollbackToVersion: (versionId) => {
+    const profile = get().parsedResumeDetails;
+    if (!profile) return;
+    const version = (profile.resumeVersions || []).find(v => v.versionId === versionId);
+    if (!version) return;
+    
+    const restoredProfile = {
+      ...profile,
+      ...version.parsedResumeSnapshot,
+      resumeVersions: profile.resumeVersions // keep history
+    };
+    
+    set({
+      parsedResumeDetails: restoredProfile,
+      atsScore: version.generalAtsScore,
+      matchScore: version.jobMatchScore
+    });
+    syncProfileToClientStorage(restoredProfile, get().confidenceScores);
+  },
+
+  completeCourseInStore: (courseId, skill) => {
+    const profile = get().parsedResumeDetails || { ...initialParsedResume };
+    const completed = profile.completedCourses || [];
+    const skills = profile.technicalSkills || [];
+    const verified = profile.verifiedSkills || [];
+    
+    const updatedProfile = {
+      ...profile,
+      completedCourses: completed.includes(courseId) ? completed : [...completed, courseId],
+      technicalSkills: skills.includes(skill) ? skills : [...skills, skill],
+      verifiedSkills: verified.includes(skill) ? verified : [...verified, skill]
+    };
+    
+    set({ parsedResumeDetails: updatedProfile });
+    syncProfileToClientStorage(updatedProfile, get().confidenceScores);
+  },
+
+  rejectSuggestionInStore: (sugId) => {
+    const profile = get().parsedResumeDetails || { ...initialParsedResume };
+    const rejections = profile.rejectedSuggestions || [];
+    const updatedProfile = {
+      ...profile,
+      rejectedSuggestions: rejections.includes(sugId) ? rejections : [...rejections, sugId]
+    };
+    
+    set({ parsedResumeDetails: updatedProfile });
+    syncProfileToClientStorage(updatedProfile, get().confidenceScores);
   }
 }));
