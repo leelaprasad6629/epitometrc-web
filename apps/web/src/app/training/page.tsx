@@ -8,6 +8,7 @@ import ProgramGrid from "@/components/training/ProgramGrid";
 import LearningPath from "@/components/training/LearningPath";
 import Testimonials from "@/components/common/Testimonials";
 import CTA from "@/components/common/CTA";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 const testimonials = [
   {
@@ -40,7 +41,8 @@ export default function TrainingPage() {
   return (
     <>
       <Navbar />
-      <main>
+      <main className="pt-20">
+        <Breadcrumbs items={[{ label: "Services", href: "/services" }, { label: "Corporate Training" }]} />
         <TrainingHero />
         <LearningTracks />
         <CertificationBar />

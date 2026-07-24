@@ -7,6 +7,7 @@ import ConsultingBenefits from "@/components/consulting/ConsultingBenefits";
 import ConsultingProcess from "@/components/consulting/ConsultingProcess";
 import CTA from "@/components/common/CTA";
 import AIConsultantWidget from "@/components/ai/AIConsultantWidget";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Business Consulting | Epitome TRC",
@@ -18,7 +19,8 @@ export default function ConsultingPage() {
   return (
     <>
       <Navbar />
-      <main>
+      <main className="pt-20">
+        <Breadcrumbs items={[{ label: "Services", href: "/services" }, { label: "Consulting" }]} />
         <ConsultingHero />
         <ConsultingExpertise />
         <ConsultingBenefits />

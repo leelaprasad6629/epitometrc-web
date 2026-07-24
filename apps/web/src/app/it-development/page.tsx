@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Button from "@/components/common/Button";
 import Container from "@/components/common/Container";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 export default function ITDevelopmentPage() {
   const stack = [
@@ -18,6 +19,7 @@ export default function ITDevelopmentPage() {
     <>
       <Navbar />
       <main className="pt-20 font-sans bg-slate-50/50">
+        <Breadcrumbs items={[{ label: "Services", href: "/services" }, { label: "IT Development" }]} />
         {/* Hero Section */}
         <section className="bg-[#0b172a] text-white py-20 relative overflow-hidden">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30"></div>

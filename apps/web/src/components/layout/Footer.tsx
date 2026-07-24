@@ -163,10 +163,10 @@ export default function Footer() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 font-sans text-xs text-slate-500 sm:flex-row sm:px-6 lg:px-8">
           <p>&copy; {currentYear} EpitomeTRC. All rights reserved.</p>
           <div className="flex space-x-6">
-            <Link href="/contact#privacy" className="transition-colors hover:text-slate-400">
+            <Link href="/privacy" className="transition-colors hover:text-slate-400">
               Privacy Policy
             </Link>
-            <Link href="/contact#terms" className="transition-colors hover:text-slate-400">
+            <Link href="/terms" className="transition-colors hover:text-slate-400">
               Terms of Service
             </Link>
             <Link href="/contact" className="transition-colors hover:text-slate-400">

@@ -78,7 +78,7 @@ export default function Services({ persona }: ServicesProps) {
               </h2>
             </div>
             <Link
-              href="#contact"
+              href="/services"
               className="inline-flex items-center text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors group self-start md:self-auto"
             >
               View all services
@@ -160,7 +160,7 @@ export default function Services({ persona }: ServicesProps) {
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between">
-                <Link href="#contact" className="text-xs font-bold text-[#0b172a] hover:text-orange-500 flex items-center tracking-wider uppercase font-sans">
+                <Link href="/consulting" className="text-xs font-bold text-[#0b172a] hover:text-orange-500 flex items-center tracking-wider uppercase font-sans">
                   More
                   <ArrowRight className="ml-1 h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -184,7 +184,7 @@ export default function Services({ persona }: ServicesProps) {
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between">
-                <Link href="#contact" className="text-xs font-bold text-[#0b172a] hover:text-orange-500 flex items-center tracking-wider uppercase font-sans">
+                <Link href="/college-collaboration" className="text-xs font-bold text-[#0b172a] hover:text-orange-500 flex items-center tracking-wider uppercase font-sans">
                   Explore
                   <ArrowRight className="ml-1 h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
                 </Link>

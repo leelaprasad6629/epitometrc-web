@@ -121,20 +121,25 @@ function NavDropdown({
     item.children?.some((c) => pathname === c.href.split("#")[0]);
 
   return (
-    <div ref={ref} className="relative" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+    <div ref={ref} className="relative flex items-center gap-0.5" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+      <Link
+        href={item.href}
+        className={cn(
+          "flex items-center py-2 text-sm font-medium transition-colors",
+          isActive ? "text-orange-500" : "text-slate-600 hover:text-[#0b172a]",
+        )}
+      >
+        {item.name}
+      </Link>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "flex items-center gap-1 py-2 text-sm font-medium transition-colors",
-          isActive ? "text-orange-500" : "text-slate-600 hover:text-[#0b172a]",
-        )}
+        className="py-2 px-1 text-slate-400 hover:text-[#0b172a] transition-colors"
         aria-expanded={isOpen}
         aria-haspopup="true"
         suppressHydrationWarning
       >
-        {item.name}
-        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-250", isOpen && "rotate-180")} />
       </button>
       <AnimatePresence>
         {isOpen && (

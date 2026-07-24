@@ -267,9 +267,9 @@ function LoginForm() {
           </div>
 
           <div className="flex items-center justify-center space-x-4 text-[10px] font-bold text-slate-400 tracking-wider font-sans border-t border-slate-100 pt-6">
-            <Link href="/privacy-policy" className="hover:text-slate-600 transition-colors">PRIVACY POLICY</Link>
+            <Link href="/privacy" className="hover:text-slate-600 transition-colors">PRIVACY POLICY</Link>
             <span>•</span>
-            <Link href="/terms-of-service" className="hover:text-slate-600 transition-colors">TERMS OF SERVICE</Link>
+            <Link href="/terms" className="hover:text-slate-600 transition-colors">TERMS OF SERVICE</Link>
             <span>•</span>
             <Link href="/contact" className="hover:text-slate-600 transition-colors">SUPPORT</Link>
           </div>

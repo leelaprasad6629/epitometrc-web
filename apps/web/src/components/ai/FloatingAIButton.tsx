@@ -40,9 +40,10 @@ export default function FloatingAIButton() {
             exit={{ opacity: 0, scale: 0.8 }}
             className="fixed bottom-6 right-6 z-50 group"
           >
-            {/* Tooltip */}
-            <div className="absolute right-0 bottom-16 scale-0 rounded-lg bg-[#0b172a] px-3 py-1.5 text-[10px] font-bold text-white shadow-xl group-hover:scale-100 transition-all duration-200 origin-bottom pointer-events-none whitespace-nowrap border border-slate-800">
-              Need Help? Ask AI
+            {/* Persistent Tooltip Label */}
+            <div className="absolute right-16 bottom-2.5 bg-[#0b172a] text-white text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-lg border border-slate-800 whitespace-nowrap flex items-center gap-1.5 animate-bounce">
+              <Sparkles className="h-3 w-3 text-orange-500" />
+              <span>Ask Epitome AI</span>
             </div>
 
             {/* Glowing Aura */}

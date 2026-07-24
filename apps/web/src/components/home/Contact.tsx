@@ -186,7 +186,7 @@ export default function Contact() {
                       Proposal Sent Successfully!
                     </h3>
                     <p className="text-slate-500 text-sm font-sans max-w-sm leading-relaxed">
-                      Thank you for connecting with EpitomeTEC. One of our lead consulting partners has been notified and will contact you shortly.
+                      Thank you for connecting with EpitomeTRC. One of our lead consulting partners has been notified and will contact you shortly.
                     </p>
                     <button
                       onClick={() => setIsSubmitted(false)}

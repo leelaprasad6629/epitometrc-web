@@ -173,7 +173,7 @@ export default function Courses({ persona }: CoursesProps) {
               </p>
             </div>
             <Link
-              href="#blog"
+              href="/blog"
               className="inline-flex items-center text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors group self-start md:self-auto"
             >
               Read all posts
@@ -183,67 +183,58 @@ export default function Courses({ persona }: CoursesProps) {
 
           {/* Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {insights.map((insight, idx) => (
+            {insights.map((insight, index) => (
               <motion.article
-                key={idx}
-                initial={{ opacity: 0, y: 25 }}
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: idx * 0.1 }}
-                className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group flex flex-col h-full bg-[#f8fafd] border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:bg-white transition-all duration-300"
               >
-                {/* Thumbnail */}
-                <div className="relative overflow-hidden h-48 sm:h-52">
+                {/* Image */}
+                <div className="relative h-48 overflow-hidden">
                   <Image
                     src={insight.img}
                     alt={insight.title}
-                    width={400}
-                    height={220}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 33vw"
                   />
-                  <div className="absolute top-4 left-4">
-                    <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wider uppercase shadow-sm ${insight.color}`}>
-                      {insight.category}
-                    </span>
-                  </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 flex-grow flex flex-col justify-between">
-                  <div>
-                    {/* Date / Reading Time */}
-                    <div className="flex items-center space-x-4 text-xs font-medium text-slate-400 mb-3 font-sans">
-                      <span className="flex items-center">
-                        <Calendar className="h-3.5 w-3.5 mr-1" />
-                        {insight.date}
-                      </span>
-                      <span className="flex items-center">
-                        <Clock className="h-3.5 w-3.5 mr-1" />
-                        {insight.readTime}
-                      </span>
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="font-display font-bold text-lg sm:text-xl text-[#0b172a] mb-3 leading-snug group-hover:text-orange-500 transition-colors duration-200">
-                      <Link href="#blog">{insight.title}</Link>
-                    </h3>
-
-                    {/* Excerpt */}
-                    <p className="text-slate-500 text-sm font-sans leading-relaxed mb-6">
-                      {insight.excerpt}
-                    </p>
+                <div className="p-6 md:p-8 flex flex-col flex-1">
+                  {/* Category & Read Time */}
+                  <div className="flex items-center justify-between text-[10px] font-bold tracking-wider uppercase font-sans text-slate-400 mb-4">
+                    <span className={`px-2 py-0.5 rounded ${insight.color}`}>
+                      {insight.category}
+                    </span>
+                    <span className="flex items-center">
+                      <Clock className="h-3.5 w-3.5 mr-1" />
+                      {insight.readTime}
+                    </span>
                   </div>
 
-                  {/* Read More link */}
-                  <div className="border-t border-slate-100 pt-4 mt-auto">
-                    <Link
-                      href="#blog"
-                      className="inline-flex items-center text-xs font-bold text-[#0b172a] group-hover:text-orange-500 transition-colors uppercase tracking-wider font-sans"
-                    >
-                      Read full article
-                      <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </Link>
-                  </div>
+                  {/* Title */}
+                  <h3 className="font-display font-bold text-lg sm:text-xl text-[#0b172a] mb-3 leading-snug group-hover:text-orange-500 transition-colors duration-200">
+                    <Link href="/blog">{insight.title}</Link>
+                  </h3>
+
+                  {/* Excerpt */}
+                  <p className="text-slate-500 text-sm font-sans leading-relaxed mb-6">
+                    {insight.excerpt}
+                  </p>
+                </div>
+
+                {/* Read More link */}
+                <div className="border-t border-slate-100 p-6 md:px-8 mt-auto">
+                  <Link
+                    href="/blog"
+                    className="inline-flex items-center text-xs font-bold text-[#0b172a] group-hover:text-orange-500 transition-colors uppercase tracking-wider font-sans"
+                  >
+                    Read full article
+                    <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </Link>
                 </div>
               </motion.article>
             ))}

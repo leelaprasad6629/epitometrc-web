@@ -1,8 +1,8 @@
 export const EPITOME_KNOWLEDGE_BASE = `
-EPITOME TRC (EpitomeTEC) OFFICIAL KNOWLEDGE BASE
+EPITOME TRC OFFICIAL KNOWLEDGE BASE
 
 1. COMPANY OVERVIEW
-- Name: Epitome TRC (often styled as EpitomeTEC or EpitomeTRC).
+- Name: Epitome TRC (also styled as EpitomeTRC).
 - Purpose: A premium B2B and B2C enterprise providing IT Development, Consulting, Strategic Recruitment, and Corporate Trainings/Certifications.
 - Trust Philosophy: Built on three core pillars: Uncompromising Quality, Agile Methodologies, and a Global Network of specialized consultants.
 - Client base: Horizon Global, Nexa Industries, GlobalTech Solutions, CapitalOne UK, etc.

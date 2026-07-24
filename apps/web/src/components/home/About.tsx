@@ -79,7 +79,7 @@ export default function About({ persona }: AboutProps) {
 
   const corporateTestimonials = [
     {
-      quote: "EpitomeTEC transformed our complete cloud ecosystem and automated our delivery pipelines. Their IT advisory team was cost-effective, extremely responsive, and highly professional. Our infrastructure is now faster, more resilient, and perfectly secure.",
+      quote: "EpitomeTRC transformed our complete cloud ecosystem and automated our delivery pipelines. Their IT advisory team was cost-effective, extremely responsive, and highly professional. Our infrastructure is now faster, more resilient, and perfectly secure.",
       author: "Daniel Rose",
       role: "CTO, Nexa Industries",
       stars: 5,
@@ -124,7 +124,7 @@ export default function About({ persona }: AboutProps) {
                 {/* Note: Store your executive portrait image at /public/images/executive_trust.jpg */}
                 <Image
                   src="/images/executive_trust.jpg"
-                  alt="EpitomeTEC Lead Consultant"
+                  alt="EpitomeTRC Lead Consultant"
                   width={450}
                   height={520}
                   className="w-full h-[450px] lg:h-[520px] object-cover hover:scale-102 transition-transform duration-500"
@@ -139,7 +139,7 @@ export default function About({ persona }: AboutProps) {
                   WHY CHOOSE US
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-display font-bold text-[#0b172a] tracking-tight leading-tight">
-                  {persona === "student" ? "Why Candidates Choose EpitomeTRC." : "Why Industry Leaders Trust EpitomeTEC."}
+                  {persona === "student" ? "Why Candidates Choose EpitomeTRC." : "Why Industry Leaders Trust EpitomeTRC."}
                 </h2>
                 <p className="text-slate-600 mt-4 font-sans leading-relaxed text-base md:text-lg">
                   {persona === "student"
@@ -199,7 +199,7 @@ export default function About({ persona }: AboutProps) {
                 Executive Voices
               </h2>
               <p className="text-slate-400 text-sm md:text-base mt-2 font-sans max-w-md">
-                Hear what leading technology officers and operational directors say about collaborating with EpitomeTEC.
+                Hear what leading technology officers and operational directors say about collaborating with EpitomeTRC.
               </p>
             </div>
             
