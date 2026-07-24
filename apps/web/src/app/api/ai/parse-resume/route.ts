@@ -168,6 +168,11 @@ export async function POST(req: NextRequest) {
 Your job is to parse the raw text of a candidate's resume and normalize it into a strict JSON payload.
 Ensure all details are accurately extracted without any summary omissions.
 
+CRITICAL INSTRUCTIONS FOR WEB & SOCIAL LINKS:
+1. Thoroughly scan the raw text (especially the header, contact section, projects, and about sections) for links, URLs, shorthand paths, or plain usernames/handles.
+2. Even if links are listed in shorthand (e.g., "github.com/username", "linkedin.com/in/username") or as domainless handles (e.g. "GitHub: username" or "leetcode: username"), you MUST resolve and output them as full absolute URLs with the "https://" protocol (e.g. "https://github.com/username", "https://linkedin.com/in/username").
+3. Assign these resolved URLs to the respective JSON fields below. If a link/social profile is not present in the resume, return an empty string (""). Never invent mock URLs.
+
 Output ONLY a valid JSON object matching this exact structure:
 {
   "fullName": "Full Name",
