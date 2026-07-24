@@ -6,7 +6,6 @@ import { BookOpen, Clock, Award, Users, ArrowRight, Calendar, ExternalLink, Vide
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/common/Button";
-import AIMockInterviewWidget from "@/components/ai/AIMockInterviewWidget";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import { cn } from "@/lib/utils";
 import ProgressBar, { ProgressRing } from "@/components/dashboard/ProgressBar";
@@ -186,10 +185,7 @@ export default function StudentDashboard() {
       type: "today",
       description: "Practice mock interview slots corresponding to your experience to boost score.",
       actionLabel: "Start Practice",
-      onAction: () => {
-        const widget = document.getElementById("mock-interview-widget");
-        if (widget) widget.scrollIntoView({ behavior: "smooth" });
-      }
+      onAction: () => { window.location.href = "/student/resume-builder?tab=interview"; }
     });
   }
 
@@ -278,9 +274,26 @@ export default function StudentDashboard() {
         })}
       </div>
 
-      {/* AI Mock Interview Simulator Container */}
-      <div id="mock-interview-widget" className="scroll-mt-6">
-        <AIMockInterviewWidget />
+      {/* AI Mock Interview Simulator Link Card */}
+      <div id="mock-interview-widget" className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden text-xs">
+        <div className="flex gap-4 items-start">
+          <div className="h-10 w-10 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center shrink-0 text-violet-600">
+            <Mic className="h-5 w-5" />
+          </div>
+          <div className="space-y-1 text-left">
+            <span className="px-2 py-0.5 rounded bg-violet-50 border border-violet-100 text-violet-600 font-bold text-[8.5px] uppercase tracking-wider">
+              Career Copilot Active
+            </span>
+            <h3 className="font-display text-sm font-bold text-slate-800">Unified Live AI Video Mock Screen</h3>
+            <p className="text-slate-500 text-[10.5px] leading-relaxed max-w-xl">
+              Conduct fully personalized, camera-activated mock interviews. Get feedback matching your resume qualifications directly within the unified AI Career Suite.
+            </p>
+          </div>
+        </div>
+        <Button href="/student/resume-builder?tab=interview" variant="primary" className="h-9 rounded-xl px-4 font-bold text-xs shrink-0 self-start md:self-auto bg-violet-650 bg-violet-600 hover:bg-violet-500 border-0">
+          Launch Virtual Screen
+          <ArrowRight className="ml-1.5 h-4 w-4" />
+        </Button>
       </div>
 
       {/* Main Grid: Recommended Programs & Sidebar Widgets */}

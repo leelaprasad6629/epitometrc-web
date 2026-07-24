@@ -307,6 +307,17 @@ export default function AICareerCopilotPage() {
       });
   }, [loadProfileFromServer]);
 
+  // Read initial tab parameter from URL query string if present
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam && ["dashboard", "resume", "interview", "career"].includes(tabParam)) {
+        setActiveTab(tabParam as any);
+      }
+    }
+  }, []);
+
   // Sync inputs if careerGoal already exists in store
   useEffect(() => {
     if (parsedResumeDetails?.careerGoal) {
