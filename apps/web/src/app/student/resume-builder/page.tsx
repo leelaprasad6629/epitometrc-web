@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { 
   Sparkles, FileText, CheckCircle2, XCircle, Lightbulb, Save, User, 
   FileCheck, Edit3, MessageSquare, Play, Mic, MicOff, Volume2, 
   Briefcase, GraduationCap, Target, Compass, BookOpen, CheckSquare, 
   Map, Award, TrendingUp, AlertCircle, RefreshCw, Star, Trash2, ArrowRight,
-  Globe, FileUp, Copy, Download, Check, Info, Calendar, ChevronRight, Lock
+  Globe, FileUp, Copy, Download, Check, Info, Calendar, ChevronRight, Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
 import { useResumeStore, CareerGoal, ResumeVersion } from "@/lib/ai/store/resumeStore";
 import { Input } from "@/components/ui/input";
-import DashboardCard from "@/components/dashboard/DashboardCard";
 
 type TabId = "dashboard" | "resume" | "learning" | "interview" | "career" | "jobs";
 
@@ -55,6 +54,12 @@ export default function AICareerCopilotPage() {
   const [targetJd, setTargetJd] = useState("");
   const [jdMode, setJdMode] = useState<"paste" | "select" | "file">("paste");
   
+  // Jobs API state
+  const [platformJobs, setPlatformJobs] = useState<any[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState("");
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [jobsError, setJobsError] = useState("");
+
   // Loading states
   const [uploadLoading, setUploadLoading] = useState(false);
   const [copilotLoading, setCopilotLoading] = useState(false);
@@ -68,22 +73,35 @@ export default function AICareerCopilotPage() {
   // Compiled resume text view
   const [compiledMode, setCompiledMode] = useState(false);
 
-  // Platform jobs list
-  const [platformJobs, setPlatformJobs] = useState<any[]>([]);
-
   // Local states for mock interview
   const [questions, setQuestions] = useState<any[]>([]);
   const [interviewLoading, setInterviewLoading] = useState(false);
   const [companyProfile, setCompanyProfile] = useState<any>(null);
 
+  // Fetch jobs on mount
   useEffect(() => {
     loadProfileFromServer();
+    setJobsLoading(true);
+    setJobsError("");
     fetch("/api/jobs")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setPlatformJobs(data);
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.json();
       })
-      .catch((e) => console.error("Failed to load jobs list", e));
+      .then((data) => {
+        if (data.success && Array.isArray(data.jobs)) {
+          setPlatformJobs(data.jobs);
+        } else {
+          setJobsError("Failed to parse jobs list format.");
+        }
+      })
+      .catch((e) => {
+        console.error("Failed to load jobs list", e);
+        setJobsError("Jobs catalog currently offline.");
+      })
+      .finally(() => {
+        setJobsLoading(false);
+      });
   }, [loadProfileFromServer]);
 
   // Sync inputs if careerGoal already exists in store
@@ -396,57 +414,94 @@ export default function AICareerCopilotPage() {
     return txt;
   };
 
+  const handleJobChange = (jobId: string) => {
+    setSelectedJobId(jobId);
+    if (!jobId) {
+      setTargetTitle("");
+      setTargetCompany("");
+      setTargetJd("");
+      return;
+    }
+    const job = platformJobs.find(j => j.id === jobId);
+    if (job) {
+      setTargetTitle(job.title || "");
+      setTargetCompany(job.company || "Epitome Partner");
+      setTargetJd(job.description || "");
+    }
+  };
+
   // CHECK CONTEXT STAGE
   const hasResume = !!parsedResumeDetails;
   const hasGoal = !!parsedResumeDetails?.careerGoal;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col p-4 md:p-6 lg:p-8 font-sans overflow-x-hidden relative">
+    <div className="min-h-screen bg-[#FAFBFF] text-slate-800 flex flex-col p-4 md:p-6 lg:p-8 font-sans overflow-x-hidden relative">
       
-      {/* Visual background blurs */}
-      <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-violet-600/10 blur-3xl -z-10 pointer-events-none" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-blue-600/10 blur-3xl -z-10 pointer-events-none" />
-      <div className="absolute top-1/2 left-1/3 w-80 h-80 rounded-full bg-orange-600/5 blur-3xl -z-10 pointer-events-none" />
+      {/* Visual background blurs & Shifting gradient meshes */}
+      <div className="absolute top-10 left-10 w-96 h-96 rounded-full bg-violet-200/40 blur-3xl -z-10 animate-pulse pointer-events-none" />
+      <div className="absolute bottom-20 right-10 w-[500px] h-[500px] rounded-full bg-blue-200/30 blur-3xl -z-10 pointer-events-none" />
+      <div className="absolute top-1/3 left-1/4 w-80 h-80 rounded-full bg-orange-100/50 blur-3xl -z-10 pointer-events-none" />
+
+      {/* Floating Animated Connection Nodes SVG Background */}
+      <div className="absolute inset-0 -z-20 opacity-[0.06] pointer-events-none select-none overflow-hidden">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <line x1="10%" y1="20%" x2="30%" y2="40%" stroke="#4f46e5" strokeWidth="1" />
+          <line x1="30%" y1="40%" x2="50%" y2="15%" stroke="#4f46e5" strokeWidth="1" />
+          <line x1="50%" y1="15%" x2="70%" y2="35%" stroke="#ea580c" strokeWidth="1" />
+          <line x1="70%" y1="35%" x2="90%" y2="10%" stroke="#4f46e5" strokeWidth="1" />
+          <line x1="30%" y1="40%" x2="20%" y2="70%" stroke="#ea580c" strokeWidth="1" />
+          <line x1="50%" y1="15%" x2="60%" y2="60%" stroke="#4f46e5" strokeWidth="1" />
+          <line x1="70%" y1="35%" x2="75%" y2="80%" stroke="#4f46e5" strokeWidth="1" />
+          <circle cx="10%" cy="20%" r="4" fill="#4f46e5" className="animate-ping" />
+          <circle cx="30%" cy="40%" r="5" fill="#4f46e5" />
+          <circle cx="50%" cy="15%" r="4" fill="#ea580c" />
+          <circle cx="70%" cy="35%" r="5" fill="#4f46e5" />
+          <circle cx="90%" cy="10%" r="4" fill="#4f46e5" />
+          <circle cx="20%" cy="70%" r="5" fill="#ea580c" />
+          <circle cx="60%" cy="60%" r="4" fill="#4f46e5" />
+          <circle cx="75%" cy="80%" r="5" fill="#4f46e5" />
+        </svg>
+      </div>
 
       {/* SETUP WIZARD (Unconfigured Context Mode) */}
       {(!hasResume || !hasGoal) ? (
-        <div className="max-w-4xl mx-auto w-full my-auto flex flex-col gap-6 text-center py-10">
-          <div className="space-y-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              <Sparkles className="h-3 w-3 animate-spin" /> Epitome AI Suite
+        <div className="max-w-4xl mx-auto w-full my-auto flex flex-col gap-8 text-center py-10 z-10">
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-orange-500/10 text-orange-600 border border-orange-500/20 shadow-xs">
+              <Sparkles className="h-3.5 w-3.5 text-orange-500 animate-pulse" /> Flagship AI Feature
             </span>
-            <h1 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400 leading-tight tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 leading-tight tracking-tight">
               AI Career Copilot
             </h1>
-            <p className="text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
+            <p className="text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
               Redesigning your placement journey. Feed the Copilot your resume and target role to begin a unified preparation path.
             </p>
           </div>
 
-          <div className="bg-slate-950/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+          <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden transition-all duration-300">
             
             {/* Step 1: Upload Resume */}
             {setupStep === "upload" && (
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-white">Step 1: Upload Your Resume</h3>
-                  <p className="text-xs text-slate-400">The single source of truth for your profile details.</p>
+                  <h3 className="text-lg font-black text-slate-900">Step 1: Upload Your Resume</h3>
+                  <p className="text-xs text-slate-500">The single source of truth for your profile details.</p>
                 </div>
 
-                <div className="border-2 border-dashed border-slate-800 hover:border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 transition-all bg-slate-900/35 relative">
+                <div className="border-2 border-dashed border-slate-200 hover:border-violet-300 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 transition-all bg-slate-50/50 relative hover:bg-slate-50">
                   {uploadLoading ? (
                     <div className="flex flex-col items-center gap-3">
-                      <RefreshCw className="h-8 w-8 text-violet-500 animate-spin" />
-                      <span className="text-xs font-bold text-slate-350">Reading PDF layouts & extracting details...</span>
+                      <Loader2 className="h-8 w-8 text-violet-600 animate-spin" />
+                      <span className="text-xs font-bold text-slate-600">Reading PDF layouts & extracting details...</span>
                     </div>
                   ) : (
                     <>
-                      <div className="h-12 w-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-xs">
-                        <FileUp className="h-6 w-6 text-violet-400" />
+                      <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-xs">
+                        <FileUp className="h-6 w-6 text-violet-500 animate-bounce" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs font-bold text-white">Drag and drop your file here, or click to browse</p>
-                        <p className="text-[10px] text-slate-500">Supports PDF, DOCX, and TXT formats</p>
+                        <p className="text-xs font-bold text-slate-800">Drag and drop your file here, or click to browse</p>
+                        <p className="text-[10px] text-slate-405">Supports PDF, DOCX, and TXT formats</p>
                       </div>
                       <label className="cursor-pointer">
                         <span className="inline-flex h-9 px-4 items-center justify-center rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-md transition-all">
@@ -459,15 +514,15 @@ export default function AICareerCopilotPage() {
                 </div>
 
                 {hasResume && (
-                  <div className="flex justify-between items-center bg-slate-900/40 p-3.5 border border-slate-850 rounded-2xl">
+                  <div className="flex justify-between items-center bg-green-50/60 p-3.5 border border-green-100 rounded-2xl">
                     <div className="flex items-center gap-2 text-left">
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-green-600" />
                       <div>
-                        <p className="text-xs font-bold text-white">{fileName}</p>
-                        <p className="text-[9px] text-slate-555">Parsed successfully</p>
+                        <p className="text-xs font-bold text-green-900">{fileName}</p>
+                        <p className="text-[9px] text-green-700">Parsed successfully</p>
                       </div>
                     </div>
-                    <button onClick={() => setSetupStep("goal")} className="text-xs font-bold text-violet-400 flex items-center gap-1 hover:text-violet-300">
+                    <button onClick={() => setSetupStep("goal")} className="text-xs font-bold text-violet-600 flex items-center gap-0.5 hover:text-violet-500">
                       Next Step <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
@@ -479,38 +534,39 @@ export default function AICareerCopilotPage() {
             {setupStep === "goal" && (
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-white flex items-center justify-center gap-1.5">
+                  <h3 className="text-lg font-black text-slate-900 flex items-center justify-center gap-1.5">
                     Step 2: Define Career Target
                   </h3>
-                  <p className="text-xs text-slate-400">All AI modules will automatically optimize against this target.</p>
+                  <p className="text-xs text-slate-500">All AI modules will automatically optimize against this target.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
                   <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target Job Title</span>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Target Job Title</span>
                     <Input 
                       type="text" 
                       placeholder="e.g. Senior Frontend Engineer" 
                       value={targetTitle} 
                       onChange={e => setTargetTitle(e.target.value)} 
-                      className="bg-slate-900/60 border-slate-800 text-white h-9 text-xs" 
+                      className="bg-white border-slate-200 text-slate-800 h-9 text-xs" 
                     />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target Company</span>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Target Company</span>
                     <Input 
                       type="text" 
                       placeholder="e.g. Stripe, Microsoft" 
                       value={targetCompany} 
                       onChange={e => setTargetCompany(e.target.value)} 
-                      className="bg-slate-900/60 border-slate-800 text-white h-9 text-xs" 
+                      className="bg-white border-slate-200 text-slate-800 h-9 text-xs" 
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target Job Description</span>
-                  <div className="flex gap-2 border-b border-slate-800 pb-2">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Target Job Description</span>
+                  
+                  <div className="flex gap-2 border-b border-slate-100 pb-2">
                     {[
                       { id: "paste", label: "Paste JD Text" },
                       { id: "select", label: "Select Platform Job" },
@@ -521,13 +577,13 @@ export default function AICareerCopilotPage() {
                         onClick={() => {
                           setJdMode(mode.id as any);
                           if (mode.id === "select" && platformJobs.length > 0) {
-                            setTargetTitle(platformJobs[0].title);
-                            setTargetCompany(platformJobs[0].company || "Epitome Partner");
-                            setTargetJd(platformJobs[0].description);
+                            handleJobChange(platformJobs[0].id);
                           }
                         }}
                         className={`px-3 py-1 rounded-xl text-[10px] font-black transition-all ${
-                          jdMode === mode.id ? "bg-white text-slate-900" : "bg-slate-900 text-slate-400 hover:text-white"
+                          jdMode === mode.id 
+                            ? "bg-slate-900 text-white shadow-sm" 
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                         }`}
                       >
                         {mode.label}
@@ -540,35 +596,46 @@ export default function AICareerCopilotPage() {
                       placeholder="Paste the target job description requirements here..." 
                       value={targetJd} 
                       onChange={e => setTargetJd(e.target.value)} 
-                      className="w-full rounded-2xl border border-slate-800 bg-slate-900/60 p-3.5 text-xs text-white h-32 focus:outline-none focus:border-slate-700" 
+                      className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 text-xs text-slate-800 h-32 focus:outline-none focus:border-slate-350" 
                     />
                   )}
 
                   {jdMode === "select" && (
-                    <select
-                      value={targetJd}
-                      onChange={e => {
-                        const job = platformJobs.find(j => j.description === e.target.value);
-                        if (job) {
-                          setTargetTitle(job.title);
-                          setTargetCompany(job.company || "Epitome Partner");
-                          setTargetJd(job.description);
-                        }
-                      }}
-                      className="w-full rounded-xl border border-slate-800 bg-slate-900 p-2.5 text-xs text-white"
-                    >
-                      {platformJobs.map(job => (
-                        <option key={job.id} value={job.description}>{job.title} at {job.company || "Epitome Partner"}</option>
-                      ))}
-                    </select>
+                    <div className="space-y-2">
+                      {jobsLoading ? (
+                        <div className="flex items-center gap-2 text-xs text-slate-500 py-3">
+                          <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
+                          <span>Loading active platform jobs list...</span>
+                        </div>
+                      ) : jobsError ? (
+                        <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 flex items-center gap-1.5">
+                          <AlertCircle className="h-4 w-4" /> {jobsError}
+                        </div>
+                      ) : platformJobs.length === 0 ? (
+                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 flex items-center gap-1.5">
+                          <Info className="h-4 w-4 text-slate-400" /> No jobs available in the platform database.
+                        </div>
+                      ) : (
+                        <select
+                          value={selectedJobId}
+                          onChange={e => handleJobChange(e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                        >
+                          <option value="">-- Select a Platform Job --</option>
+                          {platformJobs.map(job => (
+                            <option key={job.id} value={job.id}>{job.title} at {job.company || "Epitome Partner"}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
                   )}
 
                   {jdMode === "file" && (
-                    <div className="border border-dashed border-slate-800 p-6 rounded-2xl flex flex-col items-center justify-center bg-slate-900/40">
+                    <div className="border-2 border-dashed border-slate-200 p-6 rounded-2xl flex flex-col items-center justify-center bg-slate-50/50">
                       <FileUp className="h-5 w-5 text-slate-400 mb-2" />
-                      <span className="text-[10px] text-slate-400 font-bold mb-3">Upload JD .txt or .md file</span>
+                      <span className="text-[10px] text-slate-500 font-bold mb-3">Upload JD .txt or .md file</span>
                       <label className="cursor-pointer">
-                        <span className="h-8 px-3 rounded-lg bg-slate-800 text-white font-bold text-xs inline-flex items-center">Browse</span>
+                        <span className="h-8 px-3 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs inline-flex items-center">Browse</span>
                         <input type="file" accept=".txt,.md" onChange={handleJdFileUpload} className="hidden" />
                       </label>
                     </div>
@@ -576,7 +643,7 @@ export default function AICareerCopilotPage() {
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                  <button onClick={() => setSetupStep("upload")} className="h-10 px-4 rounded-xl border border-slate-800 text-slate-400 hover:text-white font-bold text-xs transition-all">
+                  <button onClick={() => setSetupStep("upload")} className="h-10 px-4 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs transition-all">
                     Back
                   </button>
                   <button 
@@ -586,7 +653,7 @@ export default function AICareerCopilotPage() {
                   >
                     {copilotLoading ? (
                       <>
-                        <RefreshCw className="h-4 w-4 animate-spin" /> Synthesizing AI Copilot Environment...
+                        <Loader2 className="h-4 w-4 animate-spin" /> Synthesizing AI Copilot Environment...
                       </>
                     ) : (
                       <>
@@ -601,20 +668,20 @@ export default function AICareerCopilotPage() {
         </div>
       ) : (
         /* CORE COPILOT ACTIVE VIEW */
-        <div className="max-w-6xl mx-auto w-full flex flex-col gap-6">
+        <div className="max-w-6xl mx-auto w-full flex flex-col gap-6 z-10">
           
           {/* Unified AI Context Header Bar */}
-          <div className="bg-slate-950/85 backdrop-blur-xl border border-slate-850 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-sm rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-orange-400" />
+              <div className="h-10 w-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-orange-500 animate-pulse" />
               </div>
               <div className="text-left">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full uppercase">Active Target</span>
-                  <span className="text-[10px] font-bold text-slate-500 font-mono">Source: {fileName}</span>
+                  <span className="text-[10px] font-black bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full uppercase tracking-wider">Active Target</span>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">Source: {fileName}</span>
                 </div>
-                <h2 className="text-sm font-black text-white">
+                <h2 className="text-sm font-black text-slate-800">
                   {targetCompany} &bull; {targetTitle}
                 </h2>
               </div>
@@ -626,7 +693,7 @@ export default function AICareerCopilotPage() {
                   deleteResume();
                   setSetupStep("upload");
                 }}
-                className="h-8.5 px-3.5 rounded-xl border border-slate-850 hover:border-slate-700 bg-slate-900 text-slate-400 hover:text-white font-bold text-xs transition-all flex items-center gap-1"
+                className="h-9 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 bg-white text-slate-600 hover:text-slate-800 font-bold text-xs transition-all flex items-center gap-1.5 shadow-xs"
               >
                 <RefreshCw className="h-3.5 w-3.5" /> Re-configure Copilot
               </button>
@@ -634,7 +701,7 @@ export default function AICareerCopilotPage() {
           </div>
 
           {/* Unified Journey Navigation Bar */}
-          <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-1">
+          <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-1">
             {[
               { id: "dashboard", label: "Dashboard Overview", icon: Compass },
               { id: "resume", label: "Resume Optimizer", icon: FileText },
@@ -651,8 +718,8 @@ export default function AICareerCopilotPage() {
                   onClick={() => setActiveTab(tab.id as TabId)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${
                     isActive 
-                      ? "bg-white text-slate-950 shadow-md" 
-                      : "bg-slate-950/60 hover:bg-slate-900 text-slate-400 border border-slate-850"
+                      ? "bg-slate-900 text-white shadow-md" 
+                      : "bg-white hover:bg-slate-50 text-slate-600 border border-slate-200/60"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -663,17 +730,17 @@ export default function AICareerCopilotPage() {
           </div>
 
           {/* Render Active Tab */}
-          <div className="bg-slate-950/50 backdrop-blur-md rounded-2xl border border-slate-850 p-6 min-h-[500px] shadow-sm relative">
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-slate-200/60 p-6 min-h-[500px] shadow-xl relative transition-all duration-350">
             
             {/* Tab: Dashboard */}
             {activeTab === "dashboard" && (
               <div className="space-y-6">
                 
                 {/* 1. Placement Progress Journey */}
-                <div className="bg-slate-950/80 border border-slate-850 p-6 rounded-2xl space-y-4">
+                <div className="bg-[#F4F6FC]/60 border border-slate-150 p-6 rounded-2xl space-y-4">
                   <div className="text-left space-y-1">
-                    <span className="text-[9.5px] font-black text-slate-500 uppercase tracking-widest block">Copilot Journey Tracker</span>
-                    <h3 className="text-base font-bold text-white">Preparing for placement at {targetCompany} as {targetTitle}</h3>
+                    <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-widest block">Copilot Journey Tracker</span>
+                    <h3 className="text-base font-bold text-slate-800">Preparing for placement at {targetCompany} as {targetTitle}</h3>
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
@@ -690,12 +757,12 @@ export default function AICareerCopilotPage() {
                       <div key={idx} className="flex items-center gap-2">
                         <div className={`h-6 w-6 rounded-full flex items-center justify-center border font-mono text-[10px] font-black ${
                           step.done 
-                            ? "bg-green-500/10 border-green-500/20 text-green-400" 
-                            : "bg-slate-900 border-slate-800 text-slate-500"
+                            ? "bg-green-500/10 border-green-500/20 text-green-600" 
+                            : "bg-slate-200 border-slate-300 text-slate-500"
                         }`}>
                           {step.done ? "✓" : idx + 1}
                         </div>
-                        <span className={`text-xs font-bold ${step.done ? "text-white" : "text-slate-500"}`}>
+                        <span className={`text-xs font-bold ${step.done ? "text-slate-800" : "text-slate-400"}`}>
                           {step.label}
                         </span>
                       </div>
@@ -707,88 +774,88 @@ export default function AICareerCopilotPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   
                   {/* General ATS Score card */}
-                  <div className="bg-slate-950/80 border border-slate-850 p-5 rounded-2xl flex flex-col items-center justify-center text-center gap-3">
+                  <div className="bg-white border border-slate-150 p-5 rounded-2xl flex flex-col items-center justify-center text-center gap-3 shadow-xs">
                     <div className="text-left w-full">
-                      <span className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider block">General ATS Compatibility</span>
+                      <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">General ATS Compatibility</span>
                     </div>
                     {atsScore > 0 ? (
                       <div className="relative h-28 w-28 flex items-center justify-center">
                         <svg className="h-full w-full transform -rotate-90">
-                          <circle cx="56" cy="56" r="45" stroke="#1e293b" strokeWidth="8" fill="transparent" />
+                          <circle cx="56" cy="56" r="45" stroke="#E2E8F0" strokeWidth="8" fill="transparent" />
                           <circle cx="56" cy="56" r="45" stroke="#8b5cf6" strokeWidth="8" fill="transparent" strokeDasharray={2 * Math.PI * 45} strokeDashoffset={2 * Math.PI * 45 - (atsScore / 100) * (2 * Math.PI * 45)} strokeLinecap="round" />
                         </svg>
-                        <span className="absolute text-xl font-mono font-black text-white">{atsScore}%</span>
+                        <span className="absolute text-xl font-mono font-black text-slate-800">{atsScore}%</span>
                       </div>
                     ) : (
-                      <span className="text-xs font-bold text-slate-500 py-10 font-mono uppercase tracking-widest">Insufficient Data</span>
+                      <span className="text-xs font-bold text-slate-400 py-10 font-mono uppercase tracking-widest">Insufficient Data</span>
                     )}
-                    <span className="text-[10px] text-slate-400 leading-normal">Evaluates structural layout, section formatting, and readable headers.</span>
+                    <span className="text-[10px] text-slate-500 leading-normal">Evaluates structural layout, section formatting, and readable headers.</span>
                   </div>
 
                   {/* Job Match Score card */}
-                  <div className="bg-slate-950/80 border border-slate-850 p-5 rounded-2xl flex flex-col items-center justify-center text-center gap-3">
+                  <div className="bg-white border border-slate-150 p-5 rounded-2xl flex flex-col items-center justify-center text-center gap-3 shadow-xs">
                     <div className="text-left w-full">
-                      <span className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider block">Role Match Alignment</span>
+                      <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">Role Match Alignment</span>
                     </div>
                     {matchScore > 0 ? (
                       <div className="relative h-28 w-28 flex items-center justify-center">
                         <svg className="h-full w-full transform -rotate-90">
-                          <circle cx="56" cy="56" r="45" stroke="#1e293b" strokeWidth="8" fill="transparent" />
+                          <circle cx="56" cy="56" r="45" stroke="#E2E8F0" strokeWidth="8" fill="transparent" />
                           <circle cx="56" cy="56" r="45" stroke="#f97316" strokeWidth="8" fill="transparent" strokeDasharray={2 * Math.PI * 45} strokeDashoffset={2 * Math.PI * 45 - (matchScore / 100) * (2 * Math.PI * 45)} strokeLinecap="round" />
                         </svg>
-                        <span className="absolute text-xl font-mono font-black text-white">{matchScore}%</span>
+                        <span className="absolute text-xl font-mono font-black text-slate-800">{matchScore}%</span>
                       </div>
                     ) : (
-                      <span className="text-xs font-bold text-slate-500 py-10 font-mono uppercase tracking-widest">Insufficient Data</span>
+                      <span className="text-xs font-bold text-slate-400 py-10 font-mono uppercase tracking-widest">Insufficient Data</span>
                     )}
-                    <span className="text-[10px] text-slate-400 leading-normal">Evaluates semantic matches strictly against the target JD requirements.</span>
+                    <span className="text-[10px] text-slate-500 leading-normal">Evaluates semantic matches strictly against the target JD requirements.</span>
                   </div>
 
                   {/* Missing Skills card */}
-                  <div className="bg-slate-950/80 border border-slate-850 p-5 rounded-2xl flex flex-col justify-between gap-3 text-left">
+                  <div className="bg-white border border-slate-155 p-5 rounded-2xl flex flex-col justify-between gap-3 text-left shadow-xs">
                     <div className="space-y-1">
-                      <span className="text-[9.5px] font-black text-slate-550 uppercase tracking-wider block">Target Skills Inventory</span>
-                      <h4 className="text-xs font-bold text-white">Required Skills Analysis</h4>
+                      <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">Target Skills Inventory</span>
+                      <h4 className="text-xs font-bold text-slate-800">Required Skills Analysis</h4>
                     </div>
                     {missingSkills?.length > 0 ? (
                       <div className="flex flex-col gap-2 my-2 overflow-y-auto max-h-24">
                         <div className="flex flex-wrap gap-1.5">
                           {matchedSkills.slice(0, 4).map((s: any, idx) => (
-                            <span key={idx} className="px-2.5 py-0.5 rounded-md text-[9px] font-bold bg-green-500/10 text-green-400 border border-green-500/20">{s}</span>
+                            <span key={idx} className="px-2.5 py-0.5 rounded-md text-[9px] font-bold bg-green-50 text-green-600 border border-green-150">{s}</span>
                           ))}
                           {missingSkills.slice(0, 4).map((s: any, idx) => (
-                            <span key={idx} className="px-2.5 py-0.5 rounded-md text-[9px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">{s.name || s}</span>
+                            <span key={idx} className="px-2.5 py-0.5 rounded-md text-[9px] font-bold bg-red-50 text-red-600 border border-red-150">{s.name || s}</span>
                           ))}
                         </div>
-                        <span className="text-[10px] font-bold text-orange-400 font-mono">Matched: {matchedSkills.length} &bull; Missing: {missingSkills.length}</span>
+                        <span className="text-[10px] font-bold text-orange-600 font-mono">Matched: {matchedSkills.length} &bull; Missing: {missingSkills.length}</span>
                       </div>
                     ) : (
-                      <span className="text-xs font-bold text-slate-550 py-8 font-mono uppercase tracking-widest text-center">Insufficient Data</span>
+                      <span className="text-xs font-bold text-slate-400 py-8 font-mono uppercase tracking-widest text-center">Insufficient Data</span>
                     )}
-                    <button onClick={() => setActiveTab("learning")} className="w-full h-8 rounded-xl bg-slate-900 border border-slate-850 hover:bg-slate-850 text-white font-bold text-[10px] transition-all flex items-center justify-center gap-1">
+                    <button onClick={() => setActiveTab("learning")} className="w-full h-8 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-[10px] transition-all flex items-center justify-center gap-1">
                       Analyze Skill Gap <ArrowRight className="h-3 w-3" />
                     </button>
                   </div>
                 </div>
 
                 {/* 3. Version Rollback card */}
-                <div className="bg-slate-950/80 border border-slate-850 p-5 rounded-2xl space-y-4">
+                <div className="bg-white border border-slate-150 p-5 rounded-2xl space-y-4 shadow-xs">
                   <div className="text-left">
-                    <span className="text-[9.5px] font-black text-slate-555 uppercase tracking-wider block">Resume Version Control</span>
-                    <h3 className="text-xs font-bold text-white">Accepted Snapshots Rollback History</h3>
+                    <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">Resume Version Control</span>
+                    <h3 className="text-xs font-bold text-slate-800">Accepted Snapshots Rollback History</h3>
                   </div>
 
                   {(parsedResumeDetails?.resumeVersions?.length || 0) > 0 ? (
                     <div className="flex flex-col gap-3">
                       {parsedResumeDetails?.resumeVersions?.map((v, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-slate-900/40 p-3.5 border border-slate-855 rounded-xl">
+                        <div key={idx} className="flex justify-between items-center bg-slate-50/50 p-3.5 border border-slate-200/60 rounded-xl">
                           <div className="text-left space-y-0.5">
-                            <span className="text-[10px] font-black text-violet-400 font-mono">{v.versionId} &bull; {v.timestamp}</span>
-                            <p className="text-xs font-bold text-white">{v.changeSummary}</p>
+                            <span className="text-[10px] font-black text-violet-600 font-mono">{v.versionId} &bull; {v.timestamp}</span>
+                            <p className="text-xs font-bold text-slate-800">{v.changeSummary}</p>
                             <span className="text-[9px] text-slate-500 font-mono">Target: {v.targetCompany} ({v.targetRole})</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-mono font-bold bg-slate-800 text-slate-405 px-2 py-0.5 rounded-md">ATS: {v.generalAtsScore}%</span>
+                            <span className="text-[9px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200">ATS: {v.generalAtsScore}%</span>
                             <button 
                               onClick={() => {
                                 rollbackToVersion(v.versionId);
@@ -803,7 +870,7 @@ export default function AICareerCopilotPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-6 text-slate-500 text-xs font-bold font-mono uppercase tracking-wider">
+                    <div className="text-center py-6 text-slate-400 text-xs font-bold font-mono uppercase tracking-wider">
                       No snapshots created yet. Accept optimizations to create versions.
                     </div>
                   )}
@@ -816,10 +883,10 @@ export default function AICareerCopilotPage() {
               <div className="space-y-6">
                 
                 {/* 1. Header controls */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-855">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-200">
                   <div className="text-left space-y-0.5">
-                    <h3 className="text-base font-bold text-white flex items-center gap-1">
-                      <Sparkles className="h-4.5 w-4.5 text-orange-400" /> Resume Optimizer
+                    <h3 className="text-base font-bold text-slate-800 flex items-center gap-1">
+                      <Sparkles className="h-4.5 w-4.5 text-orange-500" /> Resume Optimizer
                     </h3>
                     <p className="text-xs text-slate-500 leading-normal">Classified bullet points recommendations to optimize text structures without inventing credentials.</p>
                   </div>
@@ -829,7 +896,7 @@ export default function AICareerCopilotPage() {
                       onClick={() => setCompiledMode(c => !c)}
                       className={`h-9 px-4 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
                         compiledMode 
-                          ? "bg-slate-900 border border-slate-800 text-white"
+                          ? "bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200"
                           : "bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600"
                       }`}
                     >
@@ -849,12 +916,12 @@ export default function AICareerCopilotPage() {
                 {/* 2. Compiled mode view */}
                 {compiledMode ? (
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center bg-slate-950/80 p-3 border border-slate-850 rounded-2xl">
-                      <span className="text-xs font-bold text-slate-405 flex items-center gap-1">
-                        <FileCheck className="h-4 w-4 text-green-400" /> Tailored ATS-Compliant Markdown Resume Ready
+                    <div className="flex justify-between items-center bg-slate-50 p-3 border border-slate-200 rounded-2xl">
+                      <span className="text-xs font-bold text-slate-600 flex items-center gap-1">
+                        <FileCheck className="h-4 w-4 text-green-600" /> Tailored ATS-Compliant Markdown Resume Ready
                       </span>
                       <div className="flex gap-2">
-                        <button onClick={copyOptimizedMarkdown} className="h-8 px-3 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-805 text-white font-bold text-[10px] flex items-center gap-1">
+                        <button onClick={copyOptimizedMarkdown} className="h-8 px-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[10px] flex items-center gap-1">
                           <Copy className="h-3.5 w-3.5" /> Copy Markdown
                         </button>
                         <button onClick={downloadOptimizedMarkdown} className="h-8 px-3 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold text-[10px] flex items-center gap-1">
@@ -863,7 +930,7 @@ export default function AICareerCopilotPage() {
                       </div>
                     </div>
 
-                    <div className="border border-slate-855 rounded-2xl bg-white text-slate-900 p-8 min-h-[600px] text-left overflow-y-auto max-h-[700px] shadow-inner font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
+                    <div className="border border-slate-200 rounded-2xl bg-white text-slate-900 p-8 min-h-[600px] text-left overflow-y-auto max-h-[700px] shadow-inner font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
                       {compileMarkdownText()}
                     </div>
                   </div>
@@ -886,13 +953,13 @@ export default function AICareerCopilotPage() {
                           }}
                           className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-xs font-black transition-all text-left ${
                             selectedOptimTab === sec.id
-                              ? "bg-white text-slate-950 shadow-md"
-                              : "bg-slate-950/60 hover:bg-slate-905 text-slate-400 border border-slate-850"
+                              ? "bg-violet-600 text-white shadow-md"
+                              : "bg-white hover:bg-slate-50 text-slate-650 border border-slate-200/60"
                           }`}
                         >
                           <span>{sec.label}</span>
                           <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-mono font-black ${
-                            selectedOptimTab === sec.id ? "bg-slate-200 text-slate-900" : "bg-slate-900 text-slate-500"
+                            selectedOptimTab === sec.id ? "bg-violet-750 text-white" : "bg-slate-100 text-slate-500"
                           }`}>
                             {sec.count}
                           </span>
@@ -908,57 +975,57 @@ export default function AICareerCopilotPage() {
                         <div className="space-y-4 text-left">
                           {(optimizedResume?.alreadyAvailable?.length || 0) > 0 ? (
                             optimizedResume.alreadyAvailable.map((sug: any, idx: number) => (
-                              <div key={idx} className="bg-slate-950/60 border border-slate-855 p-5 rounded-2xl space-y-3">
-                                <div className="flex justify-between items-center border-b border-slate-850 pb-2">
+                              <div key={idx} className="bg-white border border-slate-200/60 p-5 rounded-2xl space-y-3 shadow-xs">
+                                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-[9.5px] font-black uppercase bg-violet-500/10 text-violet-400 border border-violet-500/20 px-2 py-0.5 rounded-md">
+                                    <span className="text-[9.5px] font-black uppercase bg-violet-50 text-violet-600 border border-violet-100 px-2 py-0.5 rounded-md">
                                       {sug.section}
                                     </span>
-                                    <span className="text-[9.5px] font-bold text-orange-400 font-mono">
+                                    <span className="text-[9.5px] font-bold text-orange-600 font-mono">
                                       Confidence: {sug.confidenceScore || 90}%
                                     </span>
                                   </div>
-                                  <span className="text-[10px] text-slate-500 font-semibold">{sug.whyExplanation}</span>
+                                  <span className="text-[10px] text-slate-400 font-semibold">{sug.whyExplanation}</span>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-1">
-                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Before</span>
-                                    <p className="text-xs text-slate-400 bg-slate-900/40 p-2.5 rounded-xl border border-slate-850">{sug.originalText}</p>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Before</span>
+                                    <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-150">{sug.originalText}</p>
                                   </div>
                                   <div className="space-y-1">
-                                    <span className="text-[9px] font-black text-violet-400 uppercase tracking-wider block">After</span>
+                                    <span className="text-[9px] font-black text-violet-600 uppercase tracking-wider block">After</span>
                                     {editingSuggestionId === sug.id ? (
                                       <textarea 
                                         value={editingText} 
                                         onChange={e => setEditingText(e.target.value)} 
-                                        className="w-full text-xs text-white bg-slate-900 border border-slate-700 p-2.5 rounded-xl focus:outline-none h-20"
+                                        className="w-full text-xs text-slate-800 bg-white border border-slate-300 p-2.5 rounded-xl focus:outline-none h-20"
                                       />
                                     ) : (
-                                      <p className="text-xs text-white bg-slate-900 p-2.5 rounded-xl border border-violet-950/20">{sug.suggestedText}</p>
+                                      <p className="text-xs text-slate-850 bg-violet-50/20 p-2.5 rounded-xl border border-violet-100">{sug.suggestedText}</p>
                                     )}
                                   </div>
                                 </div>
 
-                                <p className="text-[10.5px] text-slate-400 italic">&bull; {sug.explanation}</p>
+                                <p className="text-[10.5px] text-slate-500 italic">&bull; {sug.explanation}</p>
 
-                                <div className="flex justify-end gap-2 pt-2 border-t border-slate-850">
+                                <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                                   {editingSuggestionId === sug.id ? (
                                     <>
-                                      <button onClick={() => setEditingSuggestionId(null)} className="h-7.5 px-3 rounded-lg border border-slate-800 text-slate-450 font-bold text-[10px]">Cancel</button>
-                                      <button onClick={() => handleSaveSuggestionEdit(sug, "available")} className="h-7.5 px-3 rounded-lg bg-green-600 text-white font-bold text-[10px]">Save & Accept</button>
+                                      <button onClick={() => setEditingSuggestionId(null)} className="h-7.5 px-3 rounded-lg border border-slate-200 text-slate-500 font-bold text-[10px] hover:bg-slate-50">Cancel</button>
+                                      <button onClick={() => handleSaveSuggestionEdit(sug, "available")} className="h-7.5 px-3 rounded-lg bg-green-600 text-white font-bold text-[10px] hover:bg-green-505">Save & Accept</button>
                                     </>
                                   ) : (
                                     <>
-                                      <button onClick={() => handleEditSuggestion(sug)} className="h-7.5 px-3 rounded-lg border border-slate-800 text-slate-450 font-bold text-[10px]">Edit</button>
-                                      <button onClick={() => handleAcceptSuggestion(sug, "available")} className="h-7.5 px-3 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold text-[10px]">Accept optimization</button>
+                                      <button onClick={() => handleEditSuggestion(sug)} className="h-7.5 px-3 rounded-lg border border-slate-200 text-slate-500 font-bold text-[10px] hover:bg-slate-50">Edit</button>
+                                      <button onClick={() => handleAcceptSuggestion(sug, "available")} className="h-7.5 px-3 rounded-lg bg-violet-600 hover:bg-violet-550 text-white font-bold text-[10px]">Accept optimization</button>
                                     </>
                                   )}
                                 </div>
                               </div>
                             ))
                           ) : (
-                            <div className="text-center py-10 text-slate-505 text-xs font-mono uppercase tracking-wider">
+                            <div className="text-center py-10 text-slate-400 text-xs font-mono uppercase tracking-wider">
                               All available optimizations reviewed and synced!
                             </div>
                           )}
@@ -970,49 +1037,49 @@ export default function AICareerCopilotPage() {
                         <div className="space-y-4 text-left">
                           {(optimizedResume?.betterPresentation?.length || 0) > 0 ? (
                             optimizedResume.betterPresentation.map((sug: any, idx: number) => (
-                              <div key={idx} className="bg-slate-950/60 border border-slate-850 p-5 rounded-2xl space-y-3">
-                                <div className="flex justify-between items-center border-b border-slate-850 pb-2">
+                              <div key={idx} className="bg-white border border-slate-200/60 p-5 rounded-2xl space-y-3 shadow-xs">
+                                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-[9.5px] font-black uppercase bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-md">
+                                    <span className="text-[9.5px] font-black uppercase bg-orange-50 text-orange-600 border border-orange-100 px-2 py-0.5 rounded-md">
                                       {sug.section} [Index {sug.index}]
                                     </span>
-                                    <span className="text-[9.5px] font-bold text-orange-400 font-mono">
+                                    <span className="text-[9.5px] font-bold text-orange-600 font-mono">
                                       Confidence: {sug.confidenceScore || 90}%
                                     </span>
                                   </div>
-                                  <span className="text-[10px] text-slate-500 font-semibold">{sug.whyExplanation}</span>
+                                  <span className="text-[10px] text-slate-400 font-semibold">{sug.whyExplanation}</span>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-1">
-                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Before (Original Experience Description)</span>
-                                    <p className="text-xs text-slate-400 bg-slate-900/40 p-3 rounded-xl border border-slate-850 whitespace-pre-wrap">{sug.originalText}</p>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Before (Original Experience Description)</span>
+                                    <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-150 whitespace-pre-wrap">{sug.originalText}</p>
                                   </div>
                                   <div className="space-y-1">
-                                    <span className="text-[9px] font-black text-orange-400 uppercase tracking-wider block">After (STAR Rewritten Wording)</span>
+                                    <span className="text-[9px] font-black text-orange-600 uppercase tracking-wider block">After (STAR Rewritten Wording)</span>
                                     {editingSuggestionId === sug.id ? (
                                       <textarea 
                                         value={editingText} 
                                         onChange={e => setEditingText(e.target.value)} 
-                                        className="w-full text-xs text-white bg-slate-900 border border-slate-700 p-3 rounded-xl focus:outline-none h-36 whitespace-pre-wrap"
+                                        className="w-full text-xs text-slate-805 bg-white border border-slate-300 p-3 rounded-xl focus:outline-none h-36 whitespace-pre-wrap"
                                       />
                                     ) : (
-                                      <p className="text-xs text-white bg-slate-900 p-3 rounded-xl border border-orange-950/20 whitespace-pre-wrap">{sug.suggestedText}</p>
+                                      <p className="text-xs text-slate-850 bg-orange-50/20 p-3 rounded-xl border border-orange-100 whitespace-pre-wrap">{sug.suggestedText}</p>
                                     )}
                                   </div>
                                 </div>
 
-                                <p className="text-[10.5px] text-slate-400 italic">&bull; {sug.explanation}</p>
+                                <p className="text-[10.5px] text-slate-500 italic">&bull; {sug.explanation}</p>
 
-                                <div className="flex justify-end gap-2 pt-2 border-t border-slate-850">
+                                <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                                   {editingSuggestionId === sug.id ? (
                                     <>
-                                      <button onClick={() => setEditingSuggestionId(null)} className="h-7.5 px-3 rounded-lg border border-slate-800 text-slate-450 font-bold text-[10px]">Cancel</button>
-                                      <button onClick={() => handleSaveSuggestionEdit(sug, "better")} className="h-7.5 px-3 rounded-lg bg-green-600 text-white font-bold text-[10px]">Save & Accept</button>
+                                      <button onClick={() => setEditingSuggestionId(null)} className="h-7.5 px-3 rounded-lg border border-slate-200 text-slate-500 font-bold text-[10px] hover:bg-slate-50">Cancel</button>
+                                      <button onClick={() => handleSaveSuggestionEdit(sug, "better")} className="h-7.5 px-3 rounded-lg bg-green-600 text-white font-bold text-[10px] hover:bg-green-550">Save & Accept</button>
                                     </>
                                   ) : (
                                     <>
-                                      <button onClick={() => handleEditSuggestion(sug)} className="h-7.5 px-3 rounded-lg border border-slate-800 text-slate-450 font-bold text-[10px]">Edit</button>
+                                      <button onClick={() => handleEditSuggestion(sug)} className="h-7.5 px-3 rounded-lg border border-slate-200 text-slate-500 font-bold text-[10px] hover:bg-slate-50">Edit</button>
                                       <button onClick={() => handleAcceptSuggestion(sug, "better")} className="h-7.5 px-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold text-[10px]">Accept rewrite</button>
                                     </>
                                   )}
@@ -1020,7 +1087,7 @@ export default function AICareerCopilotPage() {
                               </div>
                             ))
                           ) : (
-                            <div className="text-center py-10 text-slate-500 text-xs font-mono uppercase tracking-wider">
+                            <div className="text-center py-10 text-slate-400 text-xs font-mono uppercase tracking-wider">
                               All bullet points rewrites reviewed and synced!
                             </div>
                           )}
@@ -1030,9 +1097,9 @@ export default function AICareerCopilotPage() {
                       {/* Sub-Tab 3: Missing Requirements */}
                       {selectedOptimTab === "missing" && (
                         <div className="space-y-4 text-left">
-                          <div className="bg-slate-950/40 p-4 border border-slate-850 rounded-2xl space-y-1">
-                            <h4 className="text-xs font-bold text-white flex items-center gap-1"><Info className="h-4 w-4 text-orange-400" /> Fact Check Protection Active</h4>
-                            <p className="text-[10px] text-slate-400 leading-relaxed">
+                          <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl space-y-1">
+                            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1"><Info className="h-4 w-4 text-orange-500" /> Fact Check Protection Active</h4>
+                            <p className="text-[10px] text-slate-500 leading-relaxed">
                               Epitome AI Career Copilot strictly enforces factual integrity. We do not manufacture fake credentials. Missing requirements must be verified (by completing the course or manual evaluation) before they can be added to your profile resume data.
                             </p>
                           </div>
@@ -1043,38 +1110,38 @@ export default function AICareerCopilotPage() {
                               const isCompleted = parsedResumeDetails?.completedCourses?.includes(sug.recommendedCourseId);
                               
                               return (
-                                <div key={idx} className="bg-slate-950/60 border border-slate-850 p-5 rounded-2xl space-y-3">
-                                  <div className="flex justify-between items-center border-b border-slate-850 pb-2">
+                                <div key={idx} className="bg-white border border-slate-200/60 p-5 rounded-2xl space-y-3 shadow-xs">
+                                  <div className="flex justify-between items-center border-b border-slate-100 pb-2">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-[9.5px] font-black uppercase bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-md">
+                                      <span className="text-[9.5px] font-black uppercase bg-red-50 text-red-650 border border-red-100 px-2 py-0.5 rounded-md">
                                         Missing skill
                                       </span>
-                                      <span className="text-xs font-bold text-white">{skillName}</span>
+                                      <span className="text-xs font-bold text-slate-800">{skillName}</span>
                                     </div>
                                     <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                                      sug.importance === "HIGH" ? "bg-red-500/10 text-red-400" : "bg-yellow-500/10 text-yellow-400"
+                                      sug.importance === "HIGH" ? "bg-red-50 text-red-600 border border-red-100" : "bg-yellow-50 text-yellow-600 border border-yellow-100"
                                     }`}>
                                       {sug.importance || "HIGH"} Priority
                                     </span>
                                   </div>
 
                                   <div className="space-y-1">
-                                    <span className="text-[9.5px] font-black text-slate-500 uppercase">Reason for Requirement</span>
-                                    <p className="text-xs text-slate-300">{sug.reason || "This is a critical core skill evaluated in the coding assessments of the JD."}</p>
+                                    <span className="text-[9.5px] font-black text-slate-400 uppercase">Reason for Requirement</span>
+                                    <p className="text-xs text-slate-600">{sug.reason || "This is a critical core skill evaluated in the coding assessments of the JD."}</p>
                                   </div>
 
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/40 p-3.5 border border-slate-850 rounded-xl text-xs">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-3.5 border border-slate-150 rounded-xl text-xs">
                                     <div className="space-y-1">
-                                      <span className="text-[9px] font-black text-slate-500 uppercase">Recommended Learning Path</span>
+                                      <span className="text-[9px] font-black text-slate-400 uppercase">Recommended Learning Path</span>
                                       {sug.recommendedCourseId ? (
                                         <div className="space-y-1 text-left">
-                                          <p className="font-bold text-white text-[11px]">{sug.recommendedCourseTitle}</p>
-                                          <span className="text-[9.5px] text-slate-400 font-mono">Duration: {sug.estimatedTime || "12 hours"}</span>
+                                          <p className="font-bold text-slate-800 text-[11px]">{sug.recommendedCourseTitle}</p>
+                                          <span className="text-[9.5px] text-slate-500 font-mono">Duration: {sug.estimatedTime || "12 hours"}</span>
                                         </div>
                                       ) : (
                                         <div className="space-y-0.5 text-left">
-                                          <p className="font-bold text-slate-350">External Resource</p>
-                                          <a href={sug.externalLearningPath || "#"} target="_blank" rel="noopener noreferrer" className="text-[10px] text-violet-400 hover:underline block truncate">
+                                          <p className="font-bold text-slate-700">External Resource</p>
+                                          <a href={sug.externalLearningPath || "#"} target="_blank" rel="noopener noreferrer" className="text-[10px] text-violet-600 hover:underline block truncate">
                                             {sug.externalLearningPath || "Documentation site"}
                                           </a>
                                         </div>
@@ -1084,7 +1151,7 @@ export default function AICareerCopilotPage() {
                                       {sug.recommendedCourseId ? (
                                         isCompleted ? (
                                           <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-green-400 flex items-center gap-1">
+                                            <span className="text-[10px] font-bold text-green-600 flex items-center gap-1">
                                               <CheckSquare className="h-4 w-4" /> Course Completed
                                             </span>
                                             <button 
@@ -1096,7 +1163,7 @@ export default function AICareerCopilotPage() {
                                                 }
                                                 alert(`${skillName} verified and successfully added to your resume skills!`);
                                               }}
-                                              className="h-8 px-3 rounded-lg bg-green-600 text-white font-bold text-[10px] transition-all"
+                                              className="h-8 px-3 rounded-lg bg-green-650 text-white font-bold text-[10px] transition-all"
                                             >
                                               Add Skill
                                             </button>
@@ -1107,7 +1174,7 @@ export default function AICareerCopilotPage() {
                                               completeCourseInStore(sug.recommendedCourseId, skillName);
                                               alert(`You have started & completed the course: ${sug.recommendedCourseTitle}! ${skillName} is now verified.`);
                                             }}
-                                            className="h-8 px-3.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold text-[10px] transition-all flex items-center gap-1"
+                                            className="h-8 px-3.5 rounded-lg bg-violet-600 hover:bg-violet-550 text-white font-bold text-[10px] transition-all flex items-center gap-1"
                                           >
                                             <Play className="h-3 w-3 fill-current" /> Complete & Verify Skill
                                           </button>
@@ -1122,7 +1189,7 @@ export default function AICareerCopilotPage() {
                                             }
                                             alert(`${skillName} verified manually and added to your profile!`);
                                           }}
-                                          className="h-8 px-3.5 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold text-[10px] transition-all"
+                                          className="h-8 px-3.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-bold text-[10px] transition-all hover:bg-slate-200"
                                         >
                                           Manually Verify Skill
                                         </button>
@@ -1133,7 +1200,7 @@ export default function AICareerCopilotPage() {
                               );
                             })
                           ) : (
-                            <div className="text-center py-10 text-slate-500 text-xs font-mono uppercase tracking-wider">
+                            <div className="text-center py-10 text-slate-400 text-xs font-mono uppercase tracking-wider">
                               No missing skills detected! Your profile fully covers the JD requirements.
                             </div>
                           )}
@@ -1148,9 +1215,9 @@ export default function AICareerCopilotPage() {
             {/* Tab: Skill Gap & Learning */}
             {activeTab === "learning" && (
               <div className="space-y-6 text-left">
-                <div className="space-y-1 border-b border-slate-850 pb-3">
-                  <h3 className="text-base font-bold text-white flex items-center gap-1">
-                    <Map className="h-5 w-5 text-violet-400" /> Skill Gap & Learning Paths
+                <div className="space-y-1 border-b border-slate-200 pb-3">
+                  <h3 className="text-base font-bold text-slate-800 flex items-center gap-1">
+                    <Map className="h-5 w-5 text-violet-600" /> Skill Gap & Learning Paths
                   </h3>
                   <p className="text-xs text-slate-500 leading-normal">Compare your current resume skills against the target job description requirements to identify critical learning items.</p>
                 </div>
@@ -1159,40 +1226,40 @@ export default function AICareerCopilotPage() {
                   
                   {/* Left Comparison Summary list */}
                   <div className="lg:col-span-1 space-y-4">
-                    <div className="bg-slate-950/60 border border-slate-850 p-4.5 rounded-2xl space-y-3">
+                    <div className="bg-white border border-slate-200/60 p-4.5 rounded-2xl space-y-3 shadow-xs">
                       <span className="text-[9.5px] font-black text-slate-400 uppercase block">Existing Skills Overlap</span>
                       <div className="flex flex-wrap gap-1.5">
                         {matchedSkills?.length > 0 ? (
                           matchedSkills.map((s: any, idx: number) => (
-                            <span key={idx} className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-green-500/10 text-green-400 border border-green-500/20">{s}</span>
+                            <span key={idx} className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-green-50 text-green-600 border border-green-150">{s}</span>
                           ))
                         ) : (
-                          <span className="text-xs text-slate-500 italic">No matched skills analysed yet.</span>
+                          <span className="text-xs text-slate-400 italic">No matched skills analysed yet.</span>
                         )}
                       </div>
                     </div>
 
-                    <div className="bg-slate-955/60 border border-slate-850 p-4.5 rounded-2xl space-y-3">
+                    <div className="bg-white border border-slate-200/60 p-4.5 rounded-2xl space-y-3 shadow-xs">
                       <span className="text-[9.5px] font-black text-slate-400 uppercase block">Overall Skill Match Rate</span>
                       {matchScore > 0 ? (
                         <div className="space-y-2">
-                          <div className="flex justify-between items-center text-xs font-mono font-bold text-white">
+                          <div className="flex justify-between items-center text-xs font-mono font-bold text-slate-850">
                             <span>Overlap Rate</span>
                             <span>{skillMatchPercentage || 80}%</span>
                           </div>
-                          <div className="w-full bg-slate-900 rounded-full h-2">
-                            <div className="bg-orange-505 h-2 rounded-full" style={{ width: `${skillMatchPercentage || 80}%` }} />
+                          <div className="w-full bg-slate-100 rounded-full h-2 border border-slate-200">
+                            <div className="bg-orange-500 h-2 rounded-full" style={{ width: `${skillMatchPercentage || 80}%` }} />
                           </div>
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-500 italic">Insufficient Data</span>
+                        <span className="text-xs text-slate-400 italic">Insufficient Data</span>
                       )}
                     </div>
                   </div>
 
                   {/* Right Learning list */}
                   <div className="lg:col-span-2 space-y-4">
-                    <h4 className="text-xs font-black text-white uppercase tracking-wider">Required Skills Gap Alignment</h4>
+                    <h4 className="text-xs font-black text-slate-805 uppercase tracking-wider">Required Skills Gap Alignment</h4>
                     
                     {missingSkills?.length > 0 ? (
                       missingSkills.map((sug: any, idx: number) => {
@@ -1200,18 +1267,18 @@ export default function AICareerCopilotPage() {
                         const isCompleted = parsedResumeDetails?.completedCourses?.includes(sug.recommendedCourseId);
                         
                         return (
-                          <div key={idx} className="bg-slate-950/60 border border-slate-850 p-4.5 rounded-2xl flex justify-between items-center gap-4">
+                          <div key={idx} className="bg-white border border-slate-200/60 p-4.5 rounded-2xl flex justify-between items-center gap-4 shadow-xs">
                             <div className="space-y-1 text-left">
                               <div className="flex items-center gap-2">
-                                <h5 className="font-bold text-white text-xs">{skillName}</h5>
+                                <h5 className="font-bold text-slate-800 text-xs">{skillName}</h5>
                                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
-                                  sug.importance === "HIGH" ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-yellow-500/10 text-yellow-400"
+                                  sug.importance === "HIGH" ? "bg-red-50 text-red-600 border border-red-150" : "bg-yellow-50 text-yellow-600 border border-yellow-150"
                                 }`}>
                                   {sug.importance || "HIGH"} Priority
                                 </span>
                               </div>
-                              <p className="text-[10.5px] text-slate-400 leading-normal">{sug.reason}</p>
-                              <div className="flex gap-4 text-[9.5px] text-slate-500 font-mono pt-1">
+                              <p className="text-[10.5px] text-slate-500 leading-normal">{sug.reason}</p>
+                              <div className="flex gap-4 text-[9.5px] text-slate-400 font-mono pt-1">
                                 <span>Time: {sug.estimatedTime || "12h"}</span>
                                 <span>Course: {sug.recommendedCourseTitle || "External Link"}</span>
                               </div>
@@ -1220,20 +1287,20 @@ export default function AICareerCopilotPage() {
                             <div>
                               {sug.recommendedCourseId ? (
                                 isCompleted ? (
-                                  <span className="text-[10px] font-bold text-green-400 flex items-center gap-1"><Check className="h-4.5 w-4.5" /> Completed</span>
+                                  <span className="text-[10px] font-bold text-green-600 flex items-center gap-1"><Check className="h-4.5 w-4.5" /> Completed</span>
                                 ) : (
                                   <button 
                                     onClick={() => {
                                       completeCourseInStore(sug.recommendedCourseId, skillName);
                                       alert(`Course "${sug.recommendedCourseTitle}" marked completed! ${skillName} is now verified.`);
                                     }}
-                                    className="h-8 px-3 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold text-[10px]"
+                                    className="h-8 px-3 rounded-lg bg-violet-600 hover:bg-violet-550 text-white font-bold text-[10px]"
                                   >
                                     Verify Skill
                                   </button>
                                 )
                               ) : (
-                                <a href={sug.externalLearningPath || "#"} target="_blank" rel="noopener noreferrer" className="h-8 px-3 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold text-[10px] inline-flex items-center">
+                                <a href={sug.externalLearningPath || "#"} target="_blank" rel="noopener noreferrer" className="h-8 px-3 rounded-lg bg-slate-100 border border-slate-205 text-slate-700 font-bold text-[10px] inline-flex items-center hover:bg-slate-200">
                                   Learn
                                 </a>
                               )}
@@ -1242,7 +1309,7 @@ export default function AICareerCopilotPage() {
                         );
                       })
                     ) : (
-                      <div className="text-center py-10 text-slate-500 text-xs font-mono uppercase tracking-wider">
+                      <div className="text-center py-10 text-slate-405 text-xs font-mono uppercase tracking-wider">
                         No missing skills analysed. Run the Launch Copilot analysis first!
                       </div>
                     )}
@@ -1254,38 +1321,38 @@ export default function AICareerCopilotPage() {
             {/* Tab: Mock Interview */}
             {activeTab === "interview" && (
               <div className="space-y-6 text-left">
-                <div className="space-y-1 border-b border-slate-850 pb-3">
-                  <h3 className="text-base font-bold text-white flex items-center gap-1">
-                    <MessageSquare className="h-5 w-5 text-violet-400" /> Interview Preparation Simulator
+                <div className="space-y-1 border-b border-slate-200 pb-3">
+                  <h3 className="text-base font-bold text-slate-800 flex items-center gap-1">
+                    <MessageSquare className="h-5 w-5 text-violet-600" /> Interview Preparation Simulator
                   </h3>
                   <p className="text-xs text-slate-500 leading-normal">Generate contextual technical, behavioral, and resume-specific mock interview questions tailored to {targetCompany}'s hiring rounds.</p>
                 </div>
 
                 {/* Company OA & coding rounds information */}
                 {companyProfile && (
-                  <div className="bg-slate-955/60 border border-slate-850 p-5 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-1">
-                      <span className="text-[9.5px] font-black text-slate-500 uppercase block">Interview Style & Rounds</span>
-                      <p className="text-xs font-bold text-white">{companyProfile.rounds}</p>
-                      <p className="text-[10px] text-slate-400 leading-relaxed">{companyProfile.style}</p>
+                      <span className="text-[9.5px] font-black text-slate-400 uppercase block">Interview Style & Rounds</span>
+                      <p className="text-xs font-bold text-slate-800">{companyProfile.rounds}</p>
+                      <p className="text-[10px] text-slate-500 leading-relaxed">{companyProfile.style}</p>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[9.5px] font-black text-slate-550 uppercase block">OA Pattern & Coding focus</span>
-                      <p className="text-xs font-bold text-white">{companyProfile.oaPattern}</p>
+                      <span className="text-[9.5px] font-black text-slate-400 uppercase block">OA Pattern & Coding focus</span>
+                      <p className="text-xs font-bold text-slate-800">{companyProfile.oaPattern}</p>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[9.5px] font-black text-slate-550 uppercase block">Behavioral bar-raiser focus</span>
-                      <p className="text-xs font-bold text-white">{companyProfile.behavioral}</p>
+                      <span className="text-[9.5px] font-black text-slate-400 uppercase block">Behavioral bar-raiser focus</span>
+                      <p className="text-xs font-bold text-slate-800">{companyProfile.behavioral}</p>
                     </div>
                   </div>
                 )}
 
                 {/* Generate button */}
                 {questions.length === 0 ? (
-                  <div className="text-center py-12 bg-slate-950/40 rounded-2xl border border-slate-850 space-y-4">
-                    <Sparkles className="h-10 w-10 text-violet-400 mx-auto animate-pulse" />
+                  <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200/60 space-y-4">
+                    <Sparkles className="h-10 w-10 text-violet-500 mx-auto animate-pulse" />
                     <div className="space-y-1">
-                      <h4 className="text-xs font-bold text-white">Generate Personalized Questions</h4>
+                      <h4 className="text-xs font-bold text-slate-800">Generate Personalized Questions</h4>
                       <p className="text-[10px] text-slate-500 max-w-sm mx-auto leading-relaxed">
                         Uses your resume projects, target company OA rounds, and role requirements to synthesize real-world interview prompts.
                       </p>
@@ -1293,11 +1360,11 @@ export default function AICareerCopilotPage() {
                     <button 
                       disabled={interviewLoading}
                       onClick={handleGenerateQuestions}
-                      className="h-9 px-5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-black text-xs transition-all flex items-center justify-center gap-1.5 mx-auto"
+                      className="h-9 px-5 rounded-xl bg-violet-600 hover:bg-violet-550 text-white font-black text-xs transition-all flex items-center justify-center gap-1.5 mx-auto shadow-md"
                     >
                       {interviewLoading ? (
                         <>
-                          <RefreshCw className="h-4 w-4 animate-spin" /> Synthesizing questions catalog...
+                          <Loader2 className="h-4 w-4 animate-spin" /> Synthesizing questions catalog...
                         </>
                       ) : (
                         <>
@@ -1310,35 +1377,35 @@ export default function AICareerCopilotPage() {
                   /* Questions display */
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <h4 className="text-xs font-black text-white uppercase tracking-wider">Mock Prep Questions Catalog</h4>
-                      <button onClick={handleGenerateQuestions} className="text-xs font-bold text-violet-400 hover:text-violet-400 flex items-center gap-1">
+                      <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Mock Prep Questions Catalog</h4>
+                      <button onClick={handleGenerateQuestions} className="text-xs font-bold text-violet-600 hover:text-violet-500 flex items-center gap-1">
                         <RefreshCw className="h-3.5 w-3.5" /> Re-generate
                       </button>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
                       {questions.map((q, idx) => (
-                        <div key={idx} className="bg-slate-955/60 border border-slate-850 p-5 rounded-2xl space-y-3">
-                          <div className="flex justify-between items-center border-b border-slate-855 pb-2">
+                        <div key={idx} className="bg-white border border-slate-200/60 p-5 rounded-2xl space-y-3 shadow-xs">
+                          <div className="flex justify-between items-center border-b border-slate-100 pb-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-[9.5px] font-black uppercase bg-violet-500/10 text-violet-400 border border-violet-500/20 px-2 py-0.5 rounded-md">
+                              <span className="text-[9.5px] font-black uppercase bg-violet-55 bg-violet-50 text-violet-600 border border-violet-100 px-2 py-0.5 rounded-md">
                                 {q.category || "Technical"}
                               </span>
-                              <span className="text-[9.5px] text-slate-500 font-bold font-mono">Question {idx + 1}</span>
+                              <span className="text-[9.5px] text-slate-400 font-bold font-mono">Question {idx + 1}</span>
                             </div>
-                            <span className="text-[10px] text-orange-400 font-bold uppercase">{q.difficulty || "Medium"}</span>
+                            <span className="text-[10px] text-orange-600 font-bold uppercase">{q.difficulty || "Medium"}</span>
                           </div>
 
-                          <div className="space-y-1">
-                            <p className="text-xs font-bold text-white leading-relaxed">{q.question}</p>
+                          <div className="space-y-1 text-left">
+                            <p className="text-xs font-bold text-slate-805 leading-relaxed">{q.question}</p>
                           </div>
 
                           {/* "Why this question?" Box */}
-                          <div className="bg-slate-900/40 p-3.5 border border-slate-850 rounded-xl space-y-1 text-xs">
-                            <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase font-mono">
-                              <Info className="h-3.5 w-3.5 text-orange-400" /> Why this question?
+                          <div className="bg-amber-50/50 p-3.5 border border-amber-200/60 rounded-xl space-y-1 text-xs text-left">
+                            <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[10px] uppercase font-mono">
+                              <Info className="h-3.5 w-3.5 text-orange-600" /> Why this question?
                             </div>
-                            <p className="text-[10.5px] text-slate-450 leading-relaxed">{q.explanation || `${targetCompany} frequently tests this format for ${targetTitle} roles.`}</p>
+                            <p className="text-[10.5px] text-slate-600 leading-relaxed">{q.explanation || `${targetCompany} frequently tests this format for ${targetTitle} roles.`}</p>
                           </div>
                         </div>
                       ))}
@@ -1351,9 +1418,9 @@ export default function AICareerCopilotPage() {
             {/* Tab: Career Advisor Actionable Coach */}
             {activeTab === "career" && (
               <div className="space-y-6 text-left">
-                <div className="space-y-1 border-b border-slate-850 pb-3">
-                  <h3 className="text-base font-bold text-white flex items-center gap-1">
-                    <Compass className="h-5 w-5 text-violet-400" /> Actionable Placement Coach
+                <div className="space-y-1 border-b border-slate-200 pb-3">
+                  <h3 className="text-base font-bold text-slate-850 flex items-center gap-1">
+                    <Compass className="h-5 w-5 text-violet-600" /> Actionable Placement Coach
                   </h3>
                   <p className="text-xs text-slate-500 leading-normal">Your personalized daily roadmap calendar leading to your placement target at {targetCompany}.</p>
                 </div>
@@ -1362,18 +1429,18 @@ export default function AICareerCopilotPage() {
                   
                   {/* Left info column */}
                   <div className="md:col-span-1 space-y-4">
-                    <div className="bg-slate-950/60 border border-slate-850 p-4.5 rounded-2xl space-y-2">
+                    <div className="bg-white border border-slate-200/60 p-4.5 rounded-2xl space-y-2 shadow-xs">
                       <span className="text-[9.5px] font-black text-slate-400 uppercase block">Strengths</span>
-                      <ul className="text-xs text-slate-400 space-y-1 list-disc pl-4 leading-relaxed">
+                      <ul className="text-xs text-slate-550 space-y-1 list-disc pl-4 leading-relaxed">
                         {strengths?.slice(0, 3).map((s, idx) => (
                           <li key={idx}>{s}</li>
                         )) || <li>Active project list & clean technical focus.</li>}
                       </ul>
                     </div>
 
-                    <div className="bg-slate-950/60 border border-slate-855 p-4.5 rounded-2xl space-y-2">
+                    <div className="bg-white border border-slate-200/60 p-4.5 rounded-2xl space-y-2 shadow-xs">
                       <span className="text-[9.5px] font-black text-slate-400 uppercase block">Action Items</span>
-                      <ul className="text-xs text-slate-400 space-y-1 list-disc pl-4 leading-relaxed">
+                      <ul className="text-xs text-slate-550 space-y-1 list-disc pl-4 leading-relaxed">
                         {improvements?.slice(0, 3).map((w, idx) => (
                           <li key={idx}>{w}</li>
                         )) || <li>Add unit testing libraries & Docker experience.</li>}
@@ -1383,26 +1450,26 @@ export default function AICareerCopilotPage() {
 
                   {/* Right Calendar Roadmap planner */}
                   <div className="md:col-span-3 space-y-4">
-                    <h4 className="text-xs font-black text-white uppercase tracking-wider">Placement Preparation Schedule</h4>
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Placement Preparation Schedule</h4>
 
                     <div className="grid grid-cols-1 gap-4">
                       {[
-                        { day: "Today", task: "Start and complete semantic course gaps matching your profile requirements.", icon: Map, color: "text-violet-400" },
-                        { day: "Tomorrow", task: "Run the Resume Optimizer, rewrite experience description bullets to STAR format.", icon: FileText, color: "text-orange-400" },
-                        { day: "Saturday", task: "Generate mock questions, simulate OA online rounds and practice system design.", icon: MessageSquare, color: "text-blue-400" },
-                        { day: "Sunday", task: "Review job recommendations overlap percentage, prepare applications, and submit.", icon: Briefcase, color: "text-green-400" }
+                        { day: "Today", task: "Start and complete semantic course gaps matching your profile requirements.", icon: Map, color: "text-violet-600 bg-violet-50 border-violet-100" },
+                        { day: "Tomorrow", task: "Run the Resume Optimizer, rewrite experience description bullets to STAR format.", icon: FileText, color: "text-orange-655 text-orange-600 bg-orange-50 border-orange-100" },
+                        { day: "Saturday", task: "Generate mock questions, simulate OA online rounds and practice system design.", icon: MessageSquare, color: "text-blue-600 bg-blue-50 border-blue-100" },
+                        { day: "Sunday", task: "Review job recommendations overlap percentage, prepare applications, and submit.", icon: Briefcase, color: "text-green-600 bg-green-50 border-green-100" }
                       ].map((item, idx) => {
                         const Icon = item.icon;
                         return (
-                          <div key={idx} className="bg-slate-950/60 border border-slate-850 p-5 rounded-2xl flex gap-4 items-start">
-                            <div className="h-10 w-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0">
-                              <Icon className={`h-5 w-5 ${item.color}`} />
+                          <div key={idx} className="bg-white border border-slate-200/60 p-5 rounded-2xl flex gap-4 items-start shadow-xs">
+                            <div className={`h-10 w-10 rounded-xl border flex items-center justify-center shrink-0 ${item.color}`}>
+                              <Icon className="h-5 w-5" />
                             </div>
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <span className={`text-[10.5px] font-black uppercase tracking-wider ${item.color}`}>{item.day}</span>
+                                <span className="text-[10.5px] font-black uppercase tracking-wider text-slate-800">{item.day}</span>
                               </div>
-                              <p className="text-xs font-bold text-white">{item.task}</p>
+                              <p className="text-xs font-medium text-slate-500">{item.task}</p>
                             </div>
                           </div>
                         );
@@ -1416,11 +1483,11 @@ export default function AICareerCopilotPage() {
             {/* Tab: Job Recommendations */}
             {activeTab === "jobs" && (
               <div className="space-y-6 text-left">
-                <div className="space-y-1 border-b border-slate-855 pb-3">
-                  <h3 className="text-base font-bold text-white flex items-center gap-1">
-                    <Briefcase className="h-5 w-5 text-violet-400" /> Job Matching Recommendations
+                <div className="space-y-1 border-b border-slate-200 pb-3">
+                  <h3 className="text-base font-bold text-slate-800 flex items-center gap-1">
+                    <Briefcase className="h-5 w-5 text-violet-600" /> Job Matching Recommendations
                   </h3>
-                  <p className="text-xs text-slate-550 leading-normal">Matches from our company partner database based on your optimized resume skills overlap.</p>
+                  <p className="text-xs text-slate-500 leading-normal">Matches from our company partner database based on your optimized resume skills overlap.</p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
@@ -1432,22 +1499,22 @@ export default function AICareerCopilotPage() {
                       const calculatedMatch = Math.min(100, Math.round((matchingSkillsCount / (matchingSkillsCount + missingCount || 5)) * 100)) || 75;
 
                       return (
-                        <div key={job.id} className="bg-slate-955/60 border border-slate-850 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div key={job.id} className="bg-white border border-slate-200/60 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xs hover:border-slate-300 transition-all duration-200">
                           <div className="text-left space-y-1.5 max-w-xl">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-bold text-orange-400 font-mono">Match: {calculatedMatch}%</span>
-                              <span className="text-slate-500 text-[10px] font-mono">Location: {job.location || "Bengaluru, India"}</span>
+                              <span className="text-[10px] font-bold text-orange-600 font-mono bg-orange-50 px-1.5 py-0.5 rounded-md border border-orange-100">Match: {calculatedMatch}%</span>
+                              <span className="text-slate-400 text-[10px] font-mono">Location: {job.location || "Bengaluru, India"}</span>
                             </div>
-                            <h4 className="text-sm font-bold text-white">{job.title}</h4>
-                            <p className="text-xs text-slate-400 font-bold">{job.company || "Epitome Partner"}</p>
-                            <p className="text-[10.5px] text-slate-400 leading-relaxed line-clamp-2">{job.description}</p>
+                            <h4 className="text-sm font-bold text-slate-800">{job.title}</h4>
+                            <p className="text-xs text-slate-500 font-bold">{job.company || "Epitome Partner"}</p>
+                            <p className="text-[10.5px] text-slate-450 leading-relaxed line-clamp-2">{job.description}</p>
                           </div>
 
                           <div className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-white font-mono">{job.type || "Full-Time"}</span>
+                            <span className="text-xs font-bold text-slate-600 font-mono bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md">{job.type || "Full-Time"}</span>
                             <button 
                               onClick={() => alert(`Application submitted for ${job.title} at ${job.company || "Epitome Partner"}!`)}
-                              className="h-9 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs transition-all"
+                              className="h-9 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs transition-all shadow-xs"
                             >
                               Apply Now
                             </button>
@@ -1456,7 +1523,7 @@ export default function AICareerCopilotPage() {
                       );
                     })
                   ) : (
-                    <div className="text-center py-10 text-slate-500 text-xs font-mono uppercase tracking-wider">
+                    <div className="text-center py-10 text-slate-400 text-xs font-mono uppercase tracking-wider">
                       No matching jobs database configured yet.
                     </div>
                   )}
