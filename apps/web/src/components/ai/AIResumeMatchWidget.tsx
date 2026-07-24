@@ -42,7 +42,7 @@ export default function AIResumeMatchWidget() {
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
-  const [activeEditorTab, setActiveEditorTab] = useState<"personal" | "education" | "experience" | "projects" | "skills" | "certs">("personal");
+  const [activeEditorTab, setActiveEditorTab] = useState<"personal" | "links" | "education" | "experience" | "projects" | "skills" | "certs">("personal");
   
   // Platform Jobs List
   const [platformJobs, setPlatformJobs] = useState<any[]>([]);
@@ -274,6 +274,7 @@ export default function AIResumeMatchWidget() {
             <div className="flex flex-wrap gap-1.5 border-b border-slate-50 pb-2">
               {[
                 { id: "personal", label: "Personal Info", icon: User },
+                { id: "links", label: "Web Links", icon: Globe },
                 { id: "education", label: "Education", icon: BookOpen },
                 { id: "experience", label: "Work History", icon: Briefcase },
                 { id: "projects", label: "Projects", icon: ClipboardList },
@@ -328,6 +329,50 @@ export default function AIResumeMatchWidget() {
                   <div className="space-y-1">
                     <span className="text-[9.5px] font-bold text-slate-450 uppercase tracking-wider block">Career Profile Bio</span>
                     <textarea value={parsedResumeDetails.bio || ""} onChange={e => updateParsedDetails({ bio: e.target.value })} className="w-full rounded-2xl border border-slate-200 p-3 text-xs h-20 focus:outline-none focus:border-slate-800 bg-white" />
+                  </div>
+                </div>
+              )}
+
+              {activeEditorTab === "links" && (
+                <div className="space-y-4">
+                  <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">Social & Professional Networks</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-400">LinkedIn URL</span>
+                      <Input type="text" value={parsedResumeDetails.linkedin || ""} onChange={e => updateParsedDetails({ linkedin: e.target.value })} className="h-7.5 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-400">GitHub URL</span>
+                      <Input type="text" value={parsedResumeDetails.github || ""} onChange={e => updateParsedDetails({ github: e.target.value })} className="h-7.5 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-400">Portfolio URL</span>
+                      <Input type="text" value={parsedResumeDetails.portfolioWebsite || ""} onChange={e => updateParsedDetails({ portfolioWebsite: e.target.value })} className="h-7.5 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-400">Personal Website</span>
+                      <Input type="text" value={parsedResumeDetails.personalWebsite || ""} onChange={e => updateParsedDetails({ personalWebsite: e.target.value })} className="h-7.5 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-400">LeetCode URL</span>
+                      <Input type="text" value={parsedResumeDetails.leetcode || ""} onChange={e => updateParsedDetails({ leetcode: e.target.value })} className="h-7.5 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-400">HackerRank URL</span>
+                      <Input type="text" value={parsedResumeDetails.hackerrank || ""} onChange={e => updateParsedDetails({ hackerrank: e.target.value })} className="h-7.5 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-400">Codechef URL</span>
+                      <Input type="text" value={parsedResumeDetails.codechef || ""} onChange={e => updateParsedDetails({ codechef: e.target.value })} className="h-7.5 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-400">Codeforces URL</span>
+                      <Input type="text" value={parsedResumeDetails.codeforces || ""} onChange={e => updateParsedDetails({ codeforces: e.target.value })} className="h-7.5 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9.5px] font-bold text-slate-400">Kaggle URL</span>
+                      <Input type="text" value={parsedResumeDetails.kaggle || ""} onChange={e => updateParsedDetails({ kaggle: e.target.value })} className="h-7.5 text-xs" />
+                    </div>
                   </div>
                 </div>
               )}
