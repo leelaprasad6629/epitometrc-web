@@ -1,26 +1,43 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Award, Download, ExternalLink, ShieldCheck, Share2 } from "lucide-react";
+import { Award, Download, ShieldCheck, Share2, Loader2 } from "lucide-react";
 import Button from "@/components/common/Button";
 
 export default function StudentCertificatesPage() {
-  const certificates = [
-    {
-      id: "CERT-90812-UX",
-      title: "Introduction to Corporate Ethics",
-      issuedBy: "EpitomeTRC Academy",
-      issuedDate: "15 May 2026",
-      type: "Professional Course Certificate",
-    },
-  ];
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [studentName, setStudentName] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/student/certificates")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setCertificates(data.certificates);
+          setStudentName(data.studentName);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-8 w-8 text-orange-500 animate-spin" />
+        <p className="text-slate-500 text-sm font-medium animate-pulse">Loading certificates...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="space-y-6"
+      className="space-y-6 max-w-4xl mx-auto px-4"
     >
       <div className="flex flex-col gap-1 border-b border-slate-100 pb-4">
         <h1 className="font-display text-2xl font-bold text-[#0b172a] sm:text-3xl">
@@ -34,7 +51,7 @@ export default function StudentCertificatesPage() {
       {certificates.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {certificates.map((cert) => (
-            <div key={cert.id} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col justify-between space-y-6">
+            <div key={cert.id} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col justify-between space-y-6 text-left">
               <div className="flex gap-4 items-start">
                 <span className="p-3 rounded-xl bg-orange-50 text-orange-500 border border-orange-100 shrink-0">
                   <Award className="h-6 w-6" />
@@ -54,7 +71,7 @@ export default function StudentCertificatesPage() {
 
               <div className="rounded-xl bg-slate-50 p-4 flex items-center gap-3 border border-slate-100">
                 <ShieldCheck className="h-5 w-5 text-emerald-500 shrink-0" />
-                <div className="text-xs font-sans text-slate-600">
+                <div className="text-xs font-sans text-slate-650">
                   This credential is authenticated and cryptographically secured on the EpitomeTRC verification registry.
                 </div>
               </div>
@@ -98,7 +115,6 @@ export default function StudentCertificatesPage() {
                               box-sizing: border-box;
                               padding: 30px;
                               display: flex;
-                              flex-col: column;
                               flex-direction: column;
                               justify-content: space-between;
                             }
@@ -189,7 +205,7 @@ export default function StudentCertificatesPage() {
                               </div>
                               
                               <div class="certify">This credential is proudly presented to</div>
-                              <div class="name">Alex Thompson</div>
+                              <div class="name">${studentName}</div>
                               
                               <div class="details">
                                 for successfully fulfilling all curriculum requirements and completing the professional course
@@ -199,8 +215,8 @@ export default function StudentCertificatesPage() {
                               
                               <div class="footer-section">
                                 <div class="signature-box">
-                                  <div style="font-family: 'Cinzel', serif; font-size: 14px; font-style: italic; color: #0b172a;">Jennings</div>
-                                  <div class="signature-line">Sarah Jennings, Director</div>
+                                  <div style="font-family: 'Cinzel', serif; font-size: 14px; font-style: italic; color: #0b172a;">${cert.instructorName.split(" ")[1] || ""}</div>
+                                  <div class="signature-line">${cert.instructorName}, ${cert.instructorTitle.split(" & ")[0]}</div>
                                 </div>
                                 <div class="seal">
                                   ★ APPROVED ★

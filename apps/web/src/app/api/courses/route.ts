@@ -86,3 +86,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const token = req.cookies.get("token")?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const payload = verifyToken(token) as { id: string } | null;
+    if (!payload) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { courseId, progress } = await req.json();
+    if (!courseId || progress === undefined) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const enrollment = await prisma.enrollment.findFirst({
+      where: {
+        userId: payload.id,
+        courseId,
+      },
+    });
+
+    if (!enrollment) {
+      return NextResponse.json({ error: "Enrollment not found" }, { status: 404 });
+    }
+
+    const updated = await prisma.enrollment.update({
+      where: { id: enrollment.id },
+      data: {
+        progress: Math.min(100, Math.max(0, Number(progress))),
+      },
+    });
+
+    return NextResponse.json({ success: true, enrollment: updated });
+  } catch (error: any) {
+    console.error("Enrollment progress patch error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

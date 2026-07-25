@@ -25,6 +25,11 @@ export async function GET(req: NextRequest) {
         role: true,
         status: true,
         createdAt: true,
+        profile: {
+          select: {
+            profile: true,
+          },
+        },
       },
     });
 
@@ -32,7 +37,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, user });
+    const profileImage = (user.profile as any)?.profile?.profileImage || null;
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt,
+        profileImage,
+      },
+    });
   } catch (error: any) {
     console.error("Auth me error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

@@ -120,28 +120,7 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* AI Assistant Contact Card */}
-                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-md hover-scale-card space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <span className="px-2 py-0.5 rounded text-[8px] font-black bg-violet-50 text-violet-600 border border-violet-100 uppercase tracking-widest">Instant Resolution</span>
-                      <h4 className="font-display text-sm font-bold text-slate-900">Talk to AI Advisor</h4>
-                      <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
-                        Need instant course advisory or training details? Our chatbot is ready.
-                      </p>
-                    </div>
-                    <div className="h-9 w-9 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600 border border-violet-100">
-                      <MessageSquare className="h-4.5 w-4.5" />
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowAiModal(true)}
-                    className="w-full h-10 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-indigo-600 hover:to-violet-600 text-white font-bold text-xs shadow-md shadow-indigo-500/10 flex items-center justify-center gap-1.5 transition-all duration-300"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" /> Launch AI Assistant
-                  </button>
-                </div>
+
 
                 {/* Rich Information Panel */}
                 <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-md space-y-5 text-xs font-semibold text-slate-600">

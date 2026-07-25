@@ -1,18 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Award, ArrowRight, PlayCircle, CheckCircle, PlusCircle, Compass, Loader2 } from "lucide-react";
+import { BookOpen, Award, ArrowRight, PlayCircle, CheckCircle, Compass, Loader2, Sparkles, BookMarked, Layers } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import Button from "@/components/common/Button";
-import AIInterviewPrepWidget from "@/components/ai/AIInterviewPrepWidget";
 import AICourseAssistantWidget from "@/components/ai/AICourseAssistantWidget";
 
 export default function StudentCoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrollingId, setEnrollingId] = useState<string | null>(null);
+  
+  // Dynamic tutor state
+  const [selectedCourseTitle, setSelectedCourseTitle] = useState<string | null>(null);
+  const tutorSectionRef = useRef<HTMLDivElement | null>(null);
+
+  // Resources state
+  const [activeResourcesCourse, setActiveResourcesCourse] = useState<any | null>(null);
 
   const fetchCourses = async () => {
     try {
@@ -20,6 +25,12 @@ export default function StudentCoursesPage() {
       const data = await res.json();
       if (data.success) {
         setCourses(data.courses);
+        
+        // Auto select first active course as default for AI Tutor if not set yet
+        const active = data.courses.filter((c: any) => c.enrolled && c.progress < 100);
+        if (active.length > 0 && !selectedCourseTitle) {
+          setSelectedCourseTitle(active[0].title);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -51,6 +62,28 @@ export default function StudentCoursesPage() {
     }
   };
 
+  const handleUpdateProgress = async (courseId: string, newProgress: number) => {
+    try {
+      const res = await fetch("/api/courses", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId, progress: newProgress }),
+      });
+      if (res.ok) {
+        await fetchCourses();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleResumeCourse = (courseTitle: string) => {
+    setSelectedCourseTitle(courseTitle);
+    setTimeout(() => {
+      tutorSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
   const activeCourses = courses.filter((c) => c.enrolled && c.progress < 100);
   const completedCourses = courses.filter((c) => c.enrolled && c.progress === 100);
   const availableCourses = courses.filter((c) => !c.enrolled);
@@ -69,7 +102,7 @@ export default function StudentCoursesPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="space-y-8 max-w-6xl mx-auto px-4 sm:px-6"
+      className="space-y-8 max-w-6xl mx-auto px-4 sm:px-6 pb-12"
     >
       {/* Header section */}
       <div className="flex flex-col gap-1 border-b border-slate-100 pb-4">
@@ -82,7 +115,7 @@ export default function StudentCoursesPage() {
       </div>
 
       {/* 1. Active Tracks */}
-      <div className="space-y-4">
+      <div className="space-y-4 text-left">
         <h2 className="font-display text-base font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
           <PlayCircle className="h-5 w-5 text-orange-500" />
           Active Tracks ({activeCourses.length})
@@ -102,7 +135,7 @@ export default function StudentCoursesPage() {
               <motion.div
                 key={course.id}
                 whileHover={{ y: -4 }}
-                className="group rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row"
+                className="group rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row text-left"
               >
                 <div className="relative w-full sm:w-40 h-44 sm:h-auto shrink-0 overflow-hidden bg-slate-100">
                   <Image
@@ -121,6 +154,8 @@ export default function StudentCoursesPage() {
                     <h3 className="font-display text-base font-bold text-[#0b172a] leading-snug">
                       {course.title}
                     </h3>
+                    
+                    {/* Course Progress Bar */}
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px] font-bold text-slate-500 font-sans">
                         <span>Progress</span>
@@ -130,13 +165,39 @@ export default function StudentCoursesPage() {
                         <div className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full" style={{ width: `${course.progress}%` }}></div>
                       </div>
                     </div>
+
+                    {/* Progress Update Dropdown selector */}
+                    <div className="flex items-center gap-1.5 pt-1.5">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider font-sans">Set Progress:</span>
+                      <select
+                        value={course.progress}
+                        onChange={(e) => handleUpdateProgress(course.id, Number(e.target.value))}
+                        className="text-[9.5px] font-extrabold text-slate-600 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 outline-none font-sans"
+                      >
+                        <option value={0}>0% Initial</option>
+                        <option value={25}>25% Basics</option>
+                        <option value={50}>50% Midterm</option>
+                        <option value={75}>75% Capstone</option>
+                        <option value={100}>100% Complete</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="primary" size="sm" className="h-8 rounded-lg text-xs font-bold px-4 flex-1">
+                    <Button
+                      onClick={() => handleResumeCourse(course.title)}
+                      variant="primary"
+                      size="sm"
+                      className="h-8 rounded-lg text-xs font-bold px-4 flex-1"
+                    >
                       Resume
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs font-bold px-3">
+                    <Button
+                      onClick={() => setActiveResourcesCourse(course)}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-lg text-xs font-bold px-3"
+                    >
                       Resources
                     </Button>
                   </div>
@@ -147,9 +208,101 @@ export default function StudentCoursesPage() {
         )}
       </div>
 
+      {/* AI Course Tutor Assistant (Dynamic anchor block) */}
+      {selectedCourseTitle && (
+        <div ref={tutorSectionRef} className="space-y-4 pt-4 border-t border-slate-100 text-left">
+          <AICourseAssistantWidget courseTitle={selectedCourseTitle} />
+        </div>
+      )}
+
+      {/* Active Resources Sidebar Modal Overlay */}
+      <AnimatePresence>
+        {activeResourcesCourse && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl border border-slate-100 shadow-xl max-w-lg w-full p-6 space-y-4 text-left"
+            >
+              <div className="flex justify-between items-center border-b border-slate-50 pb-3">
+                <div className="flex items-center gap-2">
+                  <BookMarked className="h-5 w-5 text-orange-500" />
+                  <h3 className="font-display text-sm font-extrabold text-[#0b172a] uppercase tracking-wider">
+                    Course Resources
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setActiveResourcesCourse(null)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <Compass className="h-4.5 w-4.5 rotate-45" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-xs font-extrabold text-slate-800">{activeResourcesCourse.title}</h4>
+                  <p className="text-[11px] text-slate-400 font-medium font-sans mt-0.5 leading-relaxed">
+                    {activeResourcesCourse.description || "Comprehensive dynamic training track with hands-on capstones."}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block font-sans">
+                    Syllabus Modules
+                  </span>
+                  <div className="space-y-1.5">
+                    {["Module 1: Architecture Overview & Toolchains", "Module 2: Database Mappings and ORM Persistence", "Module 3: Hands-on Capstone System Integration"].map((mod, idx) => (
+                      <div key={idx} className="flex gap-2.5 items-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                        <Layers className="h-4 w-4 text-slate-400" />
+                        <span className="text-[10px] font-bold text-slate-700 font-sans">{mod}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-slate-50">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block font-sans">
+                    Recommended Reading
+                  </span>
+                  <div className="flex gap-2">
+                    <a
+                      href="https://react.dev"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-violet-50 text-violet-600 text-[10px] font-extrabold rounded-lg border border-violet-100 hover:bg-violet-100 transition-colors"
+                    >
+                      Developer Documentation &rarr;
+                    </a>
+                    <a
+                      href="https://nextjs.org/docs"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-blue-50 text-blue-600 text-[10px] font-extrabold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors"
+                    >
+                      Next.js Handbooks &rarr;
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-3">
+                <button
+                  onClick={() => setActiveResourcesCourse(null)}
+                  className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-colors"
+                >
+                  Close Panel
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* 2. Available Tracks to Join */}
       {availableCourses.length > 0 && (
-        <div className="space-y-4 pt-4 border-t border-slate-100">
+        <div className="space-y-4 pt-4 border-t border-slate-100 text-left">
           <h2 className="font-display text-base font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
             <Compass className="h-5 w-5 text-violet-500" />
             Explore Available Paths ({availableCourses.length})
@@ -160,7 +313,7 @@ export default function StudentCoursesPage() {
               <motion.div
                 key={course.id}
                 whileHover={{ y: -4 }}
-                className="group rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                className="group rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
               >
                 <div className="relative w-full h-40 overflow-hidden bg-slate-100">
                   <Image
@@ -178,33 +331,25 @@ export default function StudentCoursesPage() {
                 </div>
 
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  <div className="space-y-1.5 text-left">
-                    <h3 className="font-display text-sm font-bold text-[#0b172a] leading-snug group-hover:text-violet-600 transition-colors">
+                  <div className="space-y-2 text-left">
+                    <h3 className="font-display text-base font-bold text-[#0b172a] leading-snug group-hover:text-orange-500 transition-colors">
                       {course.title}
                     </h3>
-                    <p className="text-[11px] text-slate-450 leading-relaxed line-clamp-2">
-                      {course.description || "Build state of the art skills with guided expert curriculum paths."}
+                    <p className="text-[11px] text-slate-400 font-medium font-sans leading-relaxed line-clamp-2">
+                      {course.description}
                     </p>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-50 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-400 font-sans">
-                      Duration: {course.duration}
+                  <div className="flex justify-between items-center gap-4 pt-2">
+                    <span className="text-[10px] font-bold text-slate-500 font-sans">
+                      Duration: {course.duration || "Self-paced"}
                     </span>
                     <button
                       onClick={() => handleEnroll(course.id)}
                       disabled={enrollingId === course.id}
-                      className="h-8 px-3 rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-100 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 transition-all disabled:opacity-50"
+                      className="h-8.5 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 text-[11px] font-bold shadow-sm flex items-center justify-center transition-all"
                     >
-                      {enrollingId === course.id ? (
-                        <>
-                          <Loader2 className="h-3 w-3 animate-spin" /> Enrolling
-                        </>
-                      ) : (
-                        <>
-                          <PlusCircle className="h-3.5 w-3.5" /> Join Track
-                        </>
-                      )}
+                      {enrollingId === course.id ? "Joining..." : "Enroll Now"}
                     </button>
                   </div>
                 </div>
@@ -214,19 +359,9 @@ export default function StudentCoursesPage() {
         </div>
       )}
 
-      {/* AI Interview Prep Generator */}
-      {activeCourses.length > 0 && (
-        <AIInterviewPrepWidget courses={[...activeCourses, ...completedCourses]} />
-      )}
-
-      {/* AI Course Tutor Assistant */}
-      {activeCourses.length > 0 && (
-        <AICourseAssistantWidget courseTitle={activeCourses[0].title} />
-      )}
-
       {/* 3. Completed Courses */}
       {completedCourses.length > 0 && (
-        <div className="space-y-4 pt-4 border-t border-slate-100">
+        <div className="space-y-4 pt-4 border-t border-slate-100 text-left">
           <h2 className="font-display text-base font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-500" />
             Completed Courses ({completedCourses.length})
@@ -237,7 +372,7 @@ export default function StudentCoursesPage() {
               <motion.div
                 key={course.id}
                 whileHover={{ y: -4 }}
-                className="group rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row"
+                className="group rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row text-left"
               >
                 <div className="relative w-full sm:w-40 h-44 sm:h-auto shrink-0 overflow-hidden grayscale">
                   <Image

@@ -73,7 +73,7 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
           setCurrentUser({
             name: payload.user.name,
             email: payload.user.email,
-            avatar: defaultAvatars[role],
+            avatar: payload.user.profileImage || defaultAvatars[role],
           });
         }
       })

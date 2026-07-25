@@ -537,7 +537,31 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   setSelectedJobRole: (role) => set({ selectedJobRole: role }),
   setVerified: (verified) => set({ verified }),
 
-  updateAnalysis: (analysis) => set({ ...analysis }),
+  updateAnalysis: (analysis) => {
+    set((state) => {
+      const updatedProfile = state.parsedResumeDetails 
+        ? { 
+            ...state.parsedResumeDetails, 
+            atsAnalysis: { 
+              ...(state.parsedResumeDetails as any).atsAnalysis, 
+              ...analysis 
+            } 
+          }
+        : null;
+      
+      const newState = {
+        ...analysis,
+        parsedResumeDetails: updatedProfile
+      };
+
+      if (updatedProfile) {
+        // Sync to cookies & database async
+        syncProfileToClientStorage(updatedProfile, state.confidenceScores);
+      }
+
+      return newState;
+    });
+  },
 
   deleteResume: () => {
     syncProfileToClientStorage(null, {});
@@ -577,13 +601,28 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         if (data.success && data.profile) {
           const profile = data.profile;
           const confidence = data.confidenceScores || {};
+          const atsAnalysis = (profile as any).atsAnalysis || {};
           
           set({
             parsedResumeDetails: profile,
             confidenceScores: confidence,
             fileName: profile.fullName ? `${profile.fullName.replace(/\s+/g, "_")}_Profile` : null,
             verified: true,
-            selectedJobRole: profile.careerGoal?.targetRole || get().selectedJobRole
+            selectedJobRole: profile.careerGoal?.targetRole || get().selectedJobRole,
+            // Restore matching parameters on reload
+            atsScore: atsAnalysis.atsScore || 0,
+            matchScore: atsAnalysis.matchScore || 0,
+            skillMatchPercentage: atsAnalysis.skillMatchPercentage || 0,
+            keywordMatchPercentage: atsAnalysis.keywordMatchPercentage || 0,
+            experienceMatchPercentage: atsAnalysis.experienceMatchPercentage || 0,
+            matchedSkills: atsAnalysis.matchedSkills || [],
+            missingSkills: atsAnalysis.missingSkills || [],
+            missingKeywords: atsAnalysis.missingKeywords || [],
+            strengths: atsAnalysis.strengths || [],
+            improvements: atsAnalysis.improvements || [],
+            recommendations: atsAnalysis.recommendations || [],
+            certRecommendations: atsAnalysis.certRecommendations || [],
+            projectRecommendations: atsAnalysis.projectRecommendations || []
           });
           return;
         }

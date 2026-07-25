@@ -273,7 +273,27 @@ export default function AICareerCopilotPage() {
       alert("Please upload and optimize your resume in the 'Resume Optimizer' tab first to provide personalized profile context for the interview.");
       return;
     }
-    setShowFullscreenWarning(true);
+    
+    // Request camera and microphone permissions first
+    if (typeof navigator !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      setMockError("");
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          setMockStream(stream);
+          setTimeout(() => {
+            if (mockVideoRef.current) {
+              mockVideoRef.current.srcObject = stream;
+            }
+          }, 300);
+          setShowFullscreenWarning(true);
+        })
+        .catch((err) => {
+          console.warn("Camera/Mic request blocked or failed:", err);
+          alert("We require camera and microphone access to conduct the AI Mock Interview. Please enable permissions in your browser settings and try again.");
+        });
+    } else {
+      setShowFullscreenWarning(true);
+    }
   };
 
   const enterFullscreenAndStart = () => {
@@ -297,23 +317,6 @@ export default function AICareerCopilotPage() {
       } else if ((interviewContainerRef.current as any).webkitRequestFullscreen) {
         (interviewContainerRef.current as any).webkitRequestFullscreen();
       }
-    }
-
-    // Capture user webcam video stream
-    if (typeof navigator !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-        .then((stream) => {
-          setMockStream(stream);
-          setTimeout(() => {
-            if (mockVideoRef.current) {
-              mockVideoRef.current.srcObject = stream;
-            }
-          }, 300);
-        })
-        .catch((err) => {
-          console.warn("Camera request blocked or failed:", err);
-          setMockError("Webcam access failed/denied. Running in audio-only mode.");
-        });
     }
 
     const primaryLang = parsedResumeDetails?.programmingLanguages?.[0] || parsedResumeDetails?.technicalSkills?.[0] || "Software Engineering principles";
@@ -477,7 +480,7 @@ export default function AICareerCopilotPage() {
       .finally(() => {
         setJobsLoading(false);
       });
-  }, [loadProfileFromServer]);
+  }, []);
 
   // Read initial tab parameter from URL query string if present
   useEffect(() => {
@@ -715,7 +718,10 @@ export default function AICareerCopilotPage() {
           role: targetTitle,
           company: targetCompany,
           jobDescription: targetJd,
-          skills: parsedResumeDetails?.technicalSkills || [],
+          skills: Array.from(new Set([
+            ...(parsedResumeDetails?.technicalSkills || []),
+            ...(parsedResumeDetails?.verifiedSkills || [])
+          ])),
           experience: parsedResumeDetails?.experience || []
         })
       });
