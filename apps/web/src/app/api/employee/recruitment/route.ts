@@ -33,6 +33,11 @@ export async function GET(req: NextRequest) {
           select: {
             name: true,
             email: true,
+            profile: {
+              select: {
+                profile: true,
+              },
+            },
           },
         },
         job: {
@@ -45,16 +50,24 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      applicants: applications.map((app) => ({
-        id: app.id,
-        userId: app.userId,
-        name: app.user.name,
-        email: app.user.email,
-        role: app.job.title,
-        status: app.status,
-        appliedDate: new Date(app.appliedAt).toLocaleDateString(),
-        matchScore: "85%",
-      })),
+      applicants: applications.map((app) => {
+        const extraProfile = (app.user.profile as any)?.profile || {};
+        const atsAnalysis = extraProfile.atsAnalysis || {};
+        const matchScore = atsAnalysis.matchScore ? `${atsAnalysis.matchScore}%` : "Pending Eval";
+        const avatar = extraProfile.profileImage || `https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces`;
+        
+        return {
+          id: app.id,
+          userId: app.userId,
+          name: app.user.name,
+          email: app.user.email,
+          role: app.job.title,
+          status: app.status,
+          appliedDate: new Date(app.appliedAt).toLocaleDateString(),
+          matchScore,
+          avatar,
+        };
+      }),
     });
   } catch (error: any) {
     console.error("Recruitment API error:", error);

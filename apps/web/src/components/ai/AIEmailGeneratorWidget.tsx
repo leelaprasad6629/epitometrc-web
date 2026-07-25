@@ -1,21 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, Mail, Clipboard, Check, RefreshCw, Edit2 } from "lucide-react";
+import { Sparkles, Mail, Clipboard, Check, RefreshCw, Edit2, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
 
 interface AIEmailGeneratorWidgetProps {
-  candidates?: { id: number | string; name: string; role: string }[];
+  candidates?: { id: number | string; name: string; role: string; email?: string }[];
   initialRecipient?: string;
   initialTemplate?: string;
   initialContext?: string;
 }
 
 const DEFAULT_RECIPIENTS = [
-  { id: 1, name: "Sarah Jenkins (Acme Logistics)", role: "Lead Developer" },
-  { id: 2, name: "David Vance (MedTech Innovations)", role: "Product VP" },
-  { id: 3, name: "Robert Downey (Candidate)", role: "Senior Next.js Developer" }
+  { id: 1, name: "Sarah Jenkins (Acme Logistics)", role: "Lead Developer", email: "sarah.jenkins@acmelogistics.com" },
+  { id: 2, name: "David Vance (MedTech Innovations)", role: "Product VP", email: "david.vance@medtech.com" },
+  { id: 3, name: "Robert Downey (Candidate)", role: "Senior Next.js Developer", email: "robert.downey@example.com" }
 ];
 
 export default function AIEmailGeneratorWidget({
@@ -25,6 +25,7 @@ export default function AIEmailGeneratorWidget({
   initialContext = ""
 }: AIEmailGeneratorWidgetProps) {
   const [selectedRecipient, setSelectedRecipient] = useState(initialRecipient || (candidates[0]?.name || ""));
+  const [recipientEmail, setRecipientEmail] = useState("");
   const [emailTone, setEmailTone] = useState("Professional");
   const [templateType, setTemplateType] = useState(initialTemplate || "Recruitment");
   const [additionalContext, setAdditionalContext] = useState(initialContext || "");
@@ -35,18 +36,34 @@ export default function AIEmailGeneratorWidget({
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
+  // Direct sending state
+  const [sendingMail, setSendingMail] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState<string | null>(null);
+
   useEffect(() => {
     if (initialRecipient) {
-      // Ensure the recipient is added to candidates list temporarily if not exists
       const exists = candidates.some(c => c.name === initialRecipient);
       if (!exists) {
-        candidates.push({ id: `temp-${Date.now()}`, name: initialRecipient, role: "Client Advisory" });
+        candidates.push({ 
+          id: `temp-${Date.now()}`, 
+          name: initialRecipient, 
+          role: "Client Advisory", 
+          email: "advisory@epitometrc.com" 
+        });
       }
       setSelectedRecipient(initialRecipient);
     }
     if (initialTemplate) setTemplateType(initialTemplate);
     if (initialContext) setAdditionalContext(initialContext);
   }, [initialRecipient, initialTemplate, initialContext, candidates]);
+
+  // Sync recipientEmail when selectedRecipient changes
+  useEffect(() => {
+    const r = candidates.find((item) => item.name === selectedRecipient) || candidates[0];
+    if (r) {
+      setRecipientEmail(r.email || "recipient@example.com");
+    }
+  }, [selectedRecipient, candidates]);
 
   const tones = ["Professional", "Formal", "Friendly"];
   
@@ -70,6 +87,7 @@ export default function AIEmailGeneratorWidget({
     setResult(null);
     setCopied(false);
     setIsEditing(false);
+    setSendSuccess(null);
 
     const r = candidates.find((item) => item.name === selectedRecipient) || candidates[0];
 
@@ -106,6 +124,36 @@ export default function AIEmailGeneratorWidget({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleSendEmail = async () => {
+    if (!recipientEmail || !result?.body || sendingMail) return;
+    setSendingMail(true);
+    setError("");
+    setSendSuccess(null);
+
+    try {
+      const res = await fetch("/api/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: recipientEmail,
+          subject: result.subject,
+          emailBody: result.body
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSendSuccess(data.message || "Email delivered successfully.");
+      } else {
+        setError(data.error || "Failed to dispatch email via SMTP server.");
+      }
+    } catch (e: any) {
+      setError("Failed to connect to email delivery API.");
+    } finally {
+      setSendingMail(false);
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4 font-sans text-xs">
       <div className="flex items-center justify-between border-b border-slate-50 pb-3">
@@ -115,7 +163,7 @@ export default function AIEmailGeneratorWidget({
           </div>
           <div>
             <h3 className="font-display text-sm font-bold text-[#0b172a] uppercase tracking-wider">
-              AI Business Email Generator & Writer
+              AI Recruiter Email Generator
             </h3>
             <p className="text-slate-400 text-[10px] font-sans">Enterprise Email Template Outreach Suite</p>
           </div>
@@ -127,11 +175,11 @@ export default function AIEmailGeneratorWidget({
       </p>
 
       <form onSubmit={handleGenerate} className="space-y-4 text-left font-sans">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
           {/* Recipient Selector */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
-              Recipient Account / Contact
+              Recipient Account
             </label>
             <select
               value={selectedRecipient}
@@ -144,10 +192,23 @@ export default function AIEmailGeneratorWidget({
             </select>
           </div>
 
+          {/* Recipient Email */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+              Recipient Email Address
+            </label>
+            <input
+              type="email"
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+              className="w-full h-10 rounded-xl border border-slate-200 px-3 py-1.5 outline-none text-slate-655 font-semibold bg-white"
+            />
+          </div>
+
           {/* Template Selector */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
-              Outreach Template Theme
+              Template Theme
             </label>
             <select
               value={templateType}
@@ -163,7 +224,7 @@ export default function AIEmailGeneratorWidget({
           {/* Tone Selector */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
-              Email Writing Tone
+              Writing Tone
             </label>
             <select
               value={emailTone}
@@ -210,6 +271,10 @@ export default function AIEmailGeneratorWidget({
         <p className="text-red-500 text-[10px] font-semibold text-center mt-2">{error}</p>
       )}
 
+      {sendSuccess && (
+        <p className="text-emerald-600 text-[10px] font-bold text-center mt-2">{sendSuccess}</p>
+      )}
+
       <AnimatePresence>
         {result && (
           <motion.div
@@ -219,7 +284,7 @@ export default function AIEmailGeneratorWidget({
             className="pt-4 border-t border-slate-50 space-y-3.5 text-left"
           >
             {/* Email Layout */}
-            <div className="rounded-xl border border-slate-150 p-5 bg-slate-50/10 space-y-3.5 relative font-sans">
+            <div className="rounded-xl border border-slate-155 p-5 bg-slate-50/10 space-y-3.5 relative font-sans">
               <div className="border-b border-slate-200 pb-3 flex justify-between items-center">
                 <div className="space-y-1">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Subject Line</span>
@@ -270,6 +335,28 @@ export default function AIEmailGeneratorWidget({
               {copied && (
                 <span className="text-[9px] font-bold text-emerald-600 absolute right-5 bottom-4">Copied to Clipboard!</span>
               )}
+            </div>
+
+            {/* Direct Send button panel */}
+            <div className="flex justify-end pt-1">
+              <Button
+                onClick={handleSendEmail}
+                disabled={sendingMail || !recipientEmail}
+                variant="primary"
+                className="h-10 rounded-xl px-6 font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/10"
+              >
+                {sendingMail ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Sending Email...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Send Email via Transporter
+                  </>
+                )}
+              </Button>
             </div>
           </motion.div>
         )}

@@ -94,6 +94,37 @@ export default function EmployeeProfilePage() {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target?.result as string;
+      if (!base64) return;
+
+      try {
+        setSaving(true);
+        const res = await fetch("/api/employee/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profileImage: base64 }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          fetchProfile();
+        } else {
+          alert(data.error || "Failed to upload photo");
+        }
+      } catch (err) {
+        console.error("Photo upload error:", err);
+      } finally {
+        setSaving(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const clientPortfolio = [
     { name: "GlobalTech Solutions", allocation: 60, status: "Active Lead", variant: "blue" as const },
     { name: "Apex Strategy Group", allocation: 25, status: "On Track", variant: "purple" as const },
@@ -133,8 +164,28 @@ export default function EmployeeProfilePage() {
           <DashboardCard glowColor="blue" title="Advisor Profile" subtitle="Public directory overview credentials">
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-5 items-center">
-                <div className="relative h-20 w-20 rounded-2xl bg-orange-50 text-orange-500 border border-orange-100 flex items-center justify-center font-bold text-2xl shrink-0 shadow-inner">
-                  {profile?.name?.charAt(0) || "U"}
+                <div className="relative h-20 w-20 rounded-2xl border border-slate-100 overflow-hidden shrink-0 shadow-inner group">
+                  {profile?.profileImage ? (
+                    <img
+                      src={profile.profileImage}
+                      alt="Advisor avatar"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-orange-50 text-orange-500 flex items-center justify-center font-bold text-2xl">
+                      {profile?.name?.charAt(0) || "U"}
+                    </div>
+                  )}
+                  {/* Photo Upload Overlay */}
+                  <label className="absolute inset-0 bg-black/45 text-white text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-center p-1 font-sans">
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
                 <div className="text-center sm:text-left space-y-1">
                   <h3 className="font-display text-lg font-bold text-[#0b172a] leading-none">

@@ -48,6 +48,7 @@ export async function GET(req: NextRequest) {
         availability: extraProfile.availability || "95%",
         availabilityStatus: extraProfile.availabilityStatus || "Fully Active",
         verifiedStatus: extraProfile.verifiedStatus || "Gold Certified Lead",
+        profileImage: extraProfile.profileImage || null,
       },
     });
   } catch (error: any) {
@@ -69,7 +70,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, phone, specialization, office, availability, availabilityStatus } = body;
+    const { name, phone, specialization, office, availability, availabilityStatus, profileImage } = body;
 
     // Update User details
     await prisma.user.update({
@@ -98,6 +99,7 @@ export async function PATCH(req: NextRequest) {
           office: office !== undefined ? office : existingExtra.office,
           availability: availability !== undefined ? availability : existingExtra.availability,
           availabilityStatus: availabilityStatus !== undefined ? availabilityStatus : existingExtra.availabilityStatus,
+          profileImage: profileImage !== undefined ? profileImage : existingExtra.profileImage,
         },
       },
       create: {
@@ -108,6 +110,7 @@ export async function PATCH(req: NextRequest) {
           availability: availability || "95%",
           availabilityStatus: availabilityStatus || "Fully Active",
           verifiedStatus: "Gold Certified Lead",
+          profileImage: profileImage || null,
         },
       },
     });

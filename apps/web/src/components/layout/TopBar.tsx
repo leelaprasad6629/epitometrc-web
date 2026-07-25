@@ -45,12 +45,18 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
     return { label, href };
   });
 
-  // Mock Notification data
-  const notifications = [
-    { id: 1, title: "Assignment Submitted Successfully", time: "2 hours ago", read: false },
-    { id: 2, title: "New Job Match: Senior React Developer", time: "5 hours ago", read: false },
-    { id: 3, title: "Profile review completed by Marcus Thorne", time: "1 day ago", read: true },
-  ];
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/notifications")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success && payload.notifications) {
+          setNotifications(payload.notifications);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Default avatar per role (fallback if user doesn't have one)
   const defaultAvatars = {

@@ -24,10 +24,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Access Forbidden" }, { status: 403 });
     }
 
-    // Fetch all users with role Student, including their enrollments
+    // Fetch all users with role Student, including their enrollments and profiles
     const studentsList = await prisma.user.findMany({
       where: { role: "Student" },
       include: {
+        profile: {
+          select: {
+            profile: true,
+          },
+        },
         enrollments: {
           include: {
             course: {
@@ -47,6 +52,9 @@ export async function GET(req: NextRequest) {
       success: true,
       students: studentsList.map((s) => {
         const topEnrollment = s.enrollments[0];
+        const extraProfile = (s.profile as any)?.profile || {};
+        const avatar = extraProfile.profileImage || `https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces`;
+        
         return {
           id: topEnrollment?.id || `no-enrollment-${s.id}`,
           userId: s.id,
@@ -54,7 +62,7 @@ export async function GET(req: NextRequest) {
           course: topEnrollment?.course?.title || "No Enrolled Courses",
           progress: topEnrollment?.progress || 0,
           email: s.email,
-          avatar: `https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces`,
+          avatar,
         };
       }),
     });

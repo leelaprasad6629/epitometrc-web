@@ -141,18 +141,37 @@ export default function EmployeeRecruitmentPage() {
       .catch((err) => console.error("Error updating status:", err));
   };
 
-  const handleSendEmail = (e: React.FormEvent) => {
+  const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!emailBody.trim()) return;
+    if (!emailBody.trim() || !candidateDetail?.email) return;
 
     setSendingEmail(true);
-    // Simulate API email dispatch
-    setTimeout(() => {
+    setEmailStatus(null);
+    try {
+      const res = await fetch("/api/email/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: candidateDetail.email,
+          subject: emailSubject,
+          emailBody: emailBody,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEmailStatus(data.message || "Email delivered successfully!");
+        setSavedNotes((prev) => [...prev, `Sent email update: "${emailSubject}"`]);
+      } else {
+        setEmailStatus(`Error: ${data.error || "Failed to dispatch email"}`);
+      }
+    } catch {
+      setEmailStatus("Error: Failed to connect to email delivery API.");
+    } finally {
       setSendingEmail(false);
-      setEmailStatus("Email sent successfully!");
-      setSavedNotes((prev) => [...prev, `Sent email update: "${emailSubject}"`]);
-      setTimeout(() => setEmailStatus(null), 3000);
-    }, 1200);
+      setTimeout(() => setEmailStatus(null), 5000);
+    }
   };
 
   const handleAddNote = (e: React.FormEvent) => {
@@ -320,8 +339,12 @@ export default function EmployeeRecruitmentPage() {
                     }`}
                   >
                     <div className="flex gap-3 items-center min-w-0">
-                      <div className="h-9 w-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
-                        <User className="h-4.5 w-4.5" />
+                      <div className="h-9 w-9 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center shrink-0 border border-slate-100">
+                        {c.avatar && (c.avatar.startsWith("data:image") || c.avatar.startsWith("http")) ? (
+                          <img src={c.avatar} className="h-full w-full object-cover" />
+                        ) : (
+                          <User className="h-4.5 w-4.5 text-slate-600" />
+                        )}
                       </div>
                       <div className="text-left min-w-0 space-y-0.5">
                         <h3 className="font-display text-xs font-bold text-[#0b172a] truncate">
