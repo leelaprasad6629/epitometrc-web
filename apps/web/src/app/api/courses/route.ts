@@ -16,13 +16,31 @@ export async function GET(req: NextRequest) {
 
     const courses = await prisma.course.findMany({
       include: {
-        enrollments: userId ? { where: { userId } } : false,
+        enrollments: userId
+          ? {
+              where: { userId },
+              include: {
+                attendances: true,
+              },
+            }
+          : false,
       },
     });
 
-    // Format output to add joined flag and progress
+    // Format output to add joined flag, progress, and computed attendance rates
     const formatted = courses.map((c: any) => {
       const enrollment = c.enrollments?.[0];
+      let attendanceRate = 100;
+      let totalLogs = 0;
+
+      if (enrollment && enrollment.attendances && enrollment.attendances.length > 0) {
+        totalLogs = enrollment.attendances.length;
+        const presentLogs = enrollment.attendances.filter(
+          (a: any) => a.status.split(":")[0] === "Present"
+        ).length;
+        attendanceRate = Math.round((presentLogs / totalLogs) * 100);
+      }
+
       return {
         id: c.id,
         title: c.title,
@@ -33,6 +51,8 @@ export async function GET(req: NextRequest) {
         image: c.image,
         enrolled: !!enrollment,
         progress: enrollment ? enrollment.progress : 0,
+        attendanceRate,
+        attendanceLogsCount: totalLogs,
       };
     });
 

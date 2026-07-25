@@ -105,8 +105,9 @@ export default function EmployeeStudentsPage() {
           setEmailBody(
             `Hello ${payload.candidate.name},\n\nWe have reviewed your profile and resume matching scores. We are impressed by your qualifications and would like to discuss next steps.\n\nBest regards,\nEpitomeTRC Recruiter Team`
           );
-          // Set initial notes
-          setSavedNotes([`Candidate profile loaded securely from database.`]);
+          // Set initial notes from database
+          const dbNotes = payload.candidate.recruiterNotes || [];
+          setSavedNotes(dbNotes.map((n: any) => `${n.author} (${n.date}): ${n.text}`));
         }
         setDetailLoading(false);
       })
@@ -175,12 +176,24 @@ export default function EmployeeStudentsPage() {
     }
   };
 
-  const handleAddNote = (e: React.FormEvent) => {
+  const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!notes.trim()) return;
+    if (!notes.trim() || !selectedUserId) return;
 
-    setSavedNotes((prev) => [...prev, notes]);
-    setNotes("");
+    try {
+      const res = await fetch(`/api/employee/candidates/${selectedUserId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: notes }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSavedNotes(data.recruiterNotes.map((n: any) => `${n.author} (${n.date}): ${n.text}`));
+        setNotes("");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // Filter list based on query, tab, and status filter

@@ -89,6 +89,26 @@ export async function GET(req: NextRequest) {
         },
       });
 
+      const recentProfiles = await prisma.userProfile.findMany({
+        take: 5,
+        orderBy: { updatedAt: "desc" },
+        include: {
+          user: { select: { name: true } },
+        },
+      });
+
+      recentProfiles.forEach((up) => {
+        const extra = (up.profile as any) || {};
+        if (extra.reviewStatus === "Review Requested") {
+          notifications.push({
+            id: `rev-req-${up.userId}`,
+            title: `${up.user.name} requested profile & resume review`,
+            time: `ATS Fit: ${extra.atsAnalysis?.matchScore || "Not Evaluated"}%`,
+            read: false,
+          });
+        }
+      });
+
       recentEnrollments.forEach((e) => {
         notifications.push({
           id: `enr-emp-${e.id}`,

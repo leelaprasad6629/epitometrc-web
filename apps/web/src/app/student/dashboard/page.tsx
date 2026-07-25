@@ -17,6 +17,8 @@ export default function StudentDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [reviewStatus, setReviewStatus] = useState("Pending");
+  const [recruiterNotes, setRecruiterNotes] = useState<any[]>([]);
 
   // Calendar & Call modal state
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -48,11 +50,28 @@ export default function StudentDashboard() {
       .then((payload) => {
         if (payload.success) {
           setData(payload);
+          setReviewStatus(payload.reviewStatus || "Pending");
+          setRecruiterNotes(payload.recruiterNotes || []);
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [loadProfileFromServer]);
+
+  const handleRequestReview = async () => {
+    try {
+      const res = await fetch("/api/student/dashboard", {
+        method: "POST",
+      });
+      const payload = await res.json();
+      if (res.ok && payload.success) {
+        setReviewStatus("Review Requested");
+        setRecruiterNotes(payload.recruiterNotes || []);
+      }
+    } catch (err) {
+      console.error("Error requesting review:", err);
+    }
+  };
 
   // Call timer and WebRTC camera stream hook
   useEffect(() => {
@@ -217,6 +236,25 @@ export default function StudentDashboard() {
           <h1 className="font-display text-2xl font-bold text-[#0b172a] sm:text-3xl">
             Welcome back, {currentUser?.name || "Student"}.
           </h1>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 pt-1.5 pb-2">
+            <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase tracking-wider ${
+              reviewStatus === "Review Requested"
+                ? "bg-amber-50 text-amber-600 border border-amber-200"
+                : reviewStatus === "Approved" || reviewStatus === "Ready"
+                ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                : "bg-slate-50 text-slate-500 border border-slate-200"
+            }`}>
+              Portfolio Review: {reviewStatus}
+            </span>
+            {reviewStatus === "Pending" && (
+              <button
+                onClick={handleRequestReview}
+                className="text-[9px] font-extrabold text-orange-500 hover:text-orange-600 border border-orange-200 rounded-full px-2.5 py-0.5 bg-white shadow-sm transition-colors cursor-pointer"
+              >
+                Request Advisor Review
+              </button>
+            )}
+          </div>
           <p className="text-slate-500 text-[11px] font-medium leading-relaxed max-w-2xl">
             {parsedResumeDetails 
               ? `EpitomeTRC AI Advisor: "Your profile is ${parsedResumeDetails.overallCompleteness}% complete. Your ATS score is ${atsScore > 0 ? `${atsScore}%` : 'N/A (Please run matching analysis in Profile)'}. Practice mock interviews to boost matching."`
@@ -434,6 +472,29 @@ export default function StudentDashboard() {
                 Join Meeting
               </Button>
             </div>
+          </DashboardCard>
+
+          {/* Advisor Feedback & Recommendations Card */}
+          <DashboardCard glowColor="purple" title="Advisor Recommendations" subtitle="Notes from your placement advisor">
+            {recruiterNotes.length === 0 ? (
+              <p className="text-slate-400 text-[10.5px] leading-relaxed text-left py-2 font-medium">
+                No feedback registered yet. Complete your profile and resume matching to request an advisor review.
+              </p>
+            ) : (
+              <div className="space-y-3.5 max-h-48 overflow-y-auto text-left pr-1">
+                {recruiterNotes.map((note, idx) => (
+                  <div key={idx} className="pb-3 border-b border-slate-50 last:border-0 last:pb-0 space-y-1">
+                    <div className="flex justify-between items-center text-[9px] font-bold text-slate-400">
+                      <span>{note.author}</span>
+                      <span>{note.date}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 font-medium font-sans leading-relaxed">
+                      {note.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </DashboardCard>
         </div>
       </div>

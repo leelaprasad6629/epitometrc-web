@@ -167,19 +167,34 @@ export default function StudentCoursesPage() {
                     </div>
 
                     {/* Progress Update Dropdown selector */}
-                    <div className="flex items-center gap-1.5 pt-1.5">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider font-sans">Set Progress:</span>
-                      <select
-                        value={course.progress}
-                        onChange={(e) => handleUpdateProgress(course.id, Number(e.target.value))}
-                        className="text-[9.5px] font-extrabold text-slate-600 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 outline-none font-sans"
-                      >
-                        <option value={0}>0% Initial</option>
-                        <option value={25}>25% Basics</option>
-                        <option value={50}>50% Midterm</option>
-                        <option value={75}>75% Capstone</option>
-                        <option value={100}>100% Complete</option>
-                      </select>
+                    <div className="flex items-center gap-1.5 pt-1.5 justify-between flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider font-sans">Set Progress:</span>
+                        <select
+                          value={course.progress}
+                          onChange={(e) => handleUpdateProgress(course.id, Number(e.target.value))}
+                          className="text-[9.5px] font-extrabold text-slate-600 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 outline-none font-sans"
+                        >
+                          <option value={0}>0% Initial</option>
+                          <option value={25}>25% Basics</option>
+                          <option value={50}>50% Midterm</option>
+                          <option value={75}>75% Capstone</option>
+                          <option value={100}>100% Complete</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider font-sans">Attendance:</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[8.5px] font-extrabold border uppercase tracking-wider font-sans ${
+                          course.attendanceRate >= 90
+                            ? "bg-green-50 text-green-600 border-green-150"
+                            : course.attendanceRate >= 75
+                            ? "bg-amber-50 text-amber-600 border-amber-150"
+                            : "bg-rose-50 text-rose-600 border-rose-150"
+                        }`}>
+                          {course.attendanceRate}%
+                        </span>
+                      </div>
                     </div>
                   </div>
 
