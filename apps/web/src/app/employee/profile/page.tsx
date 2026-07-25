@@ -1,44 +1,129 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { User, Mail, ShieldCheck, MapPin, Award, Phone, Globe, Briefcase, Sparkles, CheckCircle2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  User,
+  Mail,
+  ShieldCheck,
+  MapPin,
+  Award,
+  Phone,
+  Globe,
+  Briefcase,
+  Sparkles,
+  CheckCircle2,
+  X,
+  Edit,
+  Zap,
+} from "lucide-react";
 import Image from "next/image";
 import Button from "@/components/common/Button";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import ProgressBar from "@/components/dashboard/ProgressBar";
+import { Input } from "@/components/ui/input";
 
 export default function EmployeeProfilePage() {
-  const profile = {
-    name: "Marcus Thorne",
-    role: "Talent Director & Strategy Coach",
-    email: "m.thorne@epitometrc.com",
-    phone: "+91-626-596-6705",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=faces",
-    specialization: "IT Recruitment, Agile Systems & Business Transformation",
-    office: "Indore HQ",
-    availability: "95%",
-    verifiedStatus: "Gold Certified Lead",
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Edit Mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [specialization, setSpecialization] = useState("");
+  const [office, setOffice] = useState("");
+  const [availability, setAvailability] = useState("");
+  const [availabilityStatus, setAvailabilityStatus] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  const fetchProfile = () => {
+    fetch("/api/employee/profile")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) {
+          setProfile(payload.profile);
+          setName(payload.profile.name);
+          setPhone(payload.profile.phone);
+          setSpecialization(payload.profile.specialization);
+          setOffice(payload.profile.office);
+          setAvailability(payload.profile.availability);
+          setAvailabilityStatus(payload.profile.availabilityStatus);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/employee/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          phone,
+          specialization,
+          office,
+          availability,
+          availabilityStatus,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSaveStatus("Profile updated successfully!");
+        fetchProfile();
+        setTimeout(() => {
+          setIsEditing(false);
+          setSaveStatus(null);
+        }, 1500);
+      } else {
+        alert(data.error || "Failed to update profile");
+      }
+    } catch {
+      alert("Failed to save changes due to a network error.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const clientPortfolio = [
     { name: "GlobalTech Solutions", allocation: 60, status: "Active Lead", variant: "blue" as const },
     { name: "Apex Strategy Group", allocation: 25, status: "On Track", variant: "purple" as const },
-    { name: "Torus Systems", allocation: 15, status: "Pending Review", variant: "orange" as const }
+    { name: "Torus Systems", allocation: 15, status: "Pending Review", variant: "orange" as const },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center bg-slate-50/10">
+        <div className="relative flex items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+          <Zap className="absolute h-4.5 w-4.5 text-orange-500 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="space-y-6 font-sans text-xs text-slate-700"
+      className="space-y-6 font-sans text-xs text-slate-700 pb-12"
     >
       <div className="flex flex-col gap-1 border-b border-slate-100 pb-4">
         <h1 className="font-display text-2xl font-bold text-[#0b172a] sm:text-3xl">
-          My Profile
+          My Profile Settings
         </h1>
         <p className="text-slate-500 text-sm">
-          Manage your advisor bio, client portfolio, and team directory settings.
+          Manage your advisor credentials, professional specializations, and availability status.
         </p>
       </div>
 
@@ -48,30 +133,24 @@ export default function EmployeeProfilePage() {
           <DashboardCard glowColor="blue" title="Advisor Profile" subtitle="Public directory overview credentials">
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-5 items-center">
-                <div className="relative h-20 w-20 rounded-2xl border border-slate-200 overflow-hidden shadow-inner shrink-0">
-                  <Image
-                    src={profile.avatar}
-                    alt={profile.name}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                  />
+                <div className="relative h-20 w-20 rounded-2xl bg-orange-50 text-orange-500 border border-orange-100 flex items-center justify-center font-bold text-2xl shrink-0 shadow-inner">
+                  {profile?.name?.charAt(0) || "U"}
                 </div>
                 <div className="text-center sm:text-left space-y-1">
                   <h3 className="font-display text-lg font-bold text-[#0b172a] leading-none">
-                    {profile.name}
+                    {profile?.name}
                   </h3>
-                  <p className="text-xs font-bold text-orange-500 font-sans">{profile.role}</p>
-                  
+                  <p className="text-xs font-bold text-orange-500 font-sans">{profile?.role}</p>
+
                   <div className="flex flex-wrap justify-center sm:justify-start gap-4 pt-1 text-slate-400 text-[10.5px] font-sans font-medium">
                     <span className="flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5 text-slate-400" /> {profile.office}
+                      <MapPin className="h-3.5 w-3.5 text-slate-400" /> {profile?.office}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Mail className="h-3.5 w-3.5 text-slate-400" /> {profile.email}
+                      <Mail className="h-3.5 w-3.5 text-slate-400" /> {profile?.email}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Phone className="h-3.5 w-3.5 text-slate-400" /> {profile.phone}
+                      <Phone className="h-3.5 w-3.5 text-slate-400" /> {profile?.phone || "No phone added"}
                     </span>
                   </div>
                 </div>
@@ -81,15 +160,19 @@ export default function EmployeeProfilePage() {
                 <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Specialization Focus
                 </h4>
-                <p className="text-xs text-slate-600 leading-relaxed font-semibold">
-                  {profile.specialization}
+                <p className="text-xs text-slate-650 leading-relaxed font-semibold">
+                  {profile?.specialization}
                 </p>
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button variant="primary" size="sm" className="h-9 rounded-xl text-xs font-bold px-4">
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="h-9 px-5 bg-[#0b172a] text-white hover:bg-slate-800 text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2"
+                >
+                  <Edit className="h-3.5 w-3.5" />
                   Edit Details
-                </Button>
+                </button>
               </div>
             </div>
           </DashboardCard>
@@ -98,10 +181,16 @@ export default function EmployeeProfilePage() {
           <DashboardCard glowColor="purple" title="Active Client Allocations" subtitle="Current strategic lead task distribution">
             <div className="space-y-4">
               {clientPortfolio.map((item, idx) => (
-                <div key={idx} className="p-4 bg-slate-50/20 border border-slate-100 rounded-2xl space-y-3">
-                  <div className="flex justify-between items-center text-[10.5px]">
-                    <span className="font-bold text-slate-800">{item.name}</span>
-                    <span className="px-2 py-0.5 rounded bg-slate-50 border border-slate-150 font-bold text-[8.5px] text-slate-500 uppercase tracking-wider">
+                <div key={idx} className="space-y-2 text-left">
+                  <div className="flex justify-between items-center text-slate-500 font-semibold font-sans">
+                    <span className="text-xs text-slate-800 font-bold">{item.name}</span>
+                    <span className={`px-1.5 py-0.5 rounded text-[8px] border font-bold uppercase tracking-wider ${
+                      item.variant === "blue" 
+                        ? "text-blue-700 bg-blue-50 border-blue-100" 
+                        : item.variant === "purple" 
+                        ? "text-purple-700 bg-purple-50 border-purple-100" 
+                        : "text-orange-700 bg-orange-50 border-orange-100"
+                    }`}>
                       {item.status}
                     </span>
                   </div>
@@ -112,46 +201,162 @@ export default function EmployeeProfilePage() {
           </DashboardCard>
         </div>
 
-        {/* Sidebar Info Panels */}
+        {/* Sidebar Cards */}
         <div className="space-y-6">
-          {/* Credentials Card */}
-          <DashboardCard glowColor="orange" title="Verification Status">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="h-5 w-5 text-orange-500" />
-                </div>
+          <DashboardCard glowColor="orange" title="Verification Status" subtitle="Adviser validation and rank">
+            <div className="space-y-5 text-left">
+              <div className="flex items-center gap-3.5 p-3.5 bg-orange-50/20 border border-orange-100/50 rounded-2xl">
+                <ShieldCheck className="h-6 w-6 text-orange-500 shrink-0" />
                 <div>
-                  <h4 className="text-xs font-bold text-slate-800">{profile.verifiedStatus}</h4>
-                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">EpitomeTRC Advisor Network</span>
+                  <h4 className="font-display text-xs font-extrabold text-[#0b172a]">{profile?.verifiedStatus}</h4>
+                  <p className="text-[10px] text-slate-400 font-medium font-sans">EpitomeTRC Advisor Network</p>
                 </div>
               </div>
 
-              <div className="rounded-xl bg-slate-50 p-3 flex items-center justify-between text-left">
-                <div className="space-y-0.5">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Global Availability</span>
-                  <span className="text-xs font-bold text-slate-700">95% (Fully Active)</span>
-                </div>
-                <Globe className="h-5 w-5 text-slate-400" />
+              <div className="space-y-1 pt-1.5 border-t border-slate-50">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block font-sans">
+                  Global Availability
+                </span>
+                <p className="text-xs font-extrabold text-slate-800 leading-snug">
+                  {profile?.availability} ({profile?.availabilityStatus})
+                </p>
               </div>
             </div>
           </DashboardCard>
 
-          {/* AI Advisor Assistant Insight */}
-          <DashboardCard glowColor="indigo" title="AI Advisor Companion">
-            <div className="space-y-3 relative overflow-hidden bg-gradient-to-br from-white to-slate-50/50">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-200/10 rounded-full blur-xl pointer-events-none" />
-              <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-600">
-                <Sparkles className="h-4.5 w-4.5 animate-pulse" />
-                <span>INTELLIGENT INSIGHTS</span>
-              </div>
-              <p className="text-slate-500 leading-relaxed text-[11px] font-sans">
-                "GlobalTech Solutions lead has a high probability of closing. Focus 15% more allocation this week to finalized project parameters."
+          {/* AI companion widget */}
+          <DashboardCard glowColor="purple" title="AI Advisor Companion" subtitle="Personalized automation assistant">
+            <div className="space-y-3.5 text-left">
+              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 font-sans">
+                <Sparkles className="h-3.5 w-3.5 text-purple-500" /> Intelligent Insights
+              </h4>
+              <p className="text-xs text-slate-500 leading-relaxed font-semibold italic">
+                "Currently tracking {profile?.availability} bandwidth availability. Focus allocations on Torus Systems review pipelines to accelerate Q4 corporate onboarding targets."
               </p>
             </div>
           </DashboardCard>
         </div>
       </div>
+
+      {/* Edit Details Overlay Modal */}
+      <AnimatePresence>
+        {isEditing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl border border-slate-100 shadow-xl max-w-md w-full p-6 space-y-4 text-left"
+            >
+              <div className="flex justify-between items-center border-b border-slate-50 pb-3">
+                <h3 className="font-display text-sm font-extrabold text-[#0b172a] uppercase tracking-wider">
+                  Edit Advisor Profile
+                </h3>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <X className="h-4.5 w-4.5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSave} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
+                    Full Name
+                  </label>
+                  <Input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="h-9 text-xs font-semibold rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
+                    Contact Phone
+                  </label>
+                  <Input
+                    type="text"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="h-9 text-xs font-semibold rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
+                    Specialization Focus
+                  </label>
+                  <Input
+                    type="text"
+                    value={specialization}
+                    onChange={(e) => setSpecialization(e.target.value)}
+                    className="h-9 text-xs font-semibold rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
+                    Office Location
+                  </label>
+                  <Input
+                    type="text"
+                    value={office}
+                    onChange={(e) => setOffice(e.target.value)}
+                    className="h-9 text-xs font-semibold rounded-xl"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
+                      Availability (%)
+                    </label>
+                    <Input
+                      type="text"
+                      value={availability}
+                      onChange={(e) => setAvailability(e.target.value)}
+                      className="h-9 text-xs font-semibold rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
+                      Status Label
+                    </label>
+                    <Input
+                      type="text"
+                      value={availabilityStatus}
+                      onChange={(e) => setAvailabilityStatus(e.target.value)}
+                      className="h-9 text-xs font-semibold rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center pt-2">
+                  {saveStatus ? (
+                    <span className="text-xs font-extrabold text-emerald-600 flex items-center gap-1 animate-pulse">
+                      <CheckCircle2 className="h-4 w-4" /> {saveStatus}
+                    </span>
+                  ) : (
+                    <div />
+                  )}
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-5 py-2 bg-orange-500 text-white hover:bg-orange-655 text-xs font-bold rounded-xl transition-all shadow-md"
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

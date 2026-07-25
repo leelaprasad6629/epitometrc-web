@@ -24,36 +24,39 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Access Forbidden" }, { status: 403 });
     }
 
-    // Fetch all enrollments with student and course details
-    const enrollments = await prisma.enrollment.findMany({
+    // Fetch all users with role Student, including their enrollments
+    const studentsList = await prisma.user.findMany({
+      where: { role: "Student" },
       include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+        enrollments: {
+          include: {
+            course: {
+              select: {
+                title: true,
+              },
+            },
           },
-        },
-        course: {
-          select: {
-            title: true,
-          },
+          orderBy: { progress: "desc" },
+          take: 1,
         },
       },
-      orderBy: { progress: "desc" },
+      orderBy: { name: "asc" },
     });
 
     return NextResponse.json({
       success: true,
-      students: enrollments.map((e) => ({
-        id: e.id,
-        userId: e.userId,
-        name: e.user.name,
-        course: e.course.title,
-        progress: e.progress,
-        email: e.user.email,
-        avatar: `https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces`,
-      })),
+      students: studentsList.map((s) => {
+        const topEnrollment = s.enrollments[0];
+        return {
+          id: topEnrollment?.id || `no-enrollment-${s.id}`,
+          userId: s.id,
+          name: s.name,
+          course: topEnrollment?.course?.title || "No Enrolled Courses",
+          progress: topEnrollment?.progress || 0,
+          email: s.email,
+          avatar: `https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces`,
+        };
+      }),
     });
   } catch (error: any) {
     console.error("Employee students API error:", error);
