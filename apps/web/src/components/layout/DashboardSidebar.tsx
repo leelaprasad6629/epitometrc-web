@@ -116,8 +116,9 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-40 flex flex-col justify-between border-r border-slate-200 bg-white transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
+        "absolute lg:fixed inset-y-0 left-0 z-40 flex flex-col justify-between border-r border-slate-200 bg-white transition-all duration-300",
+        collapsed ? "lg:w-16" : "lg:w-64",
+        "w-full h-full"
       )}
     >
       {/* Sidebar Header Logo */}

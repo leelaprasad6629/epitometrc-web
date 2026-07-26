@@ -21,9 +21,11 @@ import {
   ListFilter,
   ArrowRight,
   Send,
+  ArrowLeft,
 } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 export default function EmployeeStudentsPage() {
   // Pre-select students tab for this route
@@ -262,8 +264,7 @@ export default function EmployeeStudentsPage() {
 
       {/* Main Console Split Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: List and Filters */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className={cn("lg:col-span-5 space-y-6", selectedUserId && "hidden lg:block")}>
           {/* Tabs Menu */}
           <div className="flex rounded-2xl bg-slate-100 p-1">
             <button
@@ -405,7 +406,15 @@ export default function EmployeeStudentsPage() {
         </div>
 
         {/* Right Column: Dynamic Candidate Details Console */}
-        <div className="lg:col-span-7">
+        <div className={cn("lg:col-span-7", !selectedUserId && "hidden lg:block")}>
+          {selectedUserId && (
+            <button
+              onClick={() => setSelectedUserId(null)}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-550 hover:text-slate-800 lg:hidden mb-4 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to Candidate List
+            </button>
+          )}
           <AnimatePresence mode="wait">
             {!selectedUserId ? (
               <motion.div
