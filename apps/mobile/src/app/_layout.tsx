@@ -89,7 +89,7 @@ export default function RootLayout() {
       // Redirect authenticated users to their portal
       if (role === 'Student' && !inStudentGroup) {
         router.replace('/student/dashboard');
-      } else if ((role === 'Employee' || role === 'Admin') && !inEmployeeGroup) {
+      } else if ((role === 'Employee' || role === 'Admin' || role === 'Employer' || role === 'Organization') && !inEmployeeGroup) {
         router.replace('/employee/dashboard');
       }
     }

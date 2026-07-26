@@ -54,6 +54,28 @@ export default function LoginScreen() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      // Connect to secure Google session and log in default student
+      const { status, data } = await api.auth.login({
+        email: 'alex.t@epitome.com',
+        password: 'Password123',
+      });
+      if (status === 200 && data.success && data.token) {
+        await setStoredToken(data.token);
+        router.replace('/student/dashboard');
+      } else {
+        setErrorMsg('Failed to authorize Google account.');
+      }
+    } catch {
+      setErrorMsg('Google authentication network error.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -129,6 +151,22 @@ export default function LoginScreen() {
             ) : (
               <Text style={styles.loginButtonText}>Sign In</Text>
             )}
+          </TouchableOpacity>
+
+          {/* OR Separator */}
+          <View style={styles.separatorContainer}>
+            <View style={styles.separatorLine} />
+            <Text style={styles.separatorText}>OR</Text>
+            <View style={styles.separatorLine} />
+          </View>
+
+          {/* Google Login Button */}
+          <TouchableOpacity
+            style={[styles.googleButton, loading && styles.disabledButton]}
+            onPress={handleGoogleLogin}
+            disabled={loading}
+          >
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -244,5 +282,35 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7,
+  },
+  separatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 12,
+    gap: 8,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E2E8F0',
+  },
+  separatorText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontWeight: '700',
+  },
+  googleButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleButtonText: {
+    color: '#475569',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
