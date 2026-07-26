@@ -75,6 +75,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { role: true },
+    });
+
+    if (!user || user.role !== "Student") {
+      return NextResponse.json({ error: "Access Denied: Only students can enroll in courses." }, { status: 403 });
+    }
+
     const { courseId } = await req.json();
     if (!courseId) {
       return NextResponse.json({ error: "Missing courseId" }, { status: 400 });
@@ -117,6 +126,15 @@ export async function PATCH(req: NextRequest) {
     const payload = verifyToken(token) as { id: string } | null;
     if (!payload) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { role: true },
+    });
+
+    if (!user || user.role !== "Student") {
+      return NextResponse.json({ error: "Access Denied: Only students can update course progress." }, { status: 403 });
     }
 
     const { courseId, progress } = await req.json();

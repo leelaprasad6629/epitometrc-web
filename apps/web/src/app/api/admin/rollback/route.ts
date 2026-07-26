@@ -16,14 +16,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify user is Admin or Employee
+    // Verify user is Admin
     const user = await prisma.user.findUnique({
       where: { id: payload.id },
       select: { role: true },
     });
 
-    if (!user || (user.role !== "Admin" && user.role !== "Employee")) {
-      return NextResponse.json({ error: "Access Forbidden" }, { status: 403 });
+    if (!user || user.role !== "Admin") {
+      return NextResponse.json({ error: "Access Forbidden: Only administrators can roll back records." }, { status: 403 });
     }
 
     const { versionId } = await req.json();

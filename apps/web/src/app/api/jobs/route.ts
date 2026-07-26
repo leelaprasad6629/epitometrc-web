@@ -53,6 +53,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { role: true },
+    });
+
+    if (!user || user.role !== "Student") {
+      return NextResponse.json({ error: "Access Denied: Only students can apply for jobs." }, { status: 403 });
+    }
+
     const { jobId } = await req.json();
     if (!jobId) {
       return NextResponse.json({ error: "Missing jobId" }, { status: 400 });

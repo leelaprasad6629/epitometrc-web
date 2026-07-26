@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isRateLimited } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
+    if (isRateLimited(req, 3, 60000)) {
+      return NextResponse.json({ error: "Too many enquiries. Please try again in 1 minute." }, { status: 429 });
+    }
+
     const { name, email, subject, message } = await req.json();
 
     if (!name || !email || !subject || !message) {
