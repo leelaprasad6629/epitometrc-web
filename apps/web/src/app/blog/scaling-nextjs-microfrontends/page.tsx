@@ -12,7 +12,7 @@ export default function BlogPostDetail() {
   return (
     <>
       <Navbar />
-      <main className="pt-20 font-sans bg-slate-50/50 min-h-screen">
+      <main className="pt-20 font-sans bg-transparent min-h-screen">
         <article className="py-12 md:py-16">
           <Container className="max-w-3xl space-y-8">
             {/* Back Button */}

@@ -106,7 +106,7 @@ export default function About({ persona }: AboutProps) {
     <div id="about-parent-wrapper">
       
       {/* 1. Trust & Executive Section */}
-      <section id="about" className="py-20 md:py-28 bg-white relative">
+      <section id="about" className="py-20 md:py-28 bg-gradient-to-b from-[#F8FAFC] to-[#F4F8FD] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             

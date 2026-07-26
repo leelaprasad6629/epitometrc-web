@@ -73,7 +73,7 @@ export default function BlogPage() {
   return (
     <>
       <Navbar />
-      <main className="pt-20 font-sans bg-slate-50/50 min-h-screen">
+      <main className="pt-20 font-sans bg-transparent min-h-screen">
         <section className="py-16">
           <Container className="space-y-8">
             <div className="text-center space-y-2">

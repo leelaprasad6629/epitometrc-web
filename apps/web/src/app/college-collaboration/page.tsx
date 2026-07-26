@@ -13,7 +13,7 @@ export default function CollegeCollaborationPage() {
   return (
     <>
       <Navbar />
-      <main className="pt-20 font-sans bg-slate-50/50">
+      <main className="pt-20 font-sans bg-transparent">
         <Breadcrumbs items={[{ label: "Services", href: "/services" }, { label: "College Collaboration" }]} />
         {/* Hero Section */}
         <section className="bg-[#0b172a] text-white py-20 relative overflow-hidden">

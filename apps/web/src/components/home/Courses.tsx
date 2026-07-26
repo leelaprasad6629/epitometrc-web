@@ -156,7 +156,7 @@ export default function Courses({ persona }: CoursesProps) {
       </section>
 
       {/* 2. Strategic Insights / Courses Section */}
-      <section id="blog" className="py-20 md:py-28 bg-white relative">
+      <section id="blog" className="py-20 md:py-28 bg-gradient-to-b from-[#F4F8FD] to-[#EEF6FF] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Header */}
