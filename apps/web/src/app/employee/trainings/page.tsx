@@ -17,6 +17,19 @@ export default function EmployeeTrainingsPage() {
   const [selectedScheduleBatch, setSelectedScheduleBatch] = useState<any | null>(null);
   const [selectedMaterialsBatch, setSelectedMaterialsBatch] = useState<any | null>(null);
 
+  // Add Schedule Form states
+  const [scheduleTitle, setScheduleTitle] = useState("");
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("");
+  const [scheduleLink, setScheduleLink] = useState("");
+  const [addingSchedule, setAddingSchedule] = useState(false);
+
+  // Add Material Form states
+  const [materialTitle, setMaterialTitle] = useState("");
+  const [materialType, setMaterialType] = useState("Document");
+  const [materialUrl, setMaterialUrl] = useState("");
+  const [addingMaterial, setAddingMaterial] = useState(false);
+
   useEffect(() => {
     fetch("/api/employee/trainings")
       .then((res) => res.json())
@@ -52,6 +65,90 @@ export default function EmployeeTrainingsPage() {
       alert("Failed to create cohort due to a network error.");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleAddSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedScheduleBatch || !scheduleTitle.trim() || !scheduleDate.trim() || !scheduleTime.trim()) return;
+
+    setAddingSchedule(true);
+    try {
+      const res = await fetch(`/api/employee/trainings/${selectedScheduleBatch.id}/schedule`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: scheduleTitle,
+          date: scheduleDate,
+          time: scheduleTime,
+          link: scheduleLink,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setBatches((prev) =>
+          prev.map((b) =>
+            b.id === selectedScheduleBatch.id
+              ? { ...b, schedules: [...(b.schedules || []), data.schedule] }
+              : b
+          )
+        );
+        setSelectedScheduleBatch((prev: any) => ({
+          ...prev,
+          schedules: [...(prev.schedules || []), data.schedule],
+        }));
+        setScheduleTitle("");
+        setScheduleDate("");
+        setScheduleTime("");
+        setScheduleLink("");
+      } else {
+        alert(data.error || "Failed to add schedule");
+      }
+    } catch {
+      alert("Failed to add schedule due to a network error.");
+    } finally {
+      setAddingSchedule(false);
+    }
+  };
+
+  const handleAddMaterial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMaterialsBatch || !materialTitle.trim() || !materialUrl.trim()) return;
+
+    setAddingMaterial(true);
+    try {
+      const res = await fetch(`/api/employee/trainings/${selectedMaterialsBatch.id}/material`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: materialTitle,
+          type: materialType,
+          url: materialUrl,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setBatches((prev) =>
+          prev.map((b) =>
+            b.id === selectedMaterialsBatch.id
+              ? { ...b, materials: [...(b.materials || []), data.material] }
+              : b
+          )
+        );
+        setSelectedMaterialsBatch((prev: any) => ({
+          ...prev,
+          materials: [...(prev.materials || []), data.material],
+        }));
+        setMaterialTitle("");
+        setMaterialType("Document");
+        setMaterialUrl("");
+      } else {
+        alert(data.error || "Failed to add material");
+      }
+    } catch {
+      alert("Failed to add material due to a network error.");
+    } finally {
+      setAddingMaterial(false);
     }
   };
 
@@ -197,8 +294,8 @@ export default function EmployeeTrainingsPage() {
       )}
       {/* View Schedule Modal */}
       {selectedScheduleBatch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a]/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a]/40 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 space-y-4 my-8 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <div>
                 <h3 className="font-display text-base font-bold text-[#0b172a]">
@@ -214,28 +311,81 @@ export default function EmployeeTrainingsPage() {
               </button>
             </div>
 
-            <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
-              {[
-                { title: "Week 1-2: Foundation & Alignment", desc: "Introduction to business requirements, tech stack setup, and client spec scoping." },
-                { title: "Week 3-4: System Blueprint Design", desc: "Database schema modeling, API structures configuration, and architectural mapping." },
-                { title: "Week 5-6: Sprint Execution", desc: "Core business logic programming, UI layouts validation, and state hook integration." },
-                { title: "Week 7-8: Testing & Staging Deployment", desc: "Rigorous quality check tests, type safety audits, and production staging releases." }
-              ].map((step, idx) => (
-                <div key={idx} className="flex gap-4 items-start text-xs font-sans">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-50 font-bold text-orange-600 text-[10.5px] border border-orange-100">
-                    {idx + 1}
+            <div className="space-y-4 max-h-[220px] overflow-y-auto pr-1">
+              {(!selectedScheduleBatch.schedules || selectedScheduleBatch.schedules.length === 0) ? (
+                <p className="text-slate-400 text-xs font-sans text-center py-4 font-medium">No schedules configured yet for this cohort.</p>
+              ) : (
+                selectedScheduleBatch.schedules.map((step: any, idx: number) => (
+                  <div key={step.id || idx} className="flex gap-4 items-start text-xs font-sans">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-50 font-bold text-orange-600 text-[10.5px] border border-orange-100">
+                      {idx + 1}
+                    </div>
+                    <div className="space-y-0.5 flex-1">
+                      <div className="flex justify-between items-start gap-2">
+                        <p className="font-bold text-slate-700">{step.title}</p>
+                        <span className="text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-100 px-1.5 py-0.5 rounded uppercase tracking-wider whitespace-nowrap">{step.date}</span>
+                      </div>
+                      <p className="text-slate-500 font-semibold text-[10px]">{step.time}</p>
+                      {step.link && (
+                        <a href={step.link} target="_blank" rel="noopener noreferrer" className="inline-block text-[10.5px] font-bold text-blue-600 hover:underline mt-0.5">
+                          Join Meeting Link
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div className="space-y-0.5">
-                    <p className="font-bold text-slate-700">{step.title}</p>
-                    <p className="text-slate-500 font-medium leading-relaxed">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
+
+            <form onSubmit={handleAddSchedule} className="pt-4 border-t border-slate-100 space-y-3">
+              <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Add Schedule Event</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  type="text"
+                  required
+                  placeholder="Event Title (e.g. Intro Session)"
+                  value={scheduleTitle}
+                  onChange={(e) => setScheduleTitle(e.target.value)}
+                  className="h-9 text-xs rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10"
+                />
+                <Input
+                  type="date"
+                  required
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                  className="h-9 text-xs rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  type="text"
+                  required
+                  placeholder="Time Range (e.g. 14:00 - 15:30)"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                  className="h-9 text-xs rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10"
+                />
+                <Input
+                  type="url"
+                  placeholder="Meeting URL (optional)"
+                  value={scheduleLink}
+                  onChange={(e) => setScheduleLink(e.target.value)}
+                  className="h-9 text-xs rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={addingSchedule}
+                className="w-full h-9 rounded-xl text-xs font-bold font-sans"
+              >
+                {addingSchedule ? "Adding Event..." : "Add Event"}
+              </Button>
+            </form>
 
             <div className="flex justify-end pt-2 border-t border-slate-100">
               <Button
                 onClick={() => setSelectedScheduleBatch(null)}
+                variant="outline"
                 className="h-9 rounded-xl px-4 font-bold text-xs"
               >
                 Close
@@ -247,8 +397,8 @@ export default function EmployeeTrainingsPage() {
 
       {/* Materials Modal */}
       {selectedMaterialsBatch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a]/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b172a]/40 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 space-y-4 my-8 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <div>
                 <h3 className="font-display text-base font-bold text-[#0b172a]">
@@ -264,33 +414,75 @@ export default function EmployeeTrainingsPage() {
               </button>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-[10.5px] text-slate-400 font-bold uppercase tracking-wider">Available Resources</p>
+            <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+              <p className="text-[10.5px] text-slate-450 font-bold uppercase tracking-wider">Available Resources</p>
               
-              {[
-                { name: "Syllabus_Overview.pdf", size: "2.4 MB", type: "Document" },
-                { name: "Tech_Architecture_Spec.docx", size: "1.8 MB", type: "Specification" },
-                { name: "Weekly_Feedback_Template.xlsx", size: "850 KB", type: "Template" }
-              ].map((res, idx) => (
-                <div key={idx} className="flex justify-between items-center rounded-xl border border-slate-100 p-3 bg-slate-50/50 hover:bg-slate-100/30 transition-colors text-xs font-sans">
-                  <div className="space-y-0.5">
-                    <p className="font-bold text-slate-700">{res.name}</p>
-                    <p className="text-slate-400 font-semibold text-[9.5px] uppercase tracking-wider">{res.type} • {res.size}</p>
+              {(!selectedMaterialsBatch.materials || selectedMaterialsBatch.materials.length === 0) ? (
+                <p className="text-slate-400 text-xs font-sans text-center py-4 font-medium">No materials uploaded yet for this cohort.</p>
+              ) : (
+                selectedMaterialsBatch.materials.map((res: any, idx: number) => (
+                  <div key={res.id || idx} className="flex justify-between items-center rounded-xl border border-slate-100 p-3 bg-slate-50/50 hover:bg-slate-100/30 transition-colors text-xs font-sans">
+                    <div className="space-y-0.5">
+                      <p className="font-bold text-slate-700">{res.title}</p>
+                      <p className="text-slate-400 font-semibold text-[9.5px] uppercase tracking-wider">{res.type} Resource</p>
+                    </div>
+                    <a
+                      href={res.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-8 px-3 inline-flex items-center rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-white text-slate-600 font-bold transition-all text-xs"
+                    >
+                      Open Link
+                    </a>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => alert(`Downloading ${res.name}...`)}
-                    className="h-8 px-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-white text-slate-600 font-bold transition-all"
-                  >
-                    Download
-                  </button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
+
+            <form onSubmit={handleAddMaterial} className="pt-4 border-t border-slate-100 space-y-3">
+              <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Add Training Material</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  type="text"
+                  required
+                  placeholder="Material Title (e.g. Lecture Slides)"
+                  value={materialTitle}
+                  onChange={(e) => setMaterialTitle(e.target.value)}
+                  className="h-9 text-xs rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10"
+                />
+                <select
+                  value={materialType}
+                  onChange={(e) => setMaterialType(e.target.value)}
+                  className="h-9 text-xs rounded-xl border border-slate-200 bg-white px-3 font-semibold text-slate-650 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/10 w-full animate-none"
+                >
+                  <option value="Document">Document</option>
+                  <option value="PDF">PDF</option>
+                  <option value="Video">Video</option>
+                  <option value="Template">Template</option>
+                  <option value="Specification">Specification</option>
+                </select>
+              </div>
+              <Input
+                type="url"
+                required
+                placeholder="Resource URL (e.g. https://drive.google.com/...)"
+                value={materialUrl}
+                onChange={(e) => setMaterialUrl(e.target.value)}
+                className="h-9 text-xs rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10"
+              />
+              <Button
+                type="submit"
+                disabled={addingMaterial}
+                className="w-full h-9 rounded-xl text-xs font-bold font-sans"
+              >
+                {addingMaterial ? "Adding Material..." : "Add Material"}
+              </Button>
+            </form>
 
             <div className="flex justify-end pt-2 border-t border-slate-100">
               <Button
                 onClick={() => setSelectedMaterialsBatch(null)}
+                variant="outline"
                 className="h-9 rounded-xl px-4 font-bold text-xs"
               >
                 Close

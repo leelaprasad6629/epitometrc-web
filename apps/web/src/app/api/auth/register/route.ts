@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isRateLimited } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
+    if (isRateLimited(req, 5, 60000)) {
+      return NextResponse.json({ error: "Too many registration attempts. Please try again in 1 minute." }, { status: 429 });
+    }
+
     const { name, email, password, role, contactNumber } = await req.json();
 
     if (!name || !email || !password || !contactNumber) {

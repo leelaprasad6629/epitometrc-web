@@ -38,18 +38,28 @@ export async function GET(req: NextRequest) {
       orderBy: { completedAt: "desc" },
     });
 
-    const certificates = completedEnrollments.map((enr: any) => ({
-      id: `CERT-${enr.id.substring(0, 8).toUpperCase()}`,
-      title: enr.course.title,
-      issuedBy: "EpitomeTRC Academy",
-      issuedDate: new Date(enr.completedAt || new Date()).toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }),
-      instructorName: "Marcus Thorne",
-      instructorTitle: "Placement Director & Strategy Coach",
-    }));
+    const certificates = completedEnrollments.map((enr: any) => {
+      let instructorName = "Marcus Thorne";
+      let instructorTitle = "Placement Director & Strategy Coach";
+
+      if (enr.course.category.toLowerCase().includes("tech")) {
+        instructorName = "Sarah Jennings";
+        instructorTitle = "Technical Director & IT Lead Consultant";
+      }
+
+      return {
+        id: `CERT-${enr.id.substring(0, 8).toUpperCase()}`,
+        title: enr.course.title,
+        issuedBy: "EpitomeTRC Academy",
+        issuedDate: new Date(enr.completedAt || new Date()).toLocaleDateString("en-US", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+        instructorName,
+        instructorTitle,
+      };
+    });
 
     return NextResponse.json({
       success: true,

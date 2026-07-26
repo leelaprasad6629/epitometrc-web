@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/jwt";
+import { isRateLimited } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
+    if (isRateLimited(req, 10, 60000)) {
+      return NextResponse.json({ error: "Too many login attempts. Please try again in 1 minute." }, { status: 429 });
+    }
+
     const { email, password } = await req.json();
 
     if (!email || !password) {

@@ -31,7 +31,7 @@ model UserProfile {
 }
 
 model Course {
-  id          String       @id @default(uuid())
+  id          String           @id @default(uuid())
   title       String
   category    String
   description String
@@ -39,6 +39,8 @@ model Course {
   modules     Int
   image       String
   enrollments Enrollment[]
+  schedules   CohortSchedule[]
+  materials   CohortMaterial[]
 }
 
 model Enrollment {
@@ -175,4 +177,23 @@ model RecordVersion {
   userId        String?
   changeSummary String
   snapshot      String   // Full JSON snapshot
+}
+
+model CohortSchedule {
+  id        String   @id @default(uuid())
+  courseId  String
+  title     String
+  date      String   // "YYYY-MM-DD"
+  time      String   // e.g., "14:00 - 15:30"
+  link      String?  // Optional video meeting link
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model CohortMaterial {
+  id        String   @id @default(uuid())
+  courseId  String
+  title     String
+  type      String   // "PDF", "Video", "Link", etc.
+  url       String   // Document download URL
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }

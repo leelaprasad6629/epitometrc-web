@@ -30,6 +30,12 @@ export async function GET(req: NextRequest) {
         enrollments: {
           select: { progress: true }
         },
+        schedules: {
+          orderBy: { date: "asc" }
+        },
+        materials: {
+          orderBy: { title: "asc" }
+        },
         _count: {
           select: { enrollments: true },
         },
@@ -57,6 +63,8 @@ export async function GET(req: NextRequest) {
         endDate: end.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
         studentsCount: course._count.enrollments,
         status,
+        schedules: course.schedules || [],
+        materials: course.materials || [],
       };
     });
 

@@ -20,6 +20,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    if (file.size > 4 * 1024 * 1024) {
+      return NextResponse.json({ error: "File size exceeds the 4MB limit" }, { status: 400 });
+    }
+
     // Mock successful upload response
     return NextResponse.json({
       success: true,
