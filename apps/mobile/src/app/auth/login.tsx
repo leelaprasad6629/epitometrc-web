@@ -24,10 +24,7 @@ export default function LoginScreen() {
     try {
       const { status, data } = await api.auth.login({ email, password });
       
-      if (status === 200 && data.success && data.token) {
-        // Save token to SecureStore
-        await setStoredToken(data.token);
-        
+      if (status === 200 && data.success) {
         // Fetch role data
         const profileRes = await api.auth.me();
         if (profileRes.status === 200 && profileRes.data.success && profileRes.data.user) {
@@ -63,8 +60,7 @@ export default function LoginScreen() {
         email: 'alex.t@epitome.com',
         password: 'Password123',
       });
-      if (status === 200 && data.success && data.token) {
-        await setStoredToken(data.token);
+      if (status === 200 && data.success) {
         router.replace('/student/dashboard');
       } else {
         setErrorMsg('Failed to authorize Google account.');

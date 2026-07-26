@@ -59,6 +59,20 @@ export async function apiFetch(path: string, options: FetchOptions = {}) {
     data = await res.json();
   } catch {}
 
+  // Automatically parse and store JWT token from response body or set-cookie headers
+  const tokenVal = data?.token;
+  if (tokenVal) {
+    await setStoredToken(tokenVal);
+  } else {
+    const setCookie = res.headers.get('set-cookie');
+    if (setCookie) {
+      const match = setCookie.match(/token=([^;]+)/);
+      if (match && match[1]) {
+        await setStoredToken(match[1]);
+      }
+    }
+  }
+
   return { status, data };
 }
 
