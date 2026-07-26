@@ -3,7 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, Alert } from 'react-native';
 import * as Updates from 'expo-updates';
-import { getStoredToken, api } from '@/services/api';
+import { getStoredToken, setStoredToken, api } from '@/services/api';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,41 +38,29 @@ export default function RootLayout() {
     checkUpdates();
   }, []);
 
-  // Validate authentication state and roles on startup
+  // Initialize and hide splash screen
   useEffect(() => {
-    async function checkAuth() {
+    async function initApp() {
       try {
         const token = await getStoredToken();
-        if (!token) {
-          setIsAuthenticated(false);
-          setRole(null);
-          setLoading(false);
-          await SplashScreen.hideAsync();
-          return;
-        }
-
-        // Fetch user metadata from backend to confirm session
-        const { status, data } = await api.auth.me();
-        if (status === 200 && data.success && data.user) {
-          setIsAuthenticated(true);
-          setRole(data.user.role);
-        } else {
-          // Token is expired or invalid
-          setIsAuthenticated(false);
-          setRole(null);
+        if (token) {
+          const { status, data } = await api.auth.me();
+          if (status === 200 && data.success && data.user) {
+            setIsAuthenticated(true);
+            setRole(data.user.role);
+          }
         }
       } catch {
-        setIsAuthenticated(false);
-        setRole(null);
+        // Silent catch
       } finally {
         setLoading(false);
         await SplashScreen.hideAsync();
       }
     }
-    checkAuth();
+    initApp();
   }, []);
 
-  // Protect and redirect routes dynamically based on auth status
+  // Handle active navigation protection and redirects
   useEffect(() => {
     if (loading) return;
 
@@ -80,20 +68,44 @@ export default function RootLayout() {
     const inStudentGroup = segments[0] === 'student';
     const inEmployeeGroup = segments[0] === 'employee';
 
-    if (!isAuthenticated) {
-      // Direct unauthenticated users to the onboarding screen
-      if (inStudentGroup || inEmployeeGroup) {
-        router.replace('/');
-      }
-    } else {
-      // Redirect authenticated users to their portal
-      if (role === 'Student' && !inStudentGroup) {
-        router.replace('/student/dashboard');
-      } else if ((role === 'Employee' || role === 'Admin' || role === 'Employer' || role === 'Organization') && !inEmployeeGroup) {
-        router.replace('/employee/dashboard');
+    async function checkNavigation() {
+      const token = await getStoredToken();
+      const isAuth = !!token;
+
+      if (!isAuth) {
+        if (inStudentGroup || inEmployeeGroup) {
+          router.replace('/');
+        }
+      } else {
+        let currentRole = role;
+        if (!currentRole) {
+          try {
+            const { status, data } = await api.auth.me();
+            if (status === 200 && data.success && data.user) {
+              currentRole = data.user.role;
+              setRole(currentRole);
+              setIsAuthenticated(true);
+            } else {
+              await setStoredToken(null);
+              setIsAuthenticated(false);
+              router.replace('/');
+              return;
+            }
+          } catch {
+            return;
+          }
+        }
+
+        if (currentRole === 'Student' && !inStudentGroup) {
+          router.replace('/student/dashboard');
+        } else if ((currentRole === 'Employee' || currentRole === 'Admin' || currentRole === 'Employer' || currentRole === 'Organization') && !inEmployeeGroup) {
+          router.replace('/employee/dashboard');
+        }
       }
     }
-  }, [isAuthenticated, role, segments, loading]);
+
+    checkNavigation();
+  }, [segments, loading, role]);
 
   if (loading) {
     return (
