@@ -25,6 +25,7 @@ export default function EmployeeLayout() {
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarActiveTintColor: '#F97316',
         tabBarInactiveTintColor: '#64748B',
         tabBarStyle: {
