@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 // For Android emulator, localhost resolves to 10.0.2.2
 const DEFAULT_DEV_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
-export const API_BASE_URL = 'https://epitometrc-web.vercel.app'; // Default to Vercel production backend
+export const API_BASE_URL = __DEV__ ? 'http://192.168.1.7:3000' : 'https://epitometrc-web.vercel.app';
 
 const TOKEN_KEY = 'auth_token';
 
