@@ -7,6 +7,19 @@
     "icon": "./assets/images/icon.png",
     "scheme": "epitometrc",
     "userInterfaceStyle": "automatic",
+    "updates": {
+      "url": "https://u.expo.dev/f1ea6967-df50-410a-b32c-297eb098e983",
+      "enabled": true,
+      "checkAutomatically": "NEVER"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f1ea6967-df50-410a-b32c-297eb098e983"
+      }
+    },
     "ios": {
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.epitometrc.app"

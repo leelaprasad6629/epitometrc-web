@@ -1,7 +1,8 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Alert } from 'react-native';
+import * as Updates from 'expo-updates';
 import { getStoredToken, api } from '@/services/api';
 
 SplashScreen.preventAutoHideAsync();
@@ -12,6 +13,30 @@ export default function RootLayout() {
   const [role, setRole] = useState<string | null>(null);
   const segments = useSegments();
   const router = useRouter();
+
+  // Check for EAS OTA Updates on app launch
+  useEffect(() => {
+    async function checkUpdates() {
+      if (__DEV__) return;
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          Alert.alert(
+            'App Update Available',
+            'A new version is ready. Restart the app to apply UI optimizations and bug fixes.',
+            [
+              { text: 'Later', style: 'cancel' },
+              { text: 'Restart Now', onPress: () => Updates.reloadAsync() }
+            ]
+          );
+        }
+      } catch {
+        // Silent catch if update server is unreachable
+      }
+    }
+    checkUpdates();
+  }, []);
 
   // Validate authentication state and roles on startup
   useEffect(() => {
