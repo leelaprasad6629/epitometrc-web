@@ -313,7 +313,7 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[215px] w-[460px] h-[460px] border border-slate-200/10 rounded-full pointer-events-none z-0" />
 
       {/* Main Centered Content */}
-      <div className="flex-1 flex flex-col justify-center items-center text-center px-4 relative z-10 space-y-6">
+      <div className="flex-1 flex flex-col justify-center items-center text-center px-4 relative z-10 space-y-6 pt-24 md:pt-16">
         
         {/* Persona Switcher Toggle Buttons */}
         <div className="flex bg-white/80 p-1.5 rounded-2xl border border-slate-200/50 shadow-sm z-10 w-fit backdrop-blur-sm">
