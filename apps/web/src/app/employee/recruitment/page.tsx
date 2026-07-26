@@ -31,6 +31,38 @@ export default function EmployeeRecruitmentPage() {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Client-side CSV exporter helper
+  const exportToCSV = (data: any[], filename: string) => {
+    if (data.length === 0) {
+      alert("No data available to export.");
+      return;
+    }
+    
+    const headers = ["Name", "Email", "Role/Course", "Status", "Date Added"];
+    const rows = data.map(item => [
+      item.name,
+      item.email,
+      item.role || item.course || "N/A",
+      item.status,
+      item.appliedDate || item.joinedDate || "N/A"
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -248,7 +280,7 @@ export default function EmployeeRecruitmentPage() {
       className="space-y-6 font-sans pb-12"
     >
       {/* Top Banner */}
-      <div className="flex flex-col gap-1 border-b border-slate-100 pb-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 border-b border-slate-100 pb-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="font-display text-2xl font-extrabold text-[#0b172a] sm:text-3xl">
             Candidate & Placement Center
@@ -257,6 +289,18 @@ export default function EmployeeRecruitmentPage() {
             Unified database matching console for job applicants, cohort students, and live technical interviews.
           </p>
         </div>
+        <Button
+          onClick={() => {
+            const dataToExport = tab === "students" ? students : applicants;
+            const filename = `Epitome_${tab}_Report_${new Date().toISOString().split('T')[0]}.csv`;
+            exportToCSV(dataToExport, filename);
+          }}
+          variant="outline"
+          size="sm"
+          className="h-9 px-4 rounded-xl font-bold flex items-center gap-1.5 self-start md:self-auto border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 shadow-sm transition-all"
+        >
+          <FileText className="h-4 w-4 text-slate-400" /> Export CSV Report
+        </Button>
       </div>
 
       {/* Main Console Split Grid */}
