@@ -36,9 +36,11 @@ export async function apiFetch(path: string, options: FetchOptions = {}) {
     ...(options.headers as Record<string, string>),
   };
 
-  // Inject cookie token to match the web backend cookie parser
+  // Inject cookie and authorization headers for robust cross-platform parsing
   if (token) {
+    headers['cookie'] = `token=${token}`;
     headers['Cookie'] = `token=${token}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const url = `${API_BASE_URL}${path}`;

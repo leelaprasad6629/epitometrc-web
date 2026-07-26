@@ -31,7 +31,7 @@ export default function LoginScreen() {
           const userRole = profileRes.data.user.role;
           if (userRole === 'Student') {
             router.replace('/student/dashboard');
-          } else if (userRole === 'Employee' || userRole === 'Admin') {
+          } else if (userRole === 'Employee' || userRole === 'Admin' || userRole === 'Employer' || userRole === 'Organization') {
             router.replace('/employee/dashboard');
           } else {
             setErrorMsg('Unauthorized profile role.');
