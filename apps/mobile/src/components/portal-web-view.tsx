@@ -21,6 +21,12 @@ export default function PortalWebView({ path }: PortalWebViewProps) {
       setLoadingToken(false);
     }
     loadToken();
+
+    // Safety fallback: Hide the loading spinner after 4 seconds to prevent getting stuck
+    const timer = setTimeout(() => {
+      setWebViewLoaded(true);
+    }, 4000);
+    return () => clearTimeout(timer);
   }, []);
 
   if (loadingToken) {
@@ -72,6 +78,8 @@ export default function PortalWebView({ path }: PortalWebViewProps) {
         injectedJavaScript={injectedJS}
         onNavigationStateChange={handleNavigationStateChange}
         onLoadEnd={() => setWebViewLoaded(true)}
+        onError={() => setWebViewLoaded(true)}
+        onHttpError={() => setWebViewLoaded(true)}
         domStorageEnabled={true}
         javaScriptEnabled={true}
         style={styles.webview}
