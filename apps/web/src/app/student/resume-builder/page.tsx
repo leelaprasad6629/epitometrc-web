@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
 import { useResumeStore, CareerGoal, ResumeVersion } from "@/lib/ai/store/resumeStore";
 import { Input } from "@/components/ui/input";
+import ResumeMediaManager from "@/components/ResumeMediaManager";
 
 type TabId = "dashboard" | "resume" | "learning" | "interview" | "career" | "jobs";
 
@@ -1082,7 +1083,6 @@ export default function AICareerCopilotPage() {
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => {
-                  deleteResume();
                   setSetupStep("upload");
                 }}
                 className="h-9 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 bg-white text-slate-600 hover:text-slate-800 font-bold text-xs transition-all flex items-center gap-1.5 shadow-xs"
@@ -1273,6 +1273,9 @@ export default function AICareerCopilotPage() {
             {/* Tab: Resume Optimizer */}
             {activeTab === "resume" && (
               <div className="space-y-6">
+                
+                {/* Media Manager for Document and Video Resumes */}
+                <ResumeMediaManager />
                 
                 {/* 1. Header controls */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-200">
