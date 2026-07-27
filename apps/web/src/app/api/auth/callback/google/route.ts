@@ -54,6 +54,13 @@ export async function GET(req: NextRequest) {
 
     const { email, name, picture } = googleUser;
 
+    // Reject Google login for official organization accounts ending in @epitometrc.com
+    if (email.toLowerCase().endsWith("@epitometrc.com")) {
+      return NextResponse.redirect(
+        new URL("/login?error=Access+Denied:+Google+Sign-In+is+not+allowed+for+official+@epitometrc.com+accounts.", req.url)
+      );
+    }
+
     // Prevent duplicate student accounts
     let user = await prisma.user.findUnique({
       where: { email },
