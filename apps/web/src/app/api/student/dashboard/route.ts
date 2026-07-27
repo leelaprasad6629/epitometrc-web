@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/jwt";
+import { verifyToken, getToken } from "@/lib/jwt";
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
+    const token = getToken(req);
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
 // POST: Request portfolio review from placement advisor
 export async function POST(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
+    const token = getToken(req);
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
