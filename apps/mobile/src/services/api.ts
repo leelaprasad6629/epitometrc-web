@@ -61,6 +61,44 @@ export async function setStoredToken(token: string | null): Promise<void> {
   } catch {}
 }
 
+const ROLE_KEY = 'user_role';
+
+export async function getStoredRole(): Promise<string | null> {
+  try {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined') {
+        return window.localStorage.getItem(ROLE_KEY);
+      }
+      return null;
+    }
+    return await SecureStore.getItemAsync(ROLE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export async function setStoredRole(role: string | null): Promise<void> {
+  try {
+    if (role) {
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(ROLE_KEY, role);
+        }
+      } else {
+        await SecureStore.setItemAsync(ROLE_KEY, role);
+      }
+    } else {
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(ROLE_KEY);
+        }
+      } else {
+        await SecureStore.deleteItemAsync(ROLE_KEY);
+      }
+    }
+  } catch {}
+}
+
 interface FetchOptions extends RequestInit {
   bodyData?: any;
 }
@@ -118,6 +156,12 @@ export async function apiFetch(path: string, options: FetchOptions = {}) {
       }
     }
 
+    // Automatically parse and store user role for instant login/routing caching
+    const roleVal = data?.user?.role || data?.role;
+    if (roleVal) {
+      await setStoredRole(roleVal);
+    }
+
     return { status, data };
   } catch (error) {
     clearTimeout(timeoutId);
@@ -136,6 +180,7 @@ export const api = {
     forgotPassword: (email: string) => apiFetch('/api/auth/reset-password', { method: 'POST', bodyData: { email } }),
     logout: () => {
       setStoredToken(null);
+      setStoredRole(null);
       return apiFetch('/api/auth/logout', { method: 'POST' });
     },
     me: () => apiFetch('/api/auth/me', { method: 'GET' }),

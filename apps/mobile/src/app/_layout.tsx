@@ -3,7 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, Alert } from 'react-native';
 import * as Updates from 'expo-updates';
-import { getStoredToken, setStoredToken, api } from '@/services/api';
+import { getStoredToken, setStoredToken, getStoredRole, setStoredRole, api } from '@/services/api';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,19 +39,31 @@ export default function RootLayout() {
     checkUpdates();
   }, []);
 
-  // Initialize and hide splash screen
+  // Initialize and hide splash screen instantly by using cached credentials
   useEffect(() => {
     async function initApp() {
       try {
         const token = await getStoredToken();
-        if (token) {
-          const { status, data } = await api.auth.me();
-          if (status === 200 && data.success && data.user) {
-            setIsAuthenticated(true);
-            setRole(data.user.role);
-          } else if (status === 401 || status === 403) {
-            await setStoredToken(null);
-          }
+        const cachedRole = await getStoredRole();
+        
+        if (token && cachedRole) {
+          setIsAuthenticated(true);
+          setRole(cachedRole);
+          
+          // Verify token authenticity in the background, without blocking boot
+          api.auth.me().then(({ status, data }) => {
+            if (status === 200 && data.success && data.user) {
+              setRole(data.user.role);
+              setStoredRole(data.user.role);
+            } else {
+              // Stale or invalid token: clean storage and redirect to login
+              setStoredToken(null);
+              setStoredRole(null);
+              setIsAuthenticated(false);
+              setRole(null);
+              router.replace('/');
+            }
+          }).catch(() => {});
         }
       } catch {
         // Silent catch
@@ -83,23 +95,28 @@ export default function RootLayout() {
       } else {
         let currentRole = role;
         if (!currentRole) {
-          try {
-            const { status, data } = await api.auth.me();
-            if (status === 200 && data.success && data.user) {
-              currentRole = data.user.role;
-              setRole(currentRole);
-              setIsAuthenticated(true);
-            } else if (status === 401 || status === 403) {
-              await setStoredToken(null);
-              setIsAuthenticated(false);
-              router.replace('/');
-              return;
-            } else {
-              // Do not log out on 500 or timeout
+          // Check cached role first before firing API requests
+          const cachedRole = await getStoredRole();
+          if (cachedRole) {
+            currentRole = cachedRole;
+            setRole(currentRole);
+          } else {
+            try {
+              const { status, data } = await api.auth.me();
+              if (status === 200 && data.success && data.user) {
+                currentRole = data.user.role;
+                setRole(currentRole);
+                setIsAuthenticated(true);
+              } else {
+                await setStoredToken(null);
+                await setStoredRole(null);
+                setIsAuthenticated(false);
+                router.replace('/');
+                return;
+              }
+            } catch {
               return;
             }
-          } catch {
-            return;
           }
         }
 
