@@ -14,10 +14,11 @@ export async function GET(req: NextRequest) {
       if (!clientId) {
         return NextResponse.json({ error: "Google Client ID not configured in env" }, { status: 500 });
       }
+      const state = searchParams.get("state") || "web";
       const redirectUri = `${origin}/api/auth/callback/google`;
       const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri
-      )}&response_type=code&scope=openid%20email%20profile`;
+      )}&response_type=code&scope=openid%20email%20profile&state=${state}`;
       return NextResponse.json({ success: true, url });
     }
 

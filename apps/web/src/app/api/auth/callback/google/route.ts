@@ -120,6 +120,11 @@ export async function GET(req: NextRequest) {
     // Sign session token
     const token = signToken({ id: user.id, email: user.email, role: user.role });
 
+    const state = searchParams.get("state");
+    if (state === "mobile") {
+      return NextResponse.redirect(`epitometrc://auth-callback?token=${token}`);
+    }
+
     const response = NextResponse.redirect(new URL("/student/dashboard", req.url));
     response.cookies.set("token", token, {
       httpOnly: true,
