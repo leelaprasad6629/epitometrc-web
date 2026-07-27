@@ -4,9 +4,11 @@ import { BookOpen, User, Sparkles, LogOut } from 'lucide-react-native';
 import { TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { api } from '@/services/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function StudentLayout() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to log out?', [
@@ -32,9 +34,9 @@ export default function StudentLayout() {
           borderTopWidth: 1,
           borderTopColor: '#E2E8F0',
           backgroundColor: '#FFFFFF',
-          height: 62,
-          paddingBottom: 6,
-          paddingTop: 4,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom + 4,
+          paddingTop: 8,
         },
         tabBarIconStyle: {
           marginTop: -2,
