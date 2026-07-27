@@ -32,9 +32,12 @@ export default function EmployeeLayout() {
           borderTopWidth: 1,
           borderTopColor: '#E2E8F0',
           backgroundColor: '#FFFFFF',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 62,
+          paddingBottom: 6,
+          paddingTop: 4,
+        },
+        tabBarIconStyle: {
+          marginTop: -2,
         },
         tabBarLabelStyle: {
           fontSize: 10,
