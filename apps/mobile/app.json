@@ -22,10 +22,8 @@
     "android": {
       "package": "com.epitometrc.app",
       "adaptiveIcon": {
-        "backgroundColor": "#F5F9FF",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -38,9 +36,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F5F9FF",
+          "backgroundColor": "#000000",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 150
         }
       ],
       "expo-secure-store",
