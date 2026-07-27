@@ -45,7 +45,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "eas-build-post-install": "node -e \"const fs = require('fs'); const file = 'android/gradle/wrapper/gradle-wrapper.properties'; if (fs.existsSync(file)) { fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace('gradle-9.3.1-bin.zip', 'gradle-8.8-bin.zip')); console.log('Successfully downgraded Gradle wrapper to 8.8 for EAS Build compatibility!'); } else { console.log('Warning: android folder not found, skipping Gradle downgrade'); }\""
+    "eas-build-post-install": "node -e \"const fs = require('fs'); const file = 'android/gradle/wrapper/gradle-wrapper.properties'; if (fs.existsSync(file)) { fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace('gradle-9.3.1-bin.zip', 'gradle-8.13-bin.zip')); console.log('Successfully downgraded Gradle wrapper to 8.13 for EAS Build compatibility!'); } else { console.log('Warning: android folder not found, skipping Gradle downgrade'); }\""
   },
   "private": true
 }
