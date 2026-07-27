@@ -28,7 +28,10 @@ const TOKEN_KEY = 'auth_token';
 export async function getStoredToken(): Promise<string | null> {
   try {
     if (Platform.OS === 'web') {
-      return localStorage.getItem(TOKEN_KEY);
+      if (typeof window !== 'undefined') {
+        return window.localStorage.getItem(TOKEN_KEY);
+      }
+      return null;
     }
     return await SecureStore.getItemAsync(TOKEN_KEY);
   } catch {
@@ -40,13 +43,17 @@ export async function setStoredToken(token: string | null): Promise<void> {
   try {
     if (token) {
       if (Platform.OS === 'web') {
-        localStorage.setItem(TOKEN_KEY, token);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(TOKEN_KEY, token);
+        }
       } else {
         await SecureStore.setItemAsync(TOKEN_KEY, token);
       }
     } else {
       if (Platform.OS === 'web') {
-        localStorage.removeItem(TOKEN_KEY);
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(TOKEN_KEY);
+        }
       } else {
         await SecureStore.deleteItemAsync(TOKEN_KEY);
       }
@@ -73,38 +80,50 @@ export async function apiFetch(path: string, options: FetchOptions = {}) {
   }
 
   const url = `${API_BASE_URL}${path}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
   const fetchConfig: RequestInit = {
     ...options,
     headers,
+    signal: controller.signal as any,
   };
 
   if (options.bodyData) {
     fetchConfig.body = JSON.stringify(options.bodyData);
   }
 
-  const res = await fetch(url, fetchConfig);
-  const status = res.status;
-  
-  let data: any = {};
   try {
-    data = await res.json();
-  } catch {}
+    const res = await fetch(url, fetchConfig);
+    const status = res.status;
+    
+    let data: any = {};
+    try {
+      data = await res.json();
+    } catch {}
+    
+    clearTimeout(timeoutId);
 
-  // Automatically parse and store JWT token from response body or set-cookie headers
-  const tokenVal = data?.token;
-  if (tokenVal) {
-    await setStoredToken(tokenVal);
-  } else {
-    const setCookie = res.headers.get('set-cookie');
-    if (setCookie) {
-      const match = setCookie.match(/token=([^;]+)/);
-      if (match && match[1]) {
-        await setStoredToken(match[1]);
+    // Automatically parse and store JWT token from response body or set-cookie headers
+    const tokenVal = data?.token;
+    if (tokenVal) {
+      await setStoredToken(tokenVal);
+    } else {
+      const setCookie = res.headers.get('set-cookie');
+      if (setCookie) {
+        const match = setCookie.match(/token=([^;]+)/);
+        if (match && match[1]) {
+          await setStoredToken(match[1]);
+        }
       }
     }
-  }
 
-  return { status, data };
+    return { status, data };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.warn(`[apiFetch] Error for ${path}:`, error);
+    return { status: 500, data: { success: false, error: 'Network request failed or timed out.' } };
+  }
 }
 
 // ==========================================
