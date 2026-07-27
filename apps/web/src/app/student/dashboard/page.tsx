@@ -371,7 +371,7 @@ export default function StudentDashboard() {
               Recent Activity
             </h2>
             <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm divide-y divide-slate-100">
-              {recentActivity.map((act, idx) => (
+              {recentActivity.map((act: any, idx: number) => (
                 <div key={idx} className="flex gap-4 py-3.5 first:pt-0 last:pb-0 items-start">
                   <span className={`h-2.5 w-2.5 rounded-full mt-1.5 shrink-0 ${act.color}`}></span>
                   <div className="space-y-1">
@@ -394,7 +394,7 @@ export default function StudentDashboard() {
             </span>
           }>
             <div className="space-y-3.5 mb-4">
-              {deadlines.map((dl, idx) => (
+              {deadlines.map((dl: any, idx: number) => (
                 <div key={idx} className="flex justify-between items-start gap-4 pb-3 border-b border-slate-50 last:border-0 last:pb-0">
                   <div className="space-y-0.5">
                     <h4 className="text-xs font-bold text-slate-700 leading-snug">{dl.title}</h4>

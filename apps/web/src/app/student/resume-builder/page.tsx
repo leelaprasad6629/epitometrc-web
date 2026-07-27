@@ -38,7 +38,6 @@ export default function AICareerCopilotPage() {
     recommendations,
     certRecommendations,
     projectRecommendations,
-    deleteResume,
     setCareerGoal,
     addResumeVersion,
     rollbackToVersion,

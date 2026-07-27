@@ -113,7 +113,6 @@ export default function StudentProfilePage() {
     verified,
     setVerified,
     confidenceScores,
-    deleteResume,
     setResumeData
   } = useResumeStore();
 
