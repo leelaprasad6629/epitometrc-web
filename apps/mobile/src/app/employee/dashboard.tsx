@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import PortalWebView from '@/components/portal-web-view';
+import { View } from 'react-native';
+import PortalWebView, { DashboardSkeleton } from '@/components/portal-web-view';
 import { api } from '@/services/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function EmployeeDashboard() {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     async function fetchRole() {
@@ -25,8 +27,8 @@ export default function EmployeeDashboard() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F9FF' }}>
-        <ActivityIndicator size="large" color="#F97316" />
+      <View style={{ flex: 1, backgroundColor: '#F5F9FF', paddingTop: insets.top }}>
+        <DashboardSkeleton />
       </View>
     );
   }
