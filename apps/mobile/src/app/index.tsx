@@ -36,7 +36,9 @@ export default function WelcomeScreen() {
       try {
         let hasLaunched = null;
         if (Platform.OS === 'web') {
-          hasLaunched = localStorage.getItem(HAS_LAUNCHED_KEY);
+          if (typeof window !== 'undefined') {
+            hasLaunched = window.localStorage.getItem(HAS_LAUNCHED_KEY);
+          }
         } else {
           hasLaunched = await SecureStore.getItemAsync(HAS_LAUNCHED_KEY);
         }
@@ -56,7 +58,9 @@ export default function WelcomeScreen() {
   const completeOnboarding = async () => {
     try {
       if (Platform.OS === 'web') {
-        localStorage.setItem(HAS_LAUNCHED_KEY, 'true');
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(HAS_LAUNCHED_KEY, 'true');
+        }
       } else {
         await SecureStore.setItemAsync(HAS_LAUNCHED_KEY, 'true');
       }

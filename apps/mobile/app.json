@@ -10,7 +10,8 @@
     "updates": {
       "url": "https://u.expo.dev/fafb2817-d629-428c-b217-e2f710c8d788",
       "enabled": true,
-      "checkAutomatically": "NEVER"
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 4000
     },
     "runtimeVersion": "1.0.0",
     "ios": {

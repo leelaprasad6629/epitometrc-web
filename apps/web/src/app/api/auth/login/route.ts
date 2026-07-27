@@ -24,17 +24,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
     }
 
-    // Domain validation for employees
-    if (user.role === "Employee") {
+    // Domain validation: Employee/Admin and other staff accounts must use @epitometrc.com
+    if (user.role !== "Student") {
       if (!email.toLowerCase().endsWith("@epitometrc.com")) {
-        return NextResponse.json({ error: "Access Denied: Employees must use an official @epitometrc.com email." }, { status: 403 });
-      }
-    }
-
-    // Role-based status whitelist for administrators
-    if (user.role === "Admin") {
-      if (user.status !== "Active") {
-        return NextResponse.json({ error: "Access Denied: Administrator account is not active or whitelisted." }, { status: 403 });
+        return NextResponse.json({ error: "Access Denied: Official staff accounts must use a verified @epitometrc.com email address." }, { status: 403 });
       }
     }
 

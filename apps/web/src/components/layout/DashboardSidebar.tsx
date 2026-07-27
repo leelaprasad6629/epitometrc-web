@@ -29,7 +29,7 @@ type SidebarItem = {
 };
 
 type DashboardSidebarProps = {
-  role: "student" | "employee" | "admin";
+  role: "student" | "employee" | "admin" | "intern";
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
 };
@@ -44,7 +44,7 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
   };
 
   // Navigation configurations grouped by sections
-  const sectionsMap: Record<"student" | "employee" | "admin", SidebarSection[]> = {
+  const sectionsMap: Record<"student" | "employee" | "admin" | "intern", SidebarSection[]> = {
     student: [
       {
         title: "Overview",
@@ -77,6 +77,23 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
           { name: "Recruitment", href: "/employee/recruitment", icon: Briefcase },
           { name: "Students", href: "/employee/students", icon: Users },
           { name: "Trainings", href: "/employee/trainings", icon: BookOpen },
+          { name: "Attendance", href: "/employee/attendance", icon: Calendar },
+        ],
+      },
+      {
+        title: "User Settings",
+        items: [{ name: "Profile", href: "/employee/profile", icon: User }],
+      },
+    ],
+    intern: [
+      {
+        title: "Overview",
+        items: [{ name: "Dashboard", href: "/employee/dashboard", icon: LayoutDashboard }],
+      },
+      {
+        title: "Operations",
+        items: [
+          { name: "Students", href: "/employee/students", icon: Users },
           { name: "Attendance", href: "/employee/attendance", icon: Calendar },
         ],
       },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
 import TopBar from "@/components/layout/TopBar";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,21 @@ import { cn } from "@/lib/utils";
 export default function EmployeeLayout({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [role, setRole] = useState<"employee" | "intern">("employee");
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.user) {
+          const userRole = data.user.role.toLowerCase();
+          if (userRole === "intern") {
+            setRole("intern");
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const toggleMobileMenu = () => {
     setMobileOpen(!mobileOpen);
@@ -18,7 +33,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
       {/* Sidebar - Desktop */}
       <div className="hidden lg:block">
         <DashboardSidebar
-          role="employee"
+          role={role}
           collapsed={sidebarCollapsed}
           setCollapsed={setSidebarCollapsed}
         />
@@ -40,7 +55,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
           onClick={(e) => e.stopPropagation()}
         >
           <DashboardSidebar
-            role="employee"
+            role={role}
             collapsed={false}
             setCollapsed={() => {}}
           />
@@ -54,7 +69,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
           sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
         )}
       >
-        <TopBar role="employee" onMenuToggle={toggleMobileMenu} />
+        <TopBar role={role === "intern" ? "employee" : role} onMenuToggle={toggleMobileMenu} />
         <main className="flex-1 p-4 md:p-6 overflow-y-auto max-w-7xl w-full mx-auto">
           {children}
         </main>

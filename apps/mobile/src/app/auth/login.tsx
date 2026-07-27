@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Lock, Mail, ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { api, setStoredToken } from '@/services/api';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -55,15 +58,45 @@ export default function LoginScreen() {
     setLoading(true);
     setErrorMsg(null);
     try {
-      // Connect to secure Google session and log in default student
-      const { status, data } = await api.auth.login({
-        email: 'alex.t@epitome.com',
-        password: 'Password123',
-      });
-      if (status === 200 && data.success) {
-        router.replace('/student/dashboard');
-      } else {
-        setErrorMsg('Failed to authorize Google account.');
+      // 1. Fetch Google Auth URL from Vercel backend
+      const response = await fetch('https://epitometrc-web.vercel.app/api/auth/oauth/url?provider=google&state=mobile');
+      const payload = await response.json();
+      if (!response.ok || !payload.success || !payload.url) {
+        setErrorMsg('Google Sign-In is currently unavailable.');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Open secure system browser session
+      const result = await WebBrowser.openAuthSessionAsync(
+        payload.url,
+        'epitometrc://auth-callback'
+      );
+
+      // 3. Process redirect result and extract token
+      if (result.type === 'success' && result.url) {
+        const match = result.url.match(/[?&]token=([^&#]+)/);
+        const token = match ? match[1] : null;
+        if (token) {
+          await setStoredToken(token);
+          
+          // Verify profile and redirect
+          const profileRes = await api.auth.me();
+          if (profileRes.status === 200 && profileRes.data.success && profileRes.data.user) {
+            const userRole = profileRes.data.user.role;
+            if (userRole === 'Student') {
+              router.replace('/student/dashboard');
+            } else {
+              setErrorMsg('Access Denied: Google OAuth is restricted to Student accounts.');
+              await setStoredToken(null);
+            }
+          } else {
+            setErrorMsg('Failed to resolve authenticated profile.');
+            await setStoredToken(null);
+          }
+        } else {
+          setErrorMsg('Failed to acquire secure session token.');
+        }
       }
     } catch {
       setErrorMsg('Google authentication network error.');

@@ -1,9 +1,9 @@
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, Alert } from 'react-native';
 import * as Updates from 'expo-updates';
-import { getStoredToken, setStoredToken, api } from '@/services/api';
+import { getStoredToken, setStoredToken, getStoredRole, setStoredRole, api } from '@/services/api';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,6 +13,7 @@ export default function RootLayout() {
   const [role, setRole] = useState<string | null>(null);
   const segments = useSegments();
   const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
 
   // Check for EAS OTA Updates on app launch
   useEffect(() => {
@@ -38,17 +39,31 @@ export default function RootLayout() {
     checkUpdates();
   }, []);
 
-  // Initialize and hide splash screen
+  // Initialize and hide splash screen instantly by using cached credentials
   useEffect(() => {
     async function initApp() {
       try {
         const token = await getStoredToken();
-        if (token) {
-          const { status, data } = await api.auth.me();
-          if (status === 200 && data.success && data.user) {
-            setIsAuthenticated(true);
-            setRole(data.user.role);
-          }
+        const cachedRole = await getStoredRole();
+        
+        if (token && cachedRole) {
+          setIsAuthenticated(true);
+          setRole(cachedRole);
+          
+          // Verify token authenticity in the background, without blocking boot
+          api.auth.me().then(({ status, data }) => {
+            if (status === 200 && data.success && data.user) {
+              setRole(data.user.role);
+              setStoredRole(data.user.role);
+            } else {
+              // Stale or invalid token: clean storage and redirect to login
+              setStoredToken(null);
+              setStoredRole(null);
+              setIsAuthenticated(false);
+              setRole(null);
+              router.replace('/');
+            }
+          }).catch(() => {});
         }
       } catch {
         // Silent catch
@@ -63,6 +78,7 @@ export default function RootLayout() {
   // Handle active navigation protection and redirects
   useEffect(() => {
     if (loading) return;
+    if (!rootNavigationState?.key) return;
 
     const inAuthGroup = segments[0] === 'auth';
     const inStudentGroup = segments[0] === 'student';
@@ -79,20 +95,28 @@ export default function RootLayout() {
       } else {
         let currentRole = role;
         if (!currentRole) {
-          try {
-            const { status, data } = await api.auth.me();
-            if (status === 200 && data.success && data.user) {
-              currentRole = data.user.role;
-              setRole(currentRole);
-              setIsAuthenticated(true);
-            } else {
-              await setStoredToken(null);
-              setIsAuthenticated(false);
-              router.replace('/');
+          // Check cached role first before firing API requests
+          const cachedRole = await getStoredRole();
+          if (cachedRole) {
+            currentRole = cachedRole;
+            setRole(currentRole);
+          } else {
+            try {
+              const { status, data } = await api.auth.me();
+              if (status === 200 && data.success && data.user) {
+                currentRole = data.user.role;
+                setRole(currentRole);
+                setIsAuthenticated(true);
+              } else {
+                await setStoredToken(null);
+                await setStoredRole(null);
+                setIsAuthenticated(false);
+                router.replace('/');
+                return;
+              }
+            } catch {
               return;
             }
-          } catch {
-            return;
           }
         }
 
@@ -108,11 +132,7 @@ export default function RootLayout() {
   }, [segments, loading, role]);
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F9FF' }}>
-        <ActivityIndicator size="large" color="#F97316" />
-      </View>
-    );
+    return null;
   }
 
   return (
