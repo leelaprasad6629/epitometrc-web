@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited } from "@/lib/rateLimit";
+import { signToken } from "@/lib/jwt";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
