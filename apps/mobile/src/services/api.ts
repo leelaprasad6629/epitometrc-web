@@ -1,14 +1,26 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// For Android emulator, localhost resolves to 10.0.2.2
-const DEFAULT_DEV_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
-export const API_BASE_URL = __DEV__ ? 'http://192.168.1.7:3000' : 'https://epitometrc-web.vercel.app';
+// Dynamic development environment URL routing
+const getDevUrl = () => {
+  if (Platform.OS === 'web') {
+    return 'http://localhost:3000';
+  }
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:3000';
+  }
+  return 'http://172.16.8.172:3000';
+};
+
+export const API_BASE_URL = __DEV__ ? getDevUrl() : 'https://epitometrc-web.vercel.app';
 
 const TOKEN_KEY = 'auth_token';
 
 export async function getStoredToken(): Promise<string | null> {
   try {
+    if (Platform.OS === 'web') {
+      return localStorage.getItem(TOKEN_KEY);
+    }
     return await SecureStore.getItemAsync(TOKEN_KEY);
   } catch {
     return null;
@@ -18,9 +30,17 @@ export async function getStoredToken(): Promise<string | null> {
 export async function setStoredToken(token: string | null): Promise<void> {
   try {
     if (token) {
-      await SecureStore.setItemAsync(TOKEN_KEY, token);
+      if (Platform.OS === 'web') {
+        localStorage.setItem(TOKEN_KEY, token);
+      } else {
+        await SecureStore.setItemAsync(TOKEN_KEY, token);
+      }
     } else {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      if (Platform.OS === 'web') {
+        localStorage.removeItem(TOKEN_KEY);
+      } else {
+        await SecureStore.deleteItemAsync(TOKEN_KEY);
+      }
     }
   } catch {}
 }
