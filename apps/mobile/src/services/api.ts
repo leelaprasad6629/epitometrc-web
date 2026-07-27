@@ -114,6 +114,7 @@ export const api = {
   auth: {
     login: (body: any) => apiFetch('/api/auth/login', { method: 'POST', bodyData: body }),
     register: (body: any) => apiFetch('/api/auth/register', { method: 'POST', bodyData: body }),
+    forgotPassword: (email: string) => apiFetch('/api/auth/reset-password', { method: 'POST', bodyData: { email } }),
     logout: () => {
       setStoredToken(null);
       return apiFetch('/api/auth/logout', { method: 'POST' });
