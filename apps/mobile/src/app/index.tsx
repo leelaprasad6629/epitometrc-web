@@ -1,13 +1,151 @@
-import React from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, Image, TouchableOpacity, SafeAreaView, Dimensions, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowRight, Sparkles } from 'lucide-react-native';
+import { ArrowRight, Sparkles, BrainCircuit, Briefcase, GraduationCap } from 'lucide-react-native';
+import * as SecureStore from 'expo-secure-store';
 
 const { width } = Dimensions.get('window');
+const HAS_LAUNCHED_KEY = 'has_launched_onboarding';
+
+const ONBOARDING_DATA = [
+  {
+    title: 'AI Career Copilot',
+    description: 'Get personalized career guidance with our advanced AI assistant to help you navigate your professional journey.',
+    icon: <BrainCircuit size={100} color="#F97316" />,
+  },
+  {
+    title: 'Placement Assistance',
+    description: 'Direct connections with top recruiters and dedicated placement support to land your dream job.',
+    icon: <Briefcase size={100} color="#3B82F6" />,
+  },
+  {
+    title: 'Corporate Training',
+    description: 'Industry-standard training programs designed to upskill and make you enterprise-ready from day one.',
+    icon: <GraduationCap size={100} color="#10B981" />,
+  }
+];
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
 
+  useEffect(() => {
+    async function checkFirstLaunch() {
+      try {
+        let hasLaunched = null;
+        if (Platform.OS === 'web') {
+          hasLaunched = localStorage.getItem(HAS_LAUNCHED_KEY);
+        } else {
+          hasLaunched = await SecureStore.getItemAsync(HAS_LAUNCHED_KEY);
+        }
+
+        if (hasLaunched === 'true') {
+          setIsFirstLaunch(false);
+        } else {
+          setIsFirstLaunch(true);
+        }
+      } catch (error) {
+        setIsFirstLaunch(true);
+      }
+    }
+    checkFirstLaunch();
+  }, []);
+
+  const completeOnboarding = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        localStorage.setItem(HAS_LAUNCHED_KEY, 'true');
+      } else {
+        await SecureStore.setItemAsync(HAS_LAUNCHED_KEY, 'true');
+      }
+      setIsFirstLaunch(false);
+      router.push('/auth/login');
+    } catch (error) {
+      // Proceed even if storage fails
+      setIsFirstLaunch(false);
+      router.push('/auth/login');
+    }
+  };
+
+  const handleScroll = (event: any) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / width);
+    setCurrentIndex(index);
+  };
+
+  const goToNextSlide = () => {
+    if (currentIndex < ONBOARDING_DATA.length - 1) {
+      scrollRef.current?.scrollTo({ x: width * (currentIndex + 1), animated: true });
+    } else {
+      completeOnboarding();
+    }
+  };
+
+  if (isFirstLaunch === null) {
+    return null; // Loading state handled by layout or just empty
+  }
+
+  if (isFirstLaunch) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.skipContainer}>
+          <TouchableOpacity onPress={completeOnboarding}>
+            <Text style={styles.skipText}>Skip</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          style={styles.scrollView}
+        >
+          {ONBOARDING_DATA.map((item, index) => (
+            <View key={index} style={styles.slide}>
+              <View style={styles.iconContainer}>
+                {item.icon}
+              </View>
+              <Text style={styles.slideTitle}>{item.title}</Text>
+              <Text style={styles.slideDescription}>{item.description}</Text>
+            </View>
+          ))}
+        </ScrollView>
+
+        <View style={styles.bottomContainer}>
+          <View style={styles.pagination}>
+            {ONBOARDING_DATA.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  currentIndex === index && styles.activeDot,
+                ]}
+              />
+            ))}
+          </View>
+          
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={goToNextSlide}
+          >
+            <Text style={styles.primaryButtonText}>
+              {currentIndex === ONBOARDING_DATA.length - 1 ? 'Get Started' : 'Next'}
+            </Text>
+            {currentIndex === ONBOARDING_DATA.length - 1 && (
+              <ArrowRight size={16} color="#FFFFFF" />
+            )}
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Regular Welcome Screen (Not first launch)
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -75,6 +213,68 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 40,
   },
+  // Onboarding Styles
+  skipContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    alignItems: 'flex-end',
+    zIndex: 10,
+  },
+  skipText: {
+    color: '#64748B',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  slide: {
+    width,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  iconContainer: {
+    marginBottom: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 200,
+  },
+  slideTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0B172A',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  slideDescription: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  bottomContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    gap: 32,
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#CBD5E1',
+  },
+  activeDot: {
+    width: 24,
+    backgroundColor: '#F97316',
+  },
+  // Common Styles
   logoContainer: {
     alignItems: 'center',
     marginTop: 40,
