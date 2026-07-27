@@ -1,15 +1,24 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-// Dynamic development environment URL routing
+// Dynamic development environment URL routing using Expo debugger host IP
 const getDevUrl = () => {
   if (Platform.OS === 'web') {
     return 'http://localhost:3000';
   }
+  
+  // Automatically extract computer's local IP address from Metro hostUri (e.g. "10.13.248.212:8081")
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    return `http://${ip}:3000`;
+  }
+
   if (Platform.OS === 'android') {
     return 'http://10.0.2.2:3000';
   }
-  return 'http://172.16.8.172:3000';
+  return 'http://localhost:3000';
 };
 
 export const API_BASE_URL = __DEV__ ? getDevUrl() : 'https://epitometrc-web.vercel.app';
