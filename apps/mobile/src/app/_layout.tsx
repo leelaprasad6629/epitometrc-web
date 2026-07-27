@@ -1,4 +1,4 @@
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, Alert } from 'react-native';
@@ -13,6 +13,7 @@ export default function RootLayout() {
   const [role, setRole] = useState<string | null>(null);
   const segments = useSegments();
   const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
 
   // Check for EAS OTA Updates on app launch
   useEffect(() => {
@@ -48,6 +49,8 @@ export default function RootLayout() {
           if (status === 200 && data.success && data.user) {
             setIsAuthenticated(true);
             setRole(data.user.role);
+          } else if (status === 401 || status === 403) {
+            await setStoredToken(null);
           }
         }
       } catch {
@@ -63,6 +66,7 @@ export default function RootLayout() {
   // Handle active navigation protection and redirects
   useEffect(() => {
     if (loading) return;
+    if (!rootNavigationState?.key) return;
 
     const inAuthGroup = segments[0] === 'auth';
     const inStudentGroup = segments[0] === 'student';
@@ -85,10 +89,13 @@ export default function RootLayout() {
               currentRole = data.user.role;
               setRole(currentRole);
               setIsAuthenticated(true);
-            } else {
+            } else if (status === 401 || status === 403) {
               await setStoredToken(null);
               setIsAuthenticated(false);
               router.replace('/');
+              return;
+            } else {
+              // Do not log out on 500 or timeout
               return;
             }
           } catch {
@@ -108,11 +115,7 @@ export default function RootLayout() {
   }, [segments, loading, role]);
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F9FF' }}>
-        <ActivityIndicator size="large" color="#F97316" />
-      </View>
-    );
+    return null;
   }
 
   return (
