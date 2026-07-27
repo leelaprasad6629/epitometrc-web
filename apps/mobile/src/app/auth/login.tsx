@@ -136,6 +136,13 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Forgot Password Link */}
+          <View style={styles.forgotPasswordContainer}>
+            <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Submit */}
           <TouchableOpacity
             style={[styles.loginButton, loading && styles.disabledButton]}
@@ -257,6 +264,16 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     padding: 8,
+  },
+  forgotPasswordContainer: {
+    alignItems: 'flex-end',
+    marginTop: -8,
+    marginBottom: 8,
+  },
+  forgotPasswordText: {
+    fontSize: 13,
+    color: '#F97316',
+    fontWeight: '600',
   },
   loginButton: {
     backgroundColor: '#F97316',
