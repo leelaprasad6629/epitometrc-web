@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       select: { role: true },
     });
 
-    if (!user || (user.role !== "Employee" && user.role !== "Admin" && user.role !== "Employer" && user.role !== "Organization")) {
+    if (!user || (user.role !== "Employee" && user.role !== "Admin" && user.role !== "Employer" && user.role !== "Organization" && user.role !== "Intern")) {
       return NextResponse.json({ error: "Access Forbidden" }, { status: 403 });
     }
 
@@ -125,7 +125,7 @@ export async function PATCH(req: NextRequest) {
       select: { role: true },
     });
 
-    if (!user || (user.role !== "Employee" && user.role !== "Admin" && user.role !== "Employer" && user.role !== "Organization")) {
+    if (!user || (user.role !== "Employee" && user.role !== "Admin" && user.role !== "Employer" && user.role !== "Organization" && user.role !== "Intern")) {
       return NextResponse.json({ error: "Access Forbidden" }, { status: 403 });
     }
 

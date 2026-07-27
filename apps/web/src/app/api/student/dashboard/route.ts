@@ -61,11 +61,49 @@ export async function GET(req: NextRequest) {
     const recruiterNotes = extraProfile.recruiterNotes || [];
     const reviewStatus = extraProfile.reviewStatus || "Pending";
 
+    // Dynamic deadlines based on active course progress
+    const deadlines = enrollments
+      .filter((e) => e.progress < 100)
+      .map((e) => ({
+        title: `${e.course.title} Assignment 0${Math.min(4, Math.floor(e.progress / 25) + 1)}`,
+        due: `Due in ${Math.max(1, 10 - (e.progress % 25))} days`,
+        status: e.progress % 25 > 15 ? "URGENT" : "NORMAL",
+      }));
+
+    // Dynamic recent activity logs based on application status changes and course progress
+    const recentActivity: any[] = [];
+    
+    // Sort applications by date to get recent ones
+    const sortedApps = [...applications].sort((a, b) => b.appliedAt.getTime() - a.appliedAt.getTime());
+    sortedApps.slice(0, 2).forEach((app) => {
+      recentActivity.push({
+        type: "submission",
+        title: "Application Tracked",
+        details: `Your application for ${app.job.title} status changed to ${app.status}.`,
+        time: new Date(app.appliedAt).toLocaleDateString(),
+        color: "bg-orange-500",
+      });
+    });
+
+    // Sort enrollments to show recent progress
+    const activeEnrollments = enrollments.filter(e => e.progress > 0).slice(0, 2);
+    activeEnrollments.forEach((e) => {
+      recentActivity.push({
+        type: "grade",
+        title: "Progress Tracked",
+        details: `Advanced progress in ${e.course.title}: reached ${e.progress}% completion.`,
+        time: "Just now",
+        color: "bg-blue-500",
+      });
+    });
+
     return NextResponse.json({
       success: true,
       userName: user.name || "Student Partner",
       recruiterNotes,
       reviewStatus,
+      deadlines,
+      recentActivity,
       stats: {
         activeCourses: activeCoursesCount,
         pendingAssignments,

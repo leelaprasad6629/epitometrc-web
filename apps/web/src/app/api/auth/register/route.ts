@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Administrator accounts must be pre-authorized and cannot be registered publicly." }, { status: 403 });
     }
 
-    if (userRole === "Employee") {
+    if (userRole !== "Student") {
       if (!email.toLowerCase().endsWith("@epitometrc.com")) {
-        return NextResponse.json({ error: "Employee accounts must use an official @epitometrc.com email address." }, { status: 400 });
+        return NextResponse.json({ error: "Access Denied: Official staff accounts must use a verified @epitometrc.com email address." }, { status: 400 });
       }
     }
 

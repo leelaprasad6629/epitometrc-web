@@ -153,28 +153,9 @@ export default function StudentDashboard() {
       }))
     : [];
 
-  const deadlines = [
-    { title: "Market Research Draft", due: "Due Today, 11:59 PM", status: "URGENT" },
-    { title: "Final Strategy Presentation", due: "Due in 3 days (10 Dec)", status: "NORMAL" },
-    { title: "Internship Application: IT Dev", due: "Due in 5 days (12 Dec)", status: "NORMAL" },
-  ];
+  const deadlines = data?.deadlines || [];
 
-  const recentActivity = [
-    {
-      type: "submission",
-      title: "Assignment Submitted",
-      details: "Advanced Strategy: Case Study 04 submitted for review.",
-      time: "2 hours ago",
-      color: "bg-blue-500",
-    },
-    {
-      type: "grade",
-      title: "Grade Published",
-      details: "You received an 'A' for 'Introduction to Corporate Ethics'.",
-      time: "Yesterday, 4:30 PM",
-      color: "bg-emerald-500",
-    },
-  ];
+  const recentActivity = data?.recentActivity || [];
 
   // Dynamic Priority Items from real profile data
   const priorityItems: PriorityItem[] = [];
