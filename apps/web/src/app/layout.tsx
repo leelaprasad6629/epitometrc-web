@@ -4,6 +4,7 @@ import FloatingAIButton from "@/components/ai/FloatingAIButton";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://epitometrc.com"),
+  manifest: "/site.webmanifest",
   title: {
     default: "EpitomeTRC — Strategic Talent Acquisition, IT Services & Corporate Training",
     template: "%s | EpitomeTRC",
@@ -97,6 +98,12 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-xl focus:bg-orange-500 focus:px-4 focus:py-2.5 focus:text-sm focus:font-bold focus:text-white focus:shadow-md focus:outline-none"
+        >
+          Skip to content
+        </a>
         {children}
         <FloatingAIButton />
       </body>

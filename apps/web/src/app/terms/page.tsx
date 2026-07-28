@@ -1,18 +1,36 @@
-import type { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/common/Container";
+import { Metadata, Viewport } from "next";
+import { generateSEOMetadata, generateBreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Terms of Service | Epitome TRC",
-  description: "Terms and conditions governing the use of the EpitomeTRC platform.",
+export const metadata: Metadata = generateSEOMetadata({
+  title: "Terms of Service",
+  description: "Terms of service and general terms governing the usage of EpitomeTRC's recruitment, training, and strategic consulting platforms.",
+  keywords: ["Terms of Service", "Conditions of Use", "Platform Governance Rules", "Contract Terms"],
+  path: "/terms",
+});
+
+export const viewport: Viewport = {
+  themeColor: "#0b172a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function TermsPage() {
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", item: "/" },
+    { name: "Terms of Service", item: "/terms" },
+  ]);
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <Navbar />
-      <main className="pt-24 pb-16 font-sans bg-slate-50/50">
+      <main id="main-content" className="pt-24 pb-16 font-sans bg-slate-50/50">
         <Container className="max-w-3xl bg-white border border-slate-100 rounded-3xl p-8 md:p-12 shadow-sm space-y-6">
           <div className="space-y-2 border-b border-slate-100 pb-4">
             <h1 className="font-display text-3xl font-extrabold text-[#0b172a]">Terms of Service</h1>

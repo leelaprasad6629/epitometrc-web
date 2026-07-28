@@ -1,26 +1,37 @@
-"use client";
+import HomeClient from "./HomeClient";
+import { Metadata, Viewport } from "next";
+import { generateSEOMetadata, generateOrganizationSchema, generateWebSiteSchema } from "@/lib/seo";
 
-import { useState } from "react";
-import Navbar from "@/components/layout/Navbar";
-import Hero from "@/components/home/Hero";
-import WalkthroughDemo from "@/components/home/WalkthroughDemo";
-import About from "@/components/home/About";
-import Services from "@/components/home/Services";
-import Courses from "@/components/home/Courses";
-import Footer from "@/components/layout/Footer";
+export const metadata: Metadata = generateSEOMetadata({
+  title: "Strategic Talent Acquisition, IT Services & Corporate Training",
+  description: "EpitomeTRC connects enterprise leaders with top talent, custom IT development, strategic business consulting, and industry-aligned corporate training cohorts.",
+  keywords: ["Recruitment", "Staffing", "IT Services", "Software Development", "Corporate Training", "Business Consulting"],
+  path: "/",
+});
+
+export const viewport: Viewport = {
+  themeColor: "#0f172a",
+  width: "device-width",
+  initialScale: 1,
+};
 
 export default function Home() {
-  const [persona, setPersona] = useState<"student" | "corporate">("student");
+  const orgSchema = generateOrganizationSchema();
+  const siteSchema = generateWebSiteSchema();
 
   return (
     <>
-      <Navbar />
-      <Hero persona={persona} setPersona={setPersona} />
-      <WalkthroughDemo />
-      <About persona={persona} />
-      <Services persona={persona} />
-      <Courses persona={persona} />
-      <Footer />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteSchema) }}
+      />
+      <main id="main-content">
+        <HomeClient />
+      </main>
     </>
   );
 }

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ConsultingHero from "@/components/consulting/ConsultingHero";
@@ -8,18 +7,48 @@ import ConsultingProcess from "@/components/consulting/ConsultingProcess";
 import CTA from "@/components/common/CTA";
 import AIConsultantWidget from "@/components/ai/AIConsultantWidget";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
+import { Metadata, Viewport } from "next";
+import { generateSEOMetadata, generateBreadcrumbSchema, generateServiceSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Business Consulting | Epitome TRC",
-  description:
-    "Strategic advisory for global growth. EpitomeTRC delivers business consulting, process improvement, and M&A support for enterprise leaders.",
+export const metadata: Metadata = generateSEOMetadata({
+  title: "Business Consulting & Strategic Advisory Services",
+  description: "Strategic advisory for global growth. EpitomeTRC delivers business consulting, operational process improvement, and M&A support for enterprise leaders.",
+  keywords: ["Business Consulting", "Strategic Advisory", "Process Improvement", "M&A Support", "Enterprise Leadership Consulting"],
+  path: "/consulting",
+});
+
+export const viewport: Viewport = {
+  themeColor: "#0b172a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function ConsultingPage() {
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", item: "/" },
+    { name: "Services", item: "/services" },
+    { name: "Consulting", item: "/consulting" },
+  ]);
+
+  const serviceSchema = generateServiceSchema({
+    id: "consulting",
+    name: "Business Consulting & Strategic Advisory",
+    description: "Expert business advisory, operations re-engineering, digital strategies, and enterprise consulting.",
+    serviceType: "Strategic Business Consulting & Corporate Advisory",
+  });
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
       <Navbar />
-      <main className="pt-20">
+      <main id="main-content" className="pt-20">
         <Breadcrumbs items={[{ label: "Services", href: "/services" }, { label: "Consulting" }]} />
         <ConsultingHero />
         <ConsultingExpertise />
