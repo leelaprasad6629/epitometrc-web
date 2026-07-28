@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!user || user.status !== "Active") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const profileImage = (user.profile as any)?.profile?.profileImage || null;

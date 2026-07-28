@@ -67,6 +67,12 @@ export async function GET(req: NextRequest) {
     });
 
     if (user) {
+      if (user.status !== "Active") {
+        return NextResponse.redirect(
+          new URL("/login?error=Access+Denied:+Your+account+is+currently+inactive.", req.url)
+        );
+      }
+
       // Role validation: Google OAuth is ONLY allowed for Student accounts
       if (user.role !== "Student") {
         return NextResponse.redirect(

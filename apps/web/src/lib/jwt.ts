@@ -25,3 +25,27 @@ export function getToken(req: NextRequest): string | null {
   }
   return token || null;
 }
+
+export async function getAuthorizedUser(req: NextRequest, allowedRoles?: string[]) {
+  const token = getToken(req);
+  if (!token) return null;
+
+  const payload = verifyToken(token) as { id: string } | null;
+  if (!payload?.id) return null;
+
+  const { prisma } = await import("./prisma");
+  const user = await prisma.user.findUnique({
+    where: { id: payload.id },
+    select: { id: true, email: true, role: true, status: true, name: true }
+  });
+
+  if (!user || user.status !== "Active") {
+    return null;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return null;
+  }
+
+  return user;
+}

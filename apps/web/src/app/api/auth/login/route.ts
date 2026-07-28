@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
     }
 
+    if (user.status !== "Active") {
+      return NextResponse.json({ error: "Access Denied: Your account is currently inactive. Please contact an administrator." }, { status: 403 });
+    }
+
     // Domain validation: Employee/Admin and other staff accounts must use @epitometrc.com
     if (user.role !== "Student") {
       if (!email.toLowerCase().endsWith("@epitometrc.com")) {
