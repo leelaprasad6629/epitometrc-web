@@ -21,8 +21,7 @@ const desktopNavItems: DesktopNavItem[] = [
     name: "Services",
     href: "/services",
     children: [
-      { name: "Recruitment", href: "/recruitment" },
-      { name: "Staffing", href: "/services#staffing" },
+      { name: "Recruitment & Staffing", href: "/recruitment" },
       { name: "Consulting", href: "/consulting" },
       { name: "Corporate Training", href: "/training" },
       { name: "Technology Solutions", href: "/it-services" },
@@ -61,8 +60,7 @@ const mobileNavItems = [
     name: "Services",
     href: "/services",
     children: [
-      { name: "Recruitment", href: "/recruitment" },
-      { name: "Staffing", href: "/services#staffing" },
+      { name: "Recruitment & Staffing", href: "/recruitment" },
       { name: "Consulting", href: "/consulting" },
       { name: "Corporate Training", href: "/training" },
       { name: "Technology Solutions", href: "/it-services" },
