@@ -14,6 +14,7 @@ import Button from "@/components/common/Button";
 import { useResumeStore, CareerGoal, ResumeVersion } from "@/lib/ai/store/resumeStore";
 import { Input } from "@/components/ui/input";
 import ResumeMediaManager from "@/components/ResumeMediaManager";
+import AIAvatarInterviewer from "@/components/ai/AIAvatarInterviewer";
 
 type TabId = "dashboard" | "resume" | "learning" | "interview" | "career" | "jobs";
 
@@ -1991,36 +1992,30 @@ export default function AICareerCopilotPage() {
                       {/* Left Avatar & Video panel */}
                       <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-2xl flex flex-col items-center justify-between gap-4 text-center min-h-[360px] shadow-xs">
                         
-                        {/* Live Video Feed Container */}
-                        <div className="w-full bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden relative h-52 flex items-center justify-center shadow-inner">
-                          {mockStream ? (
-                            <video 
-                              ref={mockVideoRef}
-                              autoPlay 
-                              playsInline 
-                              muted 
-                              className="w-full h-full object-cover transform -scale-x-100" 
-                            />
-                          ) : (
-                            <div className="flex flex-col items-center gap-1.5 text-slate-500 text-xs font-mono">
-                              <VideoOff className="h-6 w-6 text-slate-650 animate-pulse" />
-                              <span>Camera Stream Offline</span>
-                            </div>
-                          )}
+                        {/* Main AI Interviewer Avatar Container with User Video PIP */}
+                        <div className="w-full relative rounded-3xl overflow-hidden bg-slate-950 shadow-inner">
+                          <AIAvatarInterviewer isSpeaking={mockSpeakActive} />
                           
-                          {/* Interactive floating AI Interviewer mini-panel PIP */}
-                          <div className="absolute bottom-2.5 right-2.5 h-14 w-14 rounded-xl bg-white border border-slate-200 flex flex-col items-center justify-center shadow-md overflow-hidden z-20">
-                            <div className={`h-8 w-8 rounded-full bg-violet-50 flex items-center justify-center border transition-all duration-300 ${
-                              mockSpeakActive 
-                                ? "border-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.35)] scale-105" 
-                                : "border-slate-205"
-                            }`}>
-                              <Sparkles className={`h-4.5 w-4.5 text-violet-505 text-violet-500 ${mockSpeakActive ? "animate-spin" : ""}`} />
-                            </div>
+                          {/* Floating User Video Feed PIP */}
+                          <div className="absolute bottom-3 left-3 h-20 w-24 rounded-xl border border-slate-800 bg-slate-900 overflow-hidden shadow-md z-30">
+                            {mockStream ? (
+                              <video 
+                                ref={mockVideoRef}
+                                autoPlay 
+                                playsInline 
+                                muted 
+                                className="w-full h-full object-cover transform -scale-x-100" 
+                              />
+                            ) : (
+                              <div className="flex flex-col items-center justify-center h-full gap-1 text-slate-500 text-[8px] font-mono">
+                                <VideoOff className="h-4 w-4 text-slate-700" />
+                                <span>Cam Off</span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Status tag */}
-                          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[8.5px] font-black text-slate-200 font-mono tracking-wider">
+                          <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-xl text-[8.5px] font-black text-slate-200 font-mono tracking-wider z-30 border border-white/10">
                             <div className={`h-1.5 w-1.5 rounded-full ${mockStream ? "bg-red-500 animate-ping" : "bg-slate-400"}`} />
                             {mockStream ? "REC LIVE" : "STBY"}
                           </div>
