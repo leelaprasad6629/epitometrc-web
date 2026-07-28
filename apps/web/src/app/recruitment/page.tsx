@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Briefcase, CheckCircle2, UserCheck, ShieldCheck, ArrowRight } from "lucide-react";
+import { UserCheck } from "lucide-react";
 import Image from "next/image";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -14,21 +13,21 @@ export default function RecruitmentPage() {
     <>
       <Navbar />
       <main className="pt-20 font-sans bg-slate-50/50">
-        <Breadcrumbs items={[{ label: "Services", href: "/services" }, { label: "Recruitment" }]} />
+        <Breadcrumbs items={[{ label: "Services", href: "/services" }, { label: "Recruitment & Staffing" }]} />
         {/* Hero Section */}
         <section className="bg-[#0b172a] text-white py-20 relative overflow-hidden">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30"></div>
           <Container className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <span className="rounded bg-slate-900 border border-slate-800 px-3 py-1 text-xs font-bold text-orange-500 uppercase tracking-wider">
-                Recruitment Services
+                Recruitment & Staffing Solutions
               </span>
               <h1 className="font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
                 Bridging Talent with <br />
                 <span className="text-orange-500">Opportunity.</span>
               </h1>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                We identify, vet, and place the world's best tech professionals into industry-leading roles. Precision talent matchmaking for fast-scaling teams.
+                We identify, vet, and place the world&apos;s best tech professionals into industry-leading roles. Precision talent matchmaking for fast-scaling teams.
               </p>
               <div className="flex gap-3 pt-2">
                 <Button href="/contact" variant="primary" className="h-11 rounded-xl px-6 font-bold shadow-md shadow-orange-500/10">

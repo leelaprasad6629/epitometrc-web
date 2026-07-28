@@ -15,8 +15,7 @@ export const mainNavItems: NavItemWithDropdown[] = [
     name: "Services",
     href: "/services",
     children: [
-      { name: "Recruitment", href: "/recruitment" },
-      { name: "Staffing", href: "/services#staffing" },
+      { name: "Recruitment & Staffing", href: "/recruitment" },
       { name: "Consulting", href: "/consulting" },
       { name: "Corporate Training", href: "/training" },
       { name: "Technology Solutions", href: "/it-services" },
@@ -53,7 +52,7 @@ export const mainNavItems: NavItemWithDropdown[] = [
 
 export const footerServicesLinks: NavLink[] = [
   { name: "Business Consulting", href: "/consulting" },
-  { name: "Recruitment", href: "/recruitment" },
+  { name: "Recruitment & Staffing", href: "/recruitment" },
   { name: "IT Services", href: "/it-services" },
   { name: "Training & Internships", href: "/training" },
   { name: "College Collaboration", href: "/college-collaboration" },
