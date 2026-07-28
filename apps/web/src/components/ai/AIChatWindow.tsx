@@ -19,6 +19,7 @@ import {
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Message } from "@/lib/ai/types";
+import { getClientMetadata } from "@/lib/clientMetadata";
 
 interface AIChatWindowProps {
   onClose: () => void;
@@ -28,6 +29,8 @@ interface AIChatWindowProps {
 
 export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatWindowProps) {
   const pathname = usePathname();
+  const [sessionId] = useState<string>(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -46,6 +49,7 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("Recruitment & Staffing");
+  const [conversationSummary, setConversationSummary] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -73,18 +77,7 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
     setInput("");
     setLoading(true);
 
-    // Auto-detect escalation request
-    const lowerText = textToSend.toLowerCase();
-    if (
-      lowerText.includes("human") ||
-      lowerText.includes("agent") ||
-      lowerText.includes("mentor") ||
-      lowerText.includes("speak with a specialist") ||
-      lowerText.includes("escalate") ||
-      lowerText.includes("contact person")
-    ) {
-      setShowEscalation(true);
-    }
+    const clientMetadata = getClientMetadata();
 
     try {
       const response = await fetch("/api/ai/chat", {
@@ -101,14 +94,26 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
         const text = data.text || "No response generated.";
         setMessages((prev) => [...prev, { role: "assistant", content: text }]);
 
-        // Log active chat session to backend
+        // Pre-fill department recommendation if AI confidence is low or escalation is triggered
+        if (data.shouldEscalate) {
+          setShowEscalation(true);
+          if (data.detectedDepartment) setDepartment(data.detectedDepartment);
+          if (data.conversationSummary) setConversationSummary(data.conversationSummary);
+        }
+
+        // Log session & message to CRM backend
         fetch("/api/ai/chat/log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            sessionId,
             messages: [...updatedMessages, { role: "assistant", content: text }],
             escalated: false,
-            outcome: "Active",
+            confidenceScore: data.confidence,
+            intent: data.intent,
+            assignedDepartment: data.detectedDepartment || department,
+            conversationSummary: data.conversationSummary,
+            clientMetadata,
           }),
         }).catch(() => {});
       } else {
@@ -129,21 +134,23 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
     }
 
     setEscalating(true);
+    const clientMetadata = getClientMetadata();
+
     try {
       const res = await fetch("/api/ai/chat/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          sessionId,
           name,
           email,
           phone,
           messages,
           escalated: true,
-          escalationReason: "User requested specialist escalation from AI Guide",
+          escalationReason: `Intelligent routing to ${department}`,
           assignedDepartment: department,
-          assignedMentor: department.includes("Recruitment") ? "Senior Recruiter" : "Tech Advisory Lead",
-          outcome: "Escalated",
-          status: "Pending",
+          conversationSummary: conversationSummary || `User requested specialist escalation to ${department}`,
+          clientMetadata,
         }),
       });
 
@@ -296,7 +303,7 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <UserCheck className="h-4 w-4 text-orange-600" />
-                <h4 className="font-bold text-slate-900 text-xs">Speak to a Human Specialist</h4>
+                <h4 className="font-bold text-slate-900 text-xs">Connect to Specialist</h4>
               </div>
               <button onClick={() => setShowEscalation(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-3.5 w-3.5" />
@@ -304,7 +311,7 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
             </div>
 
             <p className="text-[11px] text-slate-600 leading-normal">
-              Route your conversation to our advisory team for personalized guidance.
+              Pre-routed to our <strong className="text-slate-900">{department}</strong> team.
             </p>
 
             <form onSubmit={handleEscalationSubmit} className="space-y-2">
@@ -337,10 +344,13 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
                 onChange={(e) => setDepartment(e.target.value)}
                 className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-medium text-slate-700"
               >
-                <option value="Recruitment & Staffing">Recruitment & Staffing Team</option>
-                <option value="IT Development">IT Development Team</option>
-                <option value="Corporate Training">Academics & Training Team</option>
-                <option value="Strategic Advisory">Strategic Consulting Team</option>
+                <option value="Recruitment & Staffing">Recruitment & Staffing</option>
+                <option value="AI Resume Builder Support">AI Resume Builder Support</option>
+                <option value="Career Mentorship">Career Mentorship</option>
+                <option value="Corporate Training">Corporate Training</option>
+                <option value="Technical Support">Technical Support</option>
+                <option value="Sales">Sales</option>
+                <option value="General Enquiries">General Enquiries</option>
               </select>
 
               <button

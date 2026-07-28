@@ -220,3 +220,64 @@ model ChatLog {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
+
+model ChatSession {
+  id                  String   @id @default(uuid())
+  sessionId           String   @unique
+  userId              String?
+  startTime           DateTime @default(now())
+  endTime             DateTime?
+  conversationStatus  String   @default("Active") // Active, Escalated, Resolved, Abandoned
+  resolved            Boolean  @default(false)
+  escalated           Boolean  @default(false)
+  department          String?
+  conversationSummary String?
+  confidenceScore     Float?
+  device              String?
+  browser             String?
+  operatingSystem     String?
+  language            String?
+  referrerUrl         String?
+  currentPage         String?
+  ipAddress           String?  // Hashed IP
+  country             String?
+  state               String?
+  city                String?
+  latitude            Float?
+  longitude           Float?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  messages            ChatMessage[]
+  escalation          ChatEscalation?
+}
+
+model ChatMessage {
+  id           String      @id @default(uuid())
+  sessionId    String
+  sender       String      // "user" | "bot"
+  message      String
+  timestamp    DateTime    @default(now())
+  intent       String?
+  confidence   Float?
+  tokensUsed   Int?
+  responseTime Int?        // milliseconds
+  session      ChatSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+}
+
+model ChatEscalation {
+  id                  String      @id @default(uuid())
+  sessionId           String      @unique
+  userName            String
+  email               String
+  phone               String?
+  assignedDepartment  String
+  routingReason       String?
+  conversationSummary String?
+  status              String      @default("Pending") // Pending, Assigned, Resolved, Closed
+  assignedTo          String?
+  resolutionNotes     String?
+  resolvedAt          DateTime?
+  createdAt           DateTime    @default(now())
+  session             ChatSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+}
