@@ -576,6 +576,9 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         const data = await response.json();
         if (data.success && data.profile) {
           const profile = data.profile;
+          if (profile.profileImage && profile.profileImage.includes("unsplash.com")) {
+            profile.profileImage = null;
+          }
           const confidence = data.confidenceScores || {};
           const atsAnalysis = (profile as any).atsAnalysis || {};
           
@@ -614,11 +617,13 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       if (authRes.ok) {
         const authData = await authRes.json();
         if (authData.success && authData.user) {
+          const rawAuthAvatar = authData.user.profileImage || null;
+          const sanitizedAuthAvatar = (rawAuthAvatar && rawAuthAvatar.includes("unsplash.com")) ? null : rawAuthAvatar;
           const newProfile = {
             ...initialParsedResume,
             fullName: authData.user.name,
             email: authData.user.email,
-            profileImage: authData.user.profileImage || null
+            profileImage: sanitizedAuthAvatar
           };
           set({
             parsedResumeDetails: newProfile,

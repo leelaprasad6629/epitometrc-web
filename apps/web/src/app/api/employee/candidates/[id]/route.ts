@@ -69,6 +69,9 @@ export async function GET(
     }
 
     const extraProfile = (candidate.profile as any)?.profile || {};
+    if (extraProfile.profileImage && extraProfile.profileImage.includes("unsplash.com")) {
+      extraProfile.profileImage = null;
+    }
     const recruiterNotes = extraProfile.recruiterNotes || [];
     const reviewStatus = extraProfile.reviewStatus || "Pending";
 

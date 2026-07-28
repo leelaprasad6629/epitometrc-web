@@ -61,17 +61,21 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
 
   const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBmaWxsPSIjRTJFOEYwIiBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCA0YzEu5MgMCAzLjUgMS41NyAzLjUgMy41UzEzLjkzIDEzIDEyIDEzcy0zLjUtMS41Ny0zLjUtMy41UzEwLjA3IDYgMTIgNnptMCAxNGMtMi4wMyAwLTQuNDMtMS01LjQ2LTIuNThDNy41NiAxNS44NCAxMC4wOSAxNSAxMiAxNXM0LjQ0Ljg0IDUuNDYgMi40MkMxNi40MyAxOSAxNC4wMyAyMCAxMiAyMHoiLz48L3N2Zz4=";
 
+  const normalizedRole = (role || "").toLowerCase();
+  
   // Default avatar per role (fallback if user doesn't have one)
-  const defaultAvatars = {
+  const defaultAvatars: Record<string, string> = {
     student: DEFAULT_AVATAR,
     employee: DEFAULT_AVATAR,
     admin: DEFAULT_AVATAR,
   };
 
+  const defaultAvatar = defaultAvatars[normalizedRole] || DEFAULT_AVATAR;
+
   const [currentUser, setCurrentUser] = useState<any>({
     name: "Loading...",
     email: "",
-    avatar: defaultAvatars[role],
+    avatar: defaultAvatar,
   });
 
   useEffect(() => {
@@ -79,17 +83,19 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
       .then((res) => res.json())
       .then((payload) => {
         if (payload.success && payload.user) {
+          const rawAvatar = payload.user.profileImage || "";
+          const sanitizedAvatar = (rawAvatar && rawAvatar.includes("unsplash.com")) ? defaultAvatar : (rawAvatar || defaultAvatar);
           setCurrentUser({
             name: payload.user.name,
             email: payload.user.email,
-            avatar: payload.user.profileImage || defaultAvatars[role],
+            avatar: sanitizedAvatar,
           });
         }
       })
       .catch(() => {
         // If auth fails, keep default state
       });
-  }, [role]);
+  }, [role, defaultAvatar]);
 
   const handleSignOut = async () => {
     setProfileOpen(false);

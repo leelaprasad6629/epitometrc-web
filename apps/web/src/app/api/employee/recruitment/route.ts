@@ -55,7 +55,8 @@ export async function GET(req: NextRequest) {
         const extraProfile = (app.user.profile as any)?.profile || {};
         const atsAnalysis = extraProfile.atsAnalysis || {};
         const matchScore = atsAnalysis.matchScore ? `${atsAnalysis.matchScore}%` : "Pending Eval";
-        const avatar = extraProfile.profileImage || DEFAULT_AVATAR;
+        const rawAvatar = extraProfile.profileImage || "";
+        const avatar = (rawAvatar && rawAvatar.includes("unsplash.com")) ? DEFAULT_AVATAR : (rawAvatar || DEFAULT_AVATAR);
         
         return {
           id: app.id,

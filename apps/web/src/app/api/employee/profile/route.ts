@@ -35,6 +35,8 @@ export async function GET(req: NextRequest) {
     }
 
     const extraProfile = (user.profile as any)?.profile || {};
+    const rawProfileImage = extraProfile.profileImage || null;
+    const profileImage = (rawProfileImage && rawProfileImage.includes("unsplash.com")) ? null : rawProfileImage;
 
     return NextResponse.json({
       success: true,
@@ -48,7 +50,7 @@ export async function GET(req: NextRequest) {
         availability: extraProfile.availability || "95%",
         availabilityStatus: extraProfile.availabilityStatus || "Fully Active",
         verifiedStatus: extraProfile.verifiedStatus || "Gold Certified Lead",
-        profileImage: extraProfile.profileImage || null,
+        profileImage,
       },
     });
   } catch (error: any) {
@@ -70,7 +72,11 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, phone, specialization, office, availability, availabilityStatus, profileImage } = body;
+    let { name, phone, specialization, office, availability, availabilityStatus, profileImage } = body;
+
+    if (profileImage && profileImage.includes("unsplash.com")) {
+      profileImage = null;
+    }
 
     // Update User details
     await prisma.user.update({

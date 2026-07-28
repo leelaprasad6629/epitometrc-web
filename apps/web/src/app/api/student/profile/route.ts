@@ -24,9 +24,14 @@ export async function GET(req: NextRequest) {
       }
     });
 
+    let profile = profileRecord?.profile as any || null;
+    if (profile && profile.profileImage && profile.profileImage.includes("unsplash.com")) {
+      profile.profileImage = null;
+    }
+
     return NextResponse.json({
       success: true,
-      profile: profileRecord?.profile || null,
+      profile,
       confidenceScores: profileRecord?.confidenceScores || {}
     });
   } catch (err) {
@@ -43,6 +48,10 @@ export async function POST(req: NextRequest) {
     }
 
     const { profile, confidenceScores } = await req.json();
+
+    if (profile && profile.profileImage && profile.profileImage.includes("unsplash.com")) {
+      profile.profileImage = null;
+    }
 
     await prisma.userProfile.upsert({
       where: { userId },

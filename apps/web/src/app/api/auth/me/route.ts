@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const profileImage = (user.profile as any)?.profile?.profileImage || null;
+    const rawProfileImage = (user.profile as any)?.profile?.profileImage || null;
+    const profileImage = (rawProfileImage && rawProfileImage.includes("unsplash.com")) ? null : rawProfileImage;
 
     return NextResponse.json({
       success: true,
