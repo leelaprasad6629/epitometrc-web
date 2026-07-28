@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
 import { useResumeStore, CareerGoal, ResumeVersion } from "@/lib/ai/store/resumeStore";
 import { Input } from "@/components/ui/input";
+import ResumeMediaManager from "@/components/ResumeMediaManager";
 
 type TabId = "dashboard" | "resume" | "learning" | "interview" | "career" | "jobs";
 
@@ -37,7 +38,6 @@ export default function AICareerCopilotPage() {
     recommendations,
     certRecommendations,
     projectRecommendations,
-    deleteResume,
     setCareerGoal,
     addResumeVersion,
     rollbackToVersion,
@@ -1082,7 +1082,6 @@ export default function AICareerCopilotPage() {
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => {
-                  deleteResume();
                   setSetupStep("upload");
                 }}
                 className="h-9 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 bg-white text-slate-600 hover:text-slate-800 font-bold text-xs transition-all flex items-center gap-1.5 shadow-xs"
@@ -1274,6 +1273,9 @@ export default function AICareerCopilotPage() {
             {activeTab === "resume" && (
               <div className="space-y-6">
                 
+                {/* Media Manager for Document and Video Resumes */}
+                <ResumeMediaManager />
+                
                 {/* 1. Header controls */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-200">
                   <div className="text-left space-y-0.5">
@@ -1310,13 +1312,33 @@ export default function AICareerCopilotPage() {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center bg-slate-50 p-3 border border-slate-200 rounded-2xl">
                       <span className="text-xs font-bold text-slate-600 flex items-center gap-1">
-                        <FileCheck className="h-4 w-4 text-green-600" /> Tailored ATS-Compliant Markdown Resume Ready
+                        <FileCheck className="h-4 w-4 text-green-600" /> Tailored ATS-Compliant Resume Ready
                       </span>
-                      <div className="flex gap-2">
-                        <button onClick={copyOptimizedMarkdown} className="h-8 px-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[10px] flex items-center gap-1">
-                          <Copy className="h-3.5 w-3.5" /> Copy Markdown
+                      <div className="flex flex-wrap gap-2">
+                        <button onClick={() => window.print()} className="h-8 px-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold text-[10px] flex items-center gap-1 shadow-2xs">
+                          <FileText className="h-3.5 w-3.5" /> Export PDF
                         </button>
-                        <button onClick={downloadOptimizedMarkdown} className="h-8 px-3 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold text-[10px] flex items-center gap-1">
+                        <button 
+                          onClick={() => {
+                            const resume = parsedResumeDetails;
+                            if (!resume) return;
+                            const content = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${resume.fullName || "Resume"}</title><style>body{font-family:Arial,sans-serif;margin:40px;line-height:1.5;color:#111827;}h1{font-size:22px;text-transform:uppercase;text-align:center;}p{font-size:11px;}.contact{text-align:center;font-size:11px;color:#475569;}h2{font-size:13px;text-transform:uppercase;border-bottom:1.5px solid #0f172a;margin-top:16px;}</style></head><body><h1>${resume.fullName || "Candidate Name"}</h1><div class="contact">${[resume.email, resume.phone, resume.location, resume.linkedin].filter(Boolean).join(" | ")}</div><h2>Professional Summary</h2><p>${resume.bio || ""}</p><h2>Technical Skills</h2><p>${(resume.technicalSkills || []).join(", ")}</p><h2>Experience</h2>${(resume.experience || []).map(e => `<p><strong>${e.role}</strong> - ${e.companyName} (${e.startDate} - ${e.endDate})<br/>${e.responsibilities}</p>`).join("")}<h2>Education</h2>${(resume.education || []).map(e => `<p><strong>${e.degree} in ${e.branch}</strong> - ${e.institution} (${e.endYear})</p>`).join("")}</body></html>`;
+                            const blob = new Blob(['\ufeff' + content], { type: 'application/msword' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${(resume.fullName || "Resume").replace(/\s+/g, "_")}_ATS.doc`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                          }} 
+                          className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] flex items-center gap-1 shadow-2xs"
+                        >
+                          <Download className="h-3.5 w-3.5" /> Export DOCX
+                        </button>
+                        <button onClick={copyOptimizedMarkdown} className="h-8 px-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[10px] flex items-center gap-1">
+                          <Copy className="h-3.5 w-3.5" /> Copy Text
+                        </button>
+                        <button onClick={downloadOptimizedMarkdown} className="h-8 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-[10px] flex items-center gap-1">
                           <Download className="h-3.5 w-3.5" /> Download .md
                         </button>
                       </div>

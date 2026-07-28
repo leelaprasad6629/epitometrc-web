@@ -22,12 +22,14 @@ model User {
 }
 
 model UserProfile {
-  id               String  @id @default(uuid())
-  userId           String  @unique
+  id               String   @id @default(uuid())
+  userId           String   @unique
   profile          Json?
   confidenceScores Json?
+  resumeFile       Json?
+  videoResumeFile  Json?
   updatedAt        DateTime @updatedAt
-  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Course {
@@ -196,4 +198,25 @@ model CohortMaterial {
   type      String   // "PDF", "Video", "Link", etc.
   url       String   // Document download URL
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model ChatLog {
+  id                 String   @id @default(uuid())
+  userId             String?
+  name               String?
+  email              String?
+  phone              String?
+  messages           Json
+  escalated          Boolean  @default(false)
+  escalationReason   String?
+  assignedDepartment String?
+  assignedMentor     String?
+  browser            String?
+  device             String?
+  os                 String?
+  ipAddress          String?
+  outcome            String   @default("Active")
+  status             String   @default("Pending")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }

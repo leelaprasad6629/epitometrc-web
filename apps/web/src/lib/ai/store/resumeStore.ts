@@ -564,30 +564,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   },
 
   deleteResume: () => {
-    syncProfileToClientStorage(null, {});
-    set({
-      fileName: null,
-      fileBase64: null,
-      fileMimeType: null,
-      parsedResumeDetails: null,
-      verified: false,
-      uploadTimestamp: null,
-      confidenceScores: {},
-      atsScore: 0,
-      matchScore: 0,
-      skillMatchPercentage: 0,
-      keywordMatchPercentage: 0,
-      experienceMatchPercentage: 0,
-      completeness: 0,
-      matchedSkills: [],
-      missingSkills: [],
-      missingKeywords: [],
-      strengths: [],
-      improvements: [],
-      recommendations: [],
-      certRecommendations: [],
-      projectRecommendations: []
-    });
+    // Disabled profile deletion
   },
 
   loadProfileFromServer: async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Sparkles, CheckCircle2, AlertTriangle, Lightbulb, FileText, Upload, 
   User, Mail, Phone, BookOpen, Briefcase, Trash2, Globe, Award, 
@@ -35,10 +35,10 @@ export default function AIResumeMatchWidget() {
     updateParsedDetails,
     setVerified,
     updateAnalysis,
-    deleteResume,
     loadProfileFromServer
   } = useResumeStore();
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
@@ -211,7 +211,6 @@ export default function AIResumeMatchWidget() {
   };
 
   const handleReset = () => {
-    deleteResume();
     setError("");
   };
 
@@ -720,12 +719,6 @@ export default function AIResumeMatchWidget() {
                 >
                   <CheckCircle2 className="h-4 w-4" /> Save & Populate Profile
                 </button>
-                <button
-                  onClick={handleReset}
-                  className="w-full rounded-2xl border border-slate-200 text-slate-600 font-bold py-3 text-xs hover:bg-slate-50 transition-all text-center"
-                >
-                  Discard Parsed Data
-                </button>
               </div>
             </DashboardCard>
           </div>
@@ -760,7 +753,10 @@ export default function AIResumeMatchWidget() {
                     Configure a target Job Description to dynamically evaluate your resume's keyword, skill, and formatting compatibility metrics.
                   </p>
                 </div>
-                <button onClick={handleReset} className="text-[10px] font-bold text-red-500 hover:underline">Change Resume</button>
+                <button onClick={() => fileInputRef.current?.click()} className="text-[10px] font-bold text-orange-600 hover:underline flex items-center gap-1">
+                  <Upload className="h-3 w-3" /> Update Resume File
+                  <input type="file" ref={fileInputRef} accept=".pdf,.doc,.docx,.txt" onChange={handleResumeUpload} className="hidden" />
+                </button>
               </div>
 
               {error && (

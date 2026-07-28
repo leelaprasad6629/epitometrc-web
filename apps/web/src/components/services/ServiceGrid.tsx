@@ -24,9 +24,9 @@ const services = [
   },
   {
     id: "recruitment",
-    title: "Recruitment",
+    title: "Recruitment & Staffing Solutions",
     description:
-      "End-to-end talent acquisition solutions connecting elite professionals with organizations that value excellence and innovation.",
+      "Comprehensive end-to-end talent acquisition, candidate placement, and corporate executive staffing solutions connecting top industry talent with global organizations.",
     image: "/images/executive_trust.jpg",
     href: "/recruitment",
     icon: Briefcase,

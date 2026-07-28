@@ -192,6 +192,10 @@ export const api = {
     updateProgress: (courseId: string, progress: number) => apiFetch('/api/courses', { method: 'PATCH', bodyData: { courseId, progress } }),
     certificates: () => apiFetch('/api/student/certificates', { method: 'GET' }),
     requestReview: () => apiFetch('/api/student/dashboard', { method: 'POST' }),
+    getResume: () => apiFetch('/api/student/resume', { method: 'GET' }),
+    uploadResume: (formData: any) => apiFetch('/api/student/resume', { method: 'POST', body: formData }),
+    getVideoResume: () => apiFetch('/api/student/video-resume', { method: 'GET' }),
+    uploadVideoResume: (formData: any) => apiFetch('/api/student/video-resume', { method: 'POST', body: formData }),
   },
   employee: {
     dashboard: () => apiFetch('/api/employee/dashboard', { method: 'GET' }),

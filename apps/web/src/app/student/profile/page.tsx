@@ -18,6 +18,7 @@ import {
 } from "@/lib/ai/store/resumeStore";
 import AIResumeMatchWidget from "@/components/ai/AIResumeMatchWidget";
 import DashboardCard from "@/components/dashboard/DashboardCard";
+import ResumeMediaManager from "@/components/ResumeMediaManager";
 
 const SKILLS_DICTIONARY = [
   "Frontend Development", "Frontend Architecture", "React", "React Native", "Redux", "TypeScript", "JavaScript",
@@ -112,7 +113,6 @@ export default function StudentProfilePage() {
     verified,
     setVerified,
     confidenceScores,
-    deleteResume,
     setResumeData
   } = useResumeStore();
 
@@ -289,14 +289,6 @@ export default function StudentProfilePage() {
     } catch (err: any) {
       alert("Upload error: " + err.message);
       setUploading(false);
-    }
-  };
-
-  const handleDeleteResume = () => {
-    if (confirm("Are you sure you want to delete your resume details and reset your profile?")) {
-      deleteResume();
-      setSuccessMsg("Resume details deleted.");
-      setTimeout(() => setSuccessMsg(""), 3000);
     }
   };
 
@@ -616,21 +608,13 @@ export default function StudentProfilePage() {
 
           <div className="flex flex-wrap items-center gap-2 shrink-0 self-end md:self-center w-full md:w-auto justify-end">
             {verified && (
-              <>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-655 font-bold transition-all shadow-xs"
-                >
-                  <Upload className="h-3.5 w-3.5" /> Re-upload Resume
-                  <input type="file" ref={fileInputRef} accept=".pdf,.docx,.doc,.txt" onChange={handleReuploadResume} className="hidden" />
-                </button>
-                <button
-                  onClick={handleDeleteResume}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-rose-250 bg-rose-50 text-rose-600 font-bold hover:bg-rose-100 transition-all shadow-xs"
-                >
-                  <Trash2 className="h-3.5 w-3.5" /> Delete Profile
-                </button>
-              </>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-655 font-bold transition-all shadow-xs"
+              >
+                <Upload className="h-3.5 w-3.5" /> Re-upload Resume
+                <input type="file" ref={fileInputRef} accept=".pdf,.docx,.doc,.txt" onChange={handleReuploadResume} className="hidden" />
+              </button>
             )}
 
             {isEditing ? (
@@ -673,12 +657,16 @@ export default function StudentProfilePage() {
         {/* 2. Resume-First Mode Splits */}
         {!verified ? (
           /* Resume Upload Focused workspace initially */
-          <div className="max-w-3xl mx-auto py-8">
+          <div className="max-w-3xl mx-auto py-8 space-y-6">
             <AIResumeMatchWidget />
+            <ResumeMediaManager />
           </div>
         ) : (
           /* Dynamic AI workspace showing only non-empty parsed sections in a FULL-WIDTH visual layout stack */
           <div className="space-y-6 w-full">
+            
+            {/* Resume & Video Resume Media Upload Section */}
+            <ResumeMediaManager />
             
             {/* Profile Health Completeness Gauge (Summary on top) */}
             <DashboardCard glowColor="indigo" className="text-left flex items-center justify-between gap-4 w-full">

@@ -23,5 +23,5 @@ export function getToken(req: NextRequest): string | null {
       token = authHeader.substring(7);
     }
   }
-  return token;
+  return token || null;
 }

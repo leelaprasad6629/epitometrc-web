@@ -10,10 +10,13 @@ import {
   RotateCcw,
   Copy,
   Check,
-  CornerDownLeft,
   Navigation,
+  Headphones,
+  UserCheck,
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Message } from "@/lib/ai/types";
 
@@ -35,38 +38,60 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
+  // Intelligent Escalation States
+  const [showEscalation, setShowEscalation] = useState(false);
+  const [escalating, setEscalating] = useState(false);
+  const [escalationSubmitted, setEscalationSubmitted] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [department, setDepartment] = useState("Recruitment & Staffing");
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedQuestions = [
     "What IT development services do you offer?",
     "Tell me about corporate training cohorts",
     "How does strategic recruitment work?",
-    "What are the office hours?",
+    "Speak with a specialist mentor",
   ];
 
-  // Auto-scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, loading]);
+  }, [messages, loading, showEscalation]);
 
   const handleSend = async (textToSend: string) => {
     if (!textToSend.trim() || loading) return;
 
     const userMessage: Message = { role: "user", content: textToSend };
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setLoading(true);
+
+    // Auto-detect escalation request
+    const lowerText = textToSend.toLowerCase();
+    if (
+      lowerText.includes("human") ||
+      lowerText.includes("agent") ||
+      lowerText.includes("mentor") ||
+      lowerText.includes("speak with a specialist") ||
+      lowerText.includes("escalate") ||
+      lowerText.includes("contact person")
+    ) {
+      setShowEscalation(true);
+    }
 
     try {
       const response = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...messages, userMessage],
+          messages: updatedMessages,
           context: { pathname },
         }),
       });
@@ -74,28 +99,18 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
       const data = await response.json();
       if (response.ok && data.success) {
         const text = data.text || "No response generated.";
-        
-        // Add an empty assistant message first
-        setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-        
-        // Simulate streaming typing effect word-by-word
-        const words = text.split(" ");
-        let currentText = "";
-        let wordIndex = 0;
-        
-        const interval = setInterval(() => {
-          if (wordIndex < words.length) {
-            currentText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-            setMessages((prev) => {
-              const updated = [...prev];
-              updated[updated.length - 1] = { role: "assistant", content: currentText };
-              return updated;
-            });
-            wordIndex++;
-          } else {
-            clearInterval(interval);
-          }
-        }, 20); // 20ms delay per word for a fast typing effect
+        setMessages((prev) => [...prev, { role: "assistant", content: text }]);
+
+        // Log active chat session to backend
+        fetch("/api/ai/chat/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [...updatedMessages, { role: "assistant", content: text }],
+            escalated: false,
+            outcome: "Active",
+          }),
+        }).catch(() => {});
       } else {
         showToast(data.error || "Failed to query AI assistant.");
       }
@@ -103,6 +118,53 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
       showToast("AI service is temporarily unavailable. Failed to reach server node.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEscalationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !name.trim()) {
+      showToast("Please provide your Name and Email.");
+      return;
+    }
+
+    setEscalating(true);
+    try {
+      const res = await fetch("/api/ai/chat/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          messages,
+          escalated: true,
+          escalationReason: "User requested specialist escalation from AI Guide",
+          assignedDepartment: department,
+          assignedMentor: department.includes("Recruitment") ? "Senior Recruiter" : "Tech Advisory Lead",
+          outcome: "Escalated",
+          status: "Pending",
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEscalationSubmitted(true);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `Thank you, **${name}**! Your request has been routed directly to our **${department}** team. A specialist will reach out to **${email}** shortly.`,
+          },
+        ]);
+        setTimeout(() => setShowEscalation(false), 4000);
+      } else {
+        showToast(data.error || "Failed to submit escalation.");
+      }
+    } catch {
+      showToast("Network error submitting escalation.");
+    } finally {
+      setEscalating(false);
     }
   };
 
@@ -119,6 +181,8 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
         content: `Chat history cleared. Currently inspecting: **${pathname}**. Ask me anything!`,
       },
     ]);
+    setShowEscalation(false);
+    setEscalationSubmitted(false);
   };
 
   return (
@@ -126,41 +190,49 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-45 flex h-[500px] w-[calc(100vw-32px)] sm:w-[380px] flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white/95 shadow-2xl backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-45 flex h-[530px] w-[calc(100vw-32px)] sm:w-[390px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md"
     >
       {/* Header */}
-      <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-orange-500 p-4 text-white">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
-            <Sparkles className="h-4.5 w-4.5 animate-pulse" />
+      <div className="flex items-center justify-between bg-gradient-to-r from-slate-900 via-blue-900 to-orange-600 p-4 text-white">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm shrink-0">
+            <Sparkles className="h-4.5 w-4.5 text-orange-300 animate-pulse" />
           </div>
-          <div>
-            <h3 className="text-sm font-bold font-display leading-tight">EpitomeTRC AI</h3>
-            <div className="flex items-center gap-1 text-[9.5px] font-semibold opacity-90">
-              <Navigation className="h-2.5 w-2.5 animate-pulse text-green-300 fill-green-300" />
-              <span>Active Context: {pathname}</span>
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold font-display leading-tight truncate">EpitomeTRC AI Guide</h3>
+            <div className="flex items-center gap-1 text-[9.5px] font-semibold opacity-90 truncate">
+              <Navigation className="h-2.5 w-2.5 animate-pulse text-green-300 fill-green-300 shrink-0" />
+              <span className="truncate">{pathname}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => setShowEscalation((prev) => !prev)}
+            title="Escalate to Human Specialist"
+            className="rounded-lg p-1.5 hover:bg-white/15 transition-colors text-orange-200 hover:text-white"
+          >
+            <Headphones className="h-4 w-4" />
+          </button>
           <button
             onClick={handleClear}
             title="Clear Chat"
-            className="rounded-lg p-1.5 hover:bg-white/10 transition-colors"
+            className="rounded-lg p-1.5 hover:bg-white/15 transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
           </button>
           <button
             onClick={onMinimize}
             title="Minimize"
-            className="rounded-lg p-1.5 hover:bg-white/10 transition-colors"
+            className="rounded-lg p-1.5 hover:bg-white/15 transition-colors"
           >
             <Minus className="h-4 w-4" />
           </button>
           <button
             onClick={onClose}
             title="Close"
-            className="rounded-lg p-1.5 hover:bg-white/10 transition-colors"
+            className="rounded-lg p-1.5 hover:bg-white/15 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -179,22 +251,22 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
           >
             <div
               className={cn(
-                "rounded-2xl p-3.5 leading-relaxed shadow-sm",
+                "rounded-2xl p-3.5 leading-relaxed shadow-xs",
                 msg.role === "user"
-                  ? "bg-[#0b172a] text-white rounded-br-none"
-                  : "bg-white text-slate-700 border border-slate-100 rounded-bl-none"
+                  ? "bg-slate-900 text-white rounded-br-none"
+                  : "bg-white text-slate-800 border border-slate-200/80 rounded-bl-none"
               )}
             >
               {msg.content}
             </div>
-            {msg.role === "assistant" && (
+            {msg.role === "assistant" && msg.content && (
               <button
                 onClick={() => handleCopy(msg.content, idx)}
                 className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-colors px-1"
               >
                 {copiedId === idx ? (
                   <>
-                    <Check className="h-3 w-3 text-green-500" /> Copied
+                    <Check className="h-3 w-3 text-emerald-500" /> Copied
                   </>
                 ) : (
                   <>
@@ -207,26 +279,95 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
         ))}
 
         {loading && (
-          <div className="flex max-w-[80%] items-center gap-1 bg-white border border-slate-100 rounded-2xl rounded-bl-none p-3 shadow-sm text-slate-400">
+          <div className="flex max-w-[80%] items-center gap-1.5 bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3 shadow-xs text-slate-400">
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]"></span>
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]"></span>
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400"></span>
           </div>
         )}
 
+        {/* Intelligent Escalation Form Card */}
+        {showEscalation && !escalationSubmitted && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-2xl bg-gradient-to-br from-orange-50 to-blue-50 border border-orange-200 shadow-md space-y-3 my-2"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <UserCheck className="h-4 w-4 text-orange-600" />
+                <h4 className="font-bold text-slate-900 text-xs">Speak to a Human Specialist</h4>
+              </div>
+              <button onClick={() => setShowEscalation(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-600 leading-normal">
+              Route your conversation to our advisory team for personalized guidance.
+            </p>
+
+            <form onSubmit={handleEscalationSubmit} className="space-y-2">
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Full Name *"
+                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-medium"
+              />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Work Email *"
+                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-medium"
+              />
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Phone (Optional)"
+                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-medium"
+              />
+
+              <select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-medium text-slate-700"
+              >
+                <option value="Recruitment & Staffing">Recruitment & Staffing Team</option>
+                <option value="IT Development">IT Development Team</option>
+                <option value="Corporate Training">Academics & Training Team</option>
+                <option value="Strategic Advisory">Strategic Consulting Team</option>
+              </select>
+
+              <button
+                type="submit"
+                disabled={escalating}
+                className="w-full py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50 mt-1"
+              >
+                {escalating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                {escalating ? "Connecting..." : "Confirm Escalation Request"}
+              </button>
+            </form>
+          </motion.div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
       {/* Suggested Questions */}
-      {messages.length === 1 && (
-        <div className="px-4 py-2 border-t border-slate-50 space-y-1 bg-white">
+      {messages.length === 1 && !showEscalation && (
+        <div className="px-4 py-2 border-t border-slate-100 space-y-1 bg-white">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Suggested Questions</p>
           <div className="flex flex-wrap gap-1.5">
             {suggestedQuestions.map((q) => (
               <button
                 key={q}
                 onClick={() => handleSend(q)}
-                className="rounded-lg border border-slate-100 bg-slate-50/50 px-2.5 py-1 text-[10.5px] font-semibold text-slate-600 hover:bg-slate-100 hover:border-slate-200 transition-all text-left"
+                className="rounded-lg border border-slate-200 bg-slate-50/60 px-2.5 py-1 text-[10.5px] font-semibold text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all text-left"
               >
                 {q}
               </button>
@@ -241,19 +382,19 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
           e.preventDefault();
           handleSend(input);
         }}
-        className="flex items-center gap-2 border-t border-slate-100 bg-white p-3.5"
+        className="flex items-center gap-2 border-t border-slate-200 bg-white p-3.5"
       >
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask AI guide..."
-          className="flex-1 text-xs border-0 outline-none focus:ring-0 p-1 text-slate-800"
+          placeholder="Ask AI guide or request specialist..."
+          className="flex-1 text-xs border-0 outline-none focus:ring-0 p-1 text-slate-800 font-medium"
         />
         <button
           type="submit"
           disabled={!input.trim() || loading}
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0b172a] text-white hover:bg-orange-500 transition-colors disabled:opacity-50 disabled:hover:bg-[#0b172a]"
+          className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:hover:bg-slate-900"
         >
           <Send className="h-3.5 w-3.5" />
         </button>
