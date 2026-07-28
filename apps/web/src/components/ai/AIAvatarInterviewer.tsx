@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 
@@ -10,25 +10,21 @@ interface AIAvatarInterviewerProps {
 }
 
 export default function AIAvatarInterviewer({ isSpeaking }: AIAvatarInterviewerProps) {
-  const [isBlinking, setIsBlinking] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Blinking loop (natural eyes blink every 3 to 6 seconds)
+  // Dynamic video speed control depending on speaking state
   useEffect(() => {
-    let blinkTimeout: NodeJS.Timeout;
-    
-    const triggerBlink = () => {
-      setIsBlinking(true);
-      setTimeout(() => {
-        setIsBlinking(false);
-      }, 150); // Blink duration 150ms
-
-      const nextDelay = 3000 + Math.random() * 3000;
-      blinkTimeout = setTimeout(triggerBlink, nextDelay);
-    };
-
-    blinkTimeout = setTimeout(triggerBlink, 3000);
-    return () => clearTimeout(blinkTimeout);
-  }, []);
+    if (videoRef.current) {
+      if (isSpeaking) {
+        // Normal speed when speaking
+        videoRef.current.playbackRate = 1.0;
+        videoRef.current.play().catch(() => {});
+      } else {
+        // Slow down slightly to simulate listening/idle posture
+        videoRef.current.playbackRate = 0.65;
+      }
+    }
+  }, [isSpeaking]);
 
   return (
     <div className="flex flex-col items-center gap-4 w-full">
@@ -46,13 +42,13 @@ export default function AIAvatarInterviewer({ isSpeaking }: AIAvatarInterviewerP
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ 
-                opacity: [0.4, 0.7, 0.4],
-                scale: [1, 1.03, 1],
+                opacity: [0.3, 0.6, 0.3],
+                scale: [1, 1.02, 1],
               }}
               exit={{ opacity: 0 }}
               transition={{ 
                 repeat: Infinity,
-                duration: 2,
+                duration: 2.5,
                 ease: "easeInOut"
               }}
               className="absolute inset-0 bg-violet-600/10 rounded-3xl pointer-events-none z-10 blur-xl"
@@ -60,50 +56,16 @@ export default function AIAvatarInterviewer({ isSpeaking }: AIAvatarInterviewerP
           )}
         </AnimatePresence>
 
-        {/* Breathing Base Portrait */}
-        <div 
-          className="absolute inset-0 w-full h-full"
-          style={{
-            backgroundImage: "url('/images/avatar_sophia.jpg')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            animation: isSpeaking ? "speakBob 3.5s ease-in-out infinite" : "idleBob 5s ease-in-out infinite",
-          }}
-        >
-          {/* SVG Overlay for blinking eyes */}
-          <svg 
-            viewBox="0 0 100 100" 
-            className="absolute inset-0 w-full h-full select-none pointer-events-none"
-          >
-            {/* Blinking Left Eyelid */}
-            <AnimatePresence>
-              {isBlinking && (
-                <motion.path
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  d="M 41.5 43.5 Q 44.5 42 47.5 43.5 Q 44.5 45 41.5 43.5"
-                  fill="#df9f84" 
-                  className="blur-[0.2px]"
-                />
-              )}
-            </AnimatePresence>
-
-            {/* Blinking Right Eyelid */}
-            <AnimatePresence>
-              {isBlinking && (
-                <motion.path
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  d="M 52.5 43.5 Q 55.5 42 58.5 43.5 Q 55.5 45 52.5 43.5"
-                  fill="#df9f84"
-                  className="blur-[0.2px]"
-                />
-              )}
-            </AnimatePresence>
-          </svg>
-        </div>
+        {/* Realistic Human Video Loop */}
+        <video 
+          ref={videoRef}
+          src="/videos/interviewer.mp4"
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+        />
 
         {/* HUD Overlay */}
         <div className="absolute top-3 left-3 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[9px] font-black text-slate-200 font-mono tracking-widest border border-slate-800 z-20">
@@ -140,21 +102,6 @@ export default function AIAvatarInterviewer({ isSpeaking }: AIAvatarInterviewerP
           </div>
         )}
       </div>
-
-      {/* Styled animation keyframes */}
-      <style jsx global>{`
-        @keyframes idleBob {
-          0% { transform: scale(1) translateY(0px); }
-          50% { transform: scale(1.008) translateY(-0.8px); }
-          100% { transform: scale(1) translateY(0px); }
-        }
-        @keyframes speakBob {
-          0% { transform: scale(1.005) translateY(0px) rotate(0deg); }
-          25% { transform: scale(1.01) translateY(-0.5px) rotate(0.15deg); }
-          75% { transform: scale(1.005) translateY(0.5px) rotate(-0.15deg); }
-          100% { transform: scale(1.005) translateY(0px) rotate(0deg); }
-        }
-      `}</style>
     </div>
   );
 }
