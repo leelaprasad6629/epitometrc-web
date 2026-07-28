@@ -8,36 +8,79 @@ const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export async function POST(req: NextRequest) {
   try {
-    const { 
-      jobTitle, 
-      companyName, 
-      jobDescription, 
-      bio, 
-      experience, 
-      projects, 
-      skills, 
-      certifications, 
-      education 
-    } = await req.json();
+    const body = await req.json();
+    const {
+      mode, // "optimize-jd" | "improve-section" | "generate-cover-letter" | "generate-full-resume"
+      action, // "Make Technical" | "Add Metrics" | "Rewrite" | "Fix Grammar" | "Shorten" | "Expand"
+      targetRole,
+      companyName,
+      jobDescription,
+      sectionText,
+      bio,
+      experience,
+      projects,
+      skills,
+      certifications,
+      education,
+    } = body;
 
     if (!GROQ_API_KEY) {
-      return NextResponse.json({ success: false, error: "Groq API Key is not configured." }, { status: 500 });
+      // Graceful fallback response when key is unconfigured locally
+      return NextResponse.json({
+        success: true,
+        fallback: true,
+        text: mode === "generate-cover-letter"
+          ? `Dear Hiring Manager at ${companyName || "Target Company"},\n\nI am writing to express my strong interest in the ${targetRole || "Engineering"} position. With a solid foundation in software development and proven technical problem-solving capabilities, I am eager to contribute to your team's success.\n\nThank you for your time and consideration.\n\nSincerely,\nCandidate`
+          : (sectionText ? `Polished: ${sectionText}` : "Professional summary generated based on profile credentials."),
+      });
     }
 
-    // Query local course catalog for semantic matching
-    const localCourses = await prisma.course.findMany({
-      select: { id: true, title: true, description: true, category: true, duration: true }
-    });
+    let systemPrompt = "You are a professional resume writer and ATS optimization specialist.";
+    let userPrompt = "";
 
-    const prompt = `Act as an expert ATS Resume Optimizer & Professional Career Coach. Your goal is to analyze the candidate's current resume sections and provide section-by-section optimizations tailored specifically to the target Job Title, Company, and Job Description.
+    if (mode === "generate-cover-letter") {
+      systemPrompt = "You are an executive career advisor writing a tailored cover letter.";
+      userPrompt = `Write a professional cover letter for the role of "${targetRole || "Software Engineer"}" at "${companyName || "Target Company"}".
+Job Description: "${jobDescription || "Not provided"}"
+Candidate Resume Details:
+- Summary: "${bio || ""}"
+- Key Skills: ${JSON.stringify(skills || [])}
+- Experience: ${JSON.stringify(experience || [])}
 
-Target Job Title: "${jobTitle || "Software Engineer"}"
+Respond STRICTLY with a valid JSON object matching:
+{
+  "coverLetter": "Dear Hiring Manager... (full cover letter body)"
+}`;
+    } else if (mode === "improve-section") {
+      systemPrompt = "You are an elite ATS resume editor optimizing specific text sections.";
+      userPrompt = `Improve the following text for a resume using the action directive: "${action || "Make Technical & Impactful"}".
+Target Role: "${targetRole || "Software Engineer"}"
+Current Text:
+"${sectionText}"
+
+Guidelines:
+- Do NOT invent fake experience or credentials.
+- Use strong action verbs and professional recruiter-friendly tone.
+- If action is "Add Metrics", frame achievements with metrics or percentages where realistic.
+- Respond STRICTLY with a valid JSON object matching:
+{
+  "improvedText": "The improved, recruiter-friendly text here"
+}`;
+    } else {
+      // Default: Full JD / Resume Optimizer
+      const localCourses = await prisma.course.findMany({
+        select: { id: true, title: true, description: true, category: true, duration: true }
+      });
+
+      systemPrompt = "Act as an expert ATS Resume Optimizer & Professional Career Coach.";
+      userPrompt = `Analyze the candidate's current resume sections and provide section-by-section optimizations tailored specifically to the target Job Title, Company, and Job Description.
+
+Target Job Title: "${targetRole || "Software Engineer"}"
 Target Company: "${companyName || "Target Company"}"
-Target Job Description:
-"${jobDescription || "Not provided"}"
+Target Job Description: "${jobDescription || "Not provided"}"
 
 Current Candidate Details:
-- Professional Summary / Bio: "${bio || ""}"
+- Summary / Bio: "${bio || ""}"
 - Work Experience: ${JSON.stringify(experience || [])}
 - Technical Projects: ${JSON.stringify(projects || [])}
 - Current Skills: ${JSON.stringify(skills || [])}
@@ -47,53 +90,44 @@ Current Candidate Details:
 EpitomeTRC Local Courses Catalog:
 ${JSON.stringify(localCourses)}
 
-Instructions:
-1. Generate specific, context-aware optimizations. 
-2. NEVER invent fake credentials, qualifications, degrees, skills, or employment history. Keep optimizations factually grounded.
-3. Classify suggestions strictly into three arrays:
-   - "alreadyAvailable": Suggestions for skills or experiences the user already possesses but are weakly worded. Includes summary improvements, keyword updates, grammar corrections, layout fixes.
-   - "betterPresentation": Bullet-point rewrites for Experience or Projects using the STAR format (Situation, Task, Action, Result) with metrics where possible.
-   - "missingRequirements": Essential skills or certs required in the JD that are NOT present in the candidate's resume. Mapped to local courses or external learning paths.
-4. For every suggestion in "alreadyAvailable" and "betterPresentation", provide an "confidenceScore" (0-100) and a "whyExplanation" (e.g. "Matches 5 required keywords in the Microsoft JD" or "Appears 18 times in preferred qualifications").
-5. For "missingRequirements", map each missing skill to the local courses above. If no local course matches, set recommendedCourseId and recommendedCourseTitle to null and provide an externalLearningPath.
-
-You must respond STRICTLY with a valid JSON object matching the following structure:
+Respond STRICTLY with a valid JSON object matching:
 {
   "alreadyAvailable": [
     {
-      "id": "sug_summary_0",
-      "section": "summary", // "summary", "skills", "certifications", "experience", "projects"
-      "originalText": "current summary text",
-      "suggestedText": "suggested optimized summary text",
-      "explanation": "Why this change is suggested",
+      "id": "sug_0",
+      "section": "summary",
+      "originalText": "current text",
+      "suggestedText": "suggested text",
+      "explanation": "Why this change helps",
       "confidenceScore": 95,
-      "whyExplanation": "Found directly in the core responsibilities section of the JD."
+      "whyExplanation": "Directly matches JD keyword requirements."
     }
   ],
   "betterPresentation": [
     {
       "id": "sug_exp_0",
-      "section": "experience", // "experience", "projects"
-      "index": 0, // index of the experience/project entry in the candidate's details array
-      "originalText": "current responsibilities bullet list",
-      "suggestedText": "suggested optimized responsibilities bullet list in STAR format",
-      "explanation": "Why this rewrite improves presentation",
+      "section": "experience",
+      "index": 0,
+      "originalText": "original bullets",
+      "suggestedText": "STAR format bullets with metrics",
+      "explanation": "Why this improves impact",
       "confidenceScore": 90,
-      "whyExplanation": "Quantifies business results to appeal to Microsoft recruiters."
+      "whyExplanation": "Quantifies performance for tech recruiters."
     }
   ],
   "missingRequirements": [
     {
       "skillName": "DOCKER",
-      "importance": "HIGH", // "HIGH", "MEDIUM", "LOW"
-      "reason": "Docker is listed under preferred qualifications in the JD.",
+      "importance": "HIGH",
+      "reason": "Listed under preferred qualifications in JD.",
       "estimatedTime": "12 hours",
-      "recommendedCourseId": "uuid-here-or-null",
-      "recommendedCourseTitle": "Course Title here or null",
+      "recommendedCourseId": null,
+      "recommendedCourseTitle": null,
       "externalLearningPath": "https://..."
     }
   ]
 }`;
+    }
 
     const url = "https://api.groq.com/openai/v1/chat/completions";
     const groqResponse = await fetch(url, {
@@ -104,10 +138,10 @@ You must respond STRICTLY with a valid JSON object matching the following struct
       },
       body: JSON.stringify({
         model: GROQ_MODEL,
-        response_format: { type: "json_object" }, // Request structured JSON mode
+        response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: "You are a professional resume writer and ATS optimizer." },
-          { role: "user", content: prompt }
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
         ],
         temperature: 0.1,
       })
@@ -126,15 +160,15 @@ You must respond STRICTLY with a valid JSON object matching the following struct
     }
 
     const parsedResult = JSON.parse(generatedText);
-    
     return NextResponse.json({
       success: true,
       result: parsedResult
     });
-  } catch (error: any) {
-    console.error("AI Resume Optimizer API error:", error);
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error("AI Resume Builder API error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to generate tailored resume suggestions: " + error.message },
+      { success: false, error: "Failed to process AI Resume request: " + errorMsg },
       { status: 500 }
     );
   }

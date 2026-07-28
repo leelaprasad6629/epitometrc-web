@@ -61,7 +61,7 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
       {
         title: "Career Tools",
         items: [
-          { name: "AI Career Suite", href: "/student/resume-builder", icon: Sparkles },
+          { name: "AI Resume Builder", href: "/student/resume-builder", icon: Sparkles },
           { name: "Profile", href: "/student/profile", icon: User },
         ],
       },
