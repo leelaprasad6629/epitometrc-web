@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Bell, Search, Menu, LogOut, User, Settings, Check } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { useResumeStore } from "@/lib/ai/store/resumeStore";
 
 type TopBarProps = {
   role: "student" | "employee" | "admin";
@@ -58,11 +59,13 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
       .catch(() => {});
   }, []);
 
+  const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBmaWxsPSIjRTJFOEYwIiBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCA0YzEu5MgMCAzLjUgMS41NyAzLjUgMy41UzEzLjkzIDEzIDEyIDEzcy0zLjUtMS41Ny0zLjUtMy41UzEwLjA3IDYgMTIgNnptMCAxNGMtMi4wMyAwLTQuNDMtMS01LjQ2LTIuNThDNy41NiAxNS44NCAxMC4wOSAxNSAxMiAxNXM0LjQ0Ljg0IDUuNDYgMi40MkMxNi40MyAxOSAxNC4wMyAyMCAxMiAyMHoiLz48L3N2Zz4=";
+
   // Default avatar per role (fallback if user doesn't have one)
   const defaultAvatars = {
-    student: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces",
-    employee: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=faces",
-    admin: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces",
+    student: DEFAULT_AVATAR,
+    employee: DEFAULT_AVATAR,
+    admin: DEFAULT_AVATAR,
   };
 
   const [currentUser, setCurrentUser] = useState<any>({
@@ -93,6 +96,11 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch {}
+    try {
+      useResumeStore.getState().clearProfileState();
+    } catch (err) {
+      console.warn("Failed to clear profile store:", err);
+    }
     router.push("/login");
   };
 

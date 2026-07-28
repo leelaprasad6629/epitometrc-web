@@ -258,12 +258,14 @@ export interface ResumeStore {
   }>) => void;
   deleteResume: () => void;
   loadProfileFromServer: () => Promise<void>;
+  clearProfileState: () => void;
   setCareerGoal: (goal: CareerGoal) => void;
   addResumeVersion: (version: ResumeVersion) => void;
   rollbackToVersion: (versionId: string) => void;
   completeCourseInStore: (courseId: string, skill: string) => void;
   rejectSuggestionInStore: (sugId: string) => void;
   saveInterviewSession: (session: InterviewSession) => void;
+  isLoadingProfile: boolean;
 }
 
 const initialParsedResume: ParsedResume = {
@@ -378,23 +380,12 @@ async function persistProfileToServer(profile: ParsedResume | null, confidenceSc
 function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
   if (typeof window === "undefined") return;
   
-  // Persist to client storage
-  if (!profile) {
-    deleteCookie("student_profile_text");
-    deleteCookie("student_profile_confidence");
-    sessionStorage.removeItem("student_profile_image");
-  } else {
-    if (profile.profileImage) {
-      sessionStorage.setItem("student_profile_image", profile.profileImage);
-    } else {
-      sessionStorage.removeItem("student_profile_image");
-    }
-    const textProfile = { ...profile, profileImage: null };
-    setCookie("student_profile_text", JSON.stringify(textProfile));
-    setCookie("student_profile_confidence", JSON.stringify(confidenceScores));
-  }
+  // Clear any existing legacy cookies & session storage to prevent leakage
+  deleteCookie("student_profile_text");
+  deleteCookie("student_profile_confidence");
+  sessionStorage.removeItem("student_profile_image");
 
-  // Persist to server database async
+  // Persist to server database async as single source of truth
   persistProfileToServer(profile, confidenceScores);
 }
 
@@ -423,6 +414,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   recommendations: [],
   certRecommendations: [],
   projectRecommendations: [],
+  isLoadingProfile: true,
 
   setResumeData: (fileName, fileBase64, fileMimeType, parsedResult, confidenceScores) =>
     set((state) => {
@@ -570,6 +562,13 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   loadProfileFromServer: async () => {
     if (typeof window === "undefined") return;
 
+    set({ 
+      isLoadingProfile: true,
+      parsedResumeDetails: null, // Clear previous state to prevent cross-user leakage/flickering
+      confidenceScores: {},
+      fileName: null
+    });
+
     try {
       // 1. Try to fetch from server database first
       const response = await fetch("/api/student/profile");
@@ -599,38 +598,66 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             improvements: atsAnalysis.improvements || [],
             recommendations: atsAnalysis.recommendations || [],
             certRecommendations: atsAnalysis.certRecommendations || [],
-            projectRecommendations: atsAnalysis.projectRecommendations || []
+            projectRecommendations: atsAnalysis.projectRecommendations || [],
+            isLoadingProfile: false
           });
           return;
         }
       }
     } catch (err) {
-      console.warn("Failed to load profile from server endpoint, falling back to cookies:", err);
+      console.warn("Failed to load profile from server endpoint:", err);
     }
 
+    // 2. Pre-populate details from /api/auth/me if no profile exists in the DB (new user)
     try {
-      // 2. Fall back to local client cookies
-      const textCookie = getCookie("student_profile_text");
-      const confidenceCookie = getCookie("student_profile_confidence");
-      const imageSession = sessionStorage.getItem("student_profile_image");
-
-      if (textCookie) {
-        const textProfile = JSON.parse(textCookie);
-        const confidence = confidenceCookie ? JSON.parse(confidenceCookie) : {};
-        
-        textProfile.profileImage = imageSession || null;
-
-        set({
-          parsedResumeDetails: textProfile,
-          confidenceScores: confidence,
-          fileName: textProfile.fullName ? `${textProfile.fullName.replace(/\s+/g, "_")}_Profile` : null,
-          verified: true,
-          selectedJobRole: textProfile.careerGoal?.targetRole || get().selectedJobRole
-        });
+      const authRes = await fetch("/api/auth/me");
+      if (authRes.ok) {
+        const authData = await authRes.json();
+        if (authData.success && authData.user) {
+          const newProfile = {
+            ...initialParsedResume,
+            fullName: authData.user.name,
+            email: authData.user.email,
+            profileImage: authData.user.profileImage || null
+          };
+          set({
+            parsedResumeDetails: newProfile,
+            isLoadingProfile: false
+          });
+          return;
+        }
       }
     } catch (err) {
-      console.error("Failed to load persistent student profile:", err);
+      console.warn("Failed to load auth details for empty profile:", err);
     }
+
+    set({ parsedResumeDetails: null, isLoadingProfile: false });
+  },
+
+  clearProfileState: () => {
+    set({
+      parsedResumeDetails: null,
+      confidenceScores: {},
+      fileName: null,
+      fileBase64: null,
+      fileMimeType: null,
+      verified: false,
+      uploadTimestamp: null,
+      atsScore: 0,
+      matchScore: 0,
+      skillMatchPercentage: 0,
+      keywordMatchPercentage: 0,
+      experienceMatchPercentage: 0,
+      matchedSkills: [],
+      missingSkills: [],
+      missingKeywords: [],
+      strengths: [],
+      improvements: [],
+      recommendations: [],
+      certRecommendations: [],
+      projectRecommendations: [],
+      isLoadingProfile: false
+    });
   },
 
   setCareerGoal: (goal) => {
