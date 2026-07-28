@@ -89,16 +89,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "resumes");
-    await fs.mkdir(uploadDir, { recursive: true });
+    const { supabase } = await import("@/lib/supabase");
+    
+    // Auto-create resumes bucket if missing
+    try {
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(b => b.name === 'resumes');
+      if (!bucketExists) {
+        await supabase.storage.createBucket('resumes', { public: true });
+      }
+    } catch {
+      // Proceed hoping it exists
+    }
 
     const safeFileName = `${userId}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    const filePath = path.join(uploadDir, safeFileName);
     const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    await fs.writeFile(filePath, fileBuffer);
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('resumes')
+      .upload(safeFileName, fileBuffer, {
+        contentType: file.type || 'application/pdf',
+        cacheControl: '3600',
+        upsert: true,
+      });
 
-    const fileUrl = `/uploads/resumes/${safeFileName}`;
+    if (uploadError) {
+      throw new Error("Supabase upload failed: " + uploadError.message);
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('resumes')
+      .getPublicUrl(safeFileName);
+
+    const fileUrl = urlData.publicUrl;
+
     const resumeMetadata = {
       userId,
       fileName: file.name,

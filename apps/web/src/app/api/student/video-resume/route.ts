@@ -91,16 +91,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "videos");
-    await fs.mkdir(uploadDir, { recursive: true });
+    const { supabase } = await import("@/lib/supabase");
+    
+    // Auto-create videos bucket if missing
+    try {
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(b => b.name === 'videos');
+      if (!bucketExists) {
+        await supabase.storage.createBucket('videos', { public: true });
+      }
+    } catch {
+      // Proceed hoping it exists
+    }
 
     const safeFileName = `${userId}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    const filePath = path.join(uploadDir, safeFileName);
     const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    await fs.writeFile(filePath, fileBuffer);
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('videos')
+      .upload(safeFileName, fileBuffer, {
+        contentType: file.type || 'video/mp4',
+        cacheControl: '3600',
+        upsert: true,
+      });
 
-    const fileUrl = `/uploads/videos/${safeFileName}`;
+    if (uploadError) {
+      throw new Error("Supabase upload failed: " + uploadError.message);
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('videos')
+      .getPublicUrl(safeFileName);
+
+    const fileUrl = urlData.publicUrl;
+
     const videoMetadata = {
       userId,
       fileName: file.name,
