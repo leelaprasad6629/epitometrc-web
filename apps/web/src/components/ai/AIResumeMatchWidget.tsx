@@ -53,9 +53,14 @@ export default function AIResumeMatchWidget() {
   const [selectedJobId, setSelectedJobId] = useState("");
   const [jdMode, setJdMode] = useState<"paste" | "select" | "file">("paste");
 
+  const hasFetchedRef = useRef(false);
+
   // Load profile and platform jobs on mount
   useEffect(() => {
-    loadProfileFromServer();
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      loadProfileFromServer();
+    }
     fetch("/api/jobs")
       .then(res => res.json())
       .then(data => {

@@ -266,6 +266,7 @@ export interface ResumeStore {
   rejectSuggestionInStore: (sugId: string) => void;
   saveInterviewSession: (session: InterviewSession) => void;
   isLoadingProfile: boolean;
+  isFetchingProfile: boolean;
 }
 
 const initialParsedResume: ParsedResume = {
@@ -415,6 +416,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   certRecommendations: [],
   projectRecommendations: [],
   isLoadingProfile: true,
+  isFetchingProfile: false,
 
   setResumeData: (fileName, fileBase64, fileMimeType, parsedResult, confidenceScores) =>
     set((state) => {
@@ -459,7 +461,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
       // Education List
       if (mergedDetails.education?.length > 0) {
-        let total = mergedDetails.education.length * 4;
+        const total = mergedDetails.education.length * 4;
         let filled = 0;
         mergedDetails.education.forEach(e => {
           if (e.degree) filled++;
@@ -474,7 +476,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
       // Experience List
       if (mergedDetails.experience?.length > 0) {
-        let total = mergedDetails.experience.length * 3;
+        const total = mergedDetails.experience.length * 3;
         let filled = 0;
         mergedDetails.experience.forEach(exp => {
           if (exp.companyName) filled++;
@@ -488,7 +490,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
       // Projects List
       if (mergedDetails.projects?.length > 0) {
-        let total = mergedDetails.projects.length * 3;
+        const total = mergedDetails.projects.length * 3;
         let filled = 0;
         mergedDetails.projects.forEach(p => {
           if (p.projectTitle) filled++;
@@ -546,28 +548,45 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         parsedResumeDetails: updatedProfile
       };
 
-      if (updatedProfile) {
-        // Sync to cookies & database async
-        syncProfileToClientStorage(updatedProfile, state.confidenceScores);
-      }
-
       return newState;
     });
   },
 
-  deleteResume: () => {
-    // Disabled profile deletion
-  },
+  deleteResume: () =>
+    set({
+      fileName: null,
+      fileBase64: null,
+      fileMimeType: null,
+      parsedResumeDetails: null,
+      verified: false,
+      uploadTimestamp: null,
+      atsScore: 0,
+      matchScore: 0,
+      skillMatchPercentage: 0,
+      keywordMatchPercentage: 0,
+      experienceMatchPercentage: 0,
+      matchedSkills: [],
+      missingSkills: [],
+      missingKeywords: [],
+      strengths: [],
+      improvements: [],
+      recommendations: [],
+      certRecommendations: [],
+      projectRecommendations: [],
+      isLoadingProfile: false
+    }),
 
   loadProfileFromServer: async () => {
     if (typeof window === "undefined") return;
+    // Guard against concurrent fetching loops
+    if (get().isFetchingProfile) return;
 
-    set({ 
-      isLoadingProfile: true,
-      parsedResumeDetails: null, // Clear previous state to prevent cross-user leakage/flickering
-      confidenceScores: {},
-      fileName: null
-    });
+    set({ isFetchingProfile: true });
+
+    // Only set loading UI if profile isn't populated yet
+    if (!get().parsedResumeDetails) {
+      set({ isLoadingProfile: true });
+    }
 
     try {
       // 1. Try to fetch from server database first
@@ -588,7 +607,6 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             fileName: profile.fullName ? `${profile.fullName.replace(/\s+/g, "_")}_Profile` : null,
             verified: true,
             selectedJobRole: profile.careerGoal?.targetRole || get().selectedJobRole,
-            // Restore matching parameters on reload
             atsScore: atsAnalysis.atsScore || 0,
             matchScore: atsAnalysis.matchScore || 0,
             skillMatchPercentage: atsAnalysis.skillMatchPercentage || 0,
@@ -602,7 +620,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             recommendations: atsAnalysis.recommendations || [],
             certRecommendations: atsAnalysis.certRecommendations || [],
             projectRecommendations: atsAnalysis.projectRecommendations || [],
-            isLoadingProfile: false
+            isLoadingProfile: false,
+            isFetchingProfile: false
           });
           return;
         }
@@ -611,7 +630,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       console.warn("Failed to load profile from server endpoint:", err);
     }
 
-    // 2. Pre-populate details from /api/auth/me if no profile exists in the DB (new user)
+    // 2. Pre-populate details from /api/auth/me if no profile exists in DB
     try {
       const authRes = await fetch("/api/auth/me");
       if (authRes.ok) {
@@ -621,13 +640,14 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
           const sanitizedAuthAvatar = (rawAuthAvatar && rawAuthAvatar.includes("unsplash.com")) ? null : rawAuthAvatar;
           const newProfile = {
             ...initialParsedResume,
-            fullName: authData.user.name,
-            email: authData.user.email,
+            fullName: authData.user.name || "Student User",
+            email: authData.user.email || "",
             profileImage: sanitizedAuthAvatar
           };
           set({
             parsedResumeDetails: newProfile,
-            isLoadingProfile: false
+            isLoadingProfile: false,
+            isFetchingProfile: false
           });
           return;
         }
@@ -636,7 +656,17 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       console.warn("Failed to load auth details for empty profile:", err);
     }
 
-    set({ parsedResumeDetails: null, isLoadingProfile: false });
+    // Fallback: Default profile state so UI renders cleanly
+    const fallbackProfile = get().parsedResumeDetails || {
+      ...initialParsedResume,
+      fullName: "Student User",
+    };
+
+    set({
+      parsedResumeDetails: fallbackProfile,
+      isLoadingProfile: false,
+      isFetchingProfile: false
+    });
   },
 
   clearProfileState: () => {
@@ -661,7 +691,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       recommendations: [],
       certRecommendations: [],
       projectRecommendations: [],
-      isLoadingProfile: false
+      isLoadingProfile: false,
+      isFetchingProfile: false
     });
   },
 

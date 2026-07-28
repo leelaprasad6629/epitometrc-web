@@ -133,8 +133,13 @@ export default function StudentProfilePage() {
     setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
-    loadProfileFromServer();
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      loadProfileFromServer();
+    }
   }, [loadProfileFromServer]);
 
   const [isEditing, setIsEditing] = useState(false);
