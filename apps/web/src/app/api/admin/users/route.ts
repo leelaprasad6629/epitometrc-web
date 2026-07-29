@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
         passwordHash,
         role,
         status: "Active",
-        requirePasswordChange: true,
+        requirePasswordChange: false,
       },
     });
 
