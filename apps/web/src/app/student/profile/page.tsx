@@ -20,6 +20,8 @@ import AIResumeMatchWidget from "@/components/ai/AIResumeMatchWidget";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import ResumeMediaManager from "@/components/ResumeMediaManager";
 
+const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBmaWxsPSIjRTJFOEYwIiBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCA0YzEuOTMgMCAzLjUgMS41NyAzLjUgMy41UzEzLjkzIDEzIDEyIDEzcy0zLjUtMS41Ny0zLjUtMy41UzEwLjA3IDYgMTIgNnptMCAxNGMtMi4wMyAwLTQuNDMtMS01LjQ2LTIuNThDNy41NiAxNS44NCAxMC4wOSAxNSAxMiAxNXM0LjQ0Ljg0IDUuNDYgMi40MkMxNi40MyAxOSAxNC4wMyAyMCAxMiAyMHoiLz48L3N2Zz4=";
+
 const SKILLS_DICTIONARY = [
   "Frontend Development", "Frontend Architecture", "React", "React Native", "Redux", "TypeScript", "JavaScript",
   "HTML5", "CSS3", "Tailwind CSS", "Node.js", "Express.js", "Spring Boot", "Python", "PyTorch", "Django", "FastAPI",
@@ -113,7 +115,8 @@ export default function StudentProfilePage() {
     verified,
     setVerified,
     confidenceScores,
-    setResumeData
+    setResumeData,
+    isLoadingProfile
   } = useResumeStore();
 
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -130,8 +133,13 @@ export default function StudentProfilePage() {
     setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
-    loadProfileFromServer();
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      loadProfileFromServer();
+    }
   }, [loadProfileFromServer]);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -522,7 +530,7 @@ export default function StudentProfilePage() {
   };
 
   // Helpers
-  const activeAvatar = profileImage || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&h=120&fit=crop&crop=faces";
+  const activeAvatar = profileImage || DEFAULT_AVATAR;
   const displayHeadline = headline || "Software Engineering Apprentice";
   const verifiedSkillsList = parsedResumeDetails?.verifiedSkills || [];
   const overallCompleteness = parsedResumeDetails?.overallCompleteness || 0;
@@ -537,6 +545,74 @@ export default function StudentProfilePage() {
   const hasSkills = verifiedSkillsList.length > 0 || (parsedResumeDetails?.technicalSkills && parsedResumeDetails.technicalSkills.length > 0);
   const hasCertsAwards = certificationsList.length > 0 || achievementsList.length > 0;
   const hasAcademicExtra = [publicationsList, workshopsList, hackathonsList, leadershipRolesList, volunteerExperienceList].some(l => l.length > 0);
+
+  if (isLoadingProfile) {
+    return (
+      <div className="relative min-h-screen bg-slate-50/30 overflow-hidden py-8 px-4 sm:px-6 lg:px-8 text-left text-slate-700 font-sans text-xs">
+        <div className="max-w-6xl mx-auto space-y-6 animate-pulse">
+          {/* Header Banner Card Skeleton */}
+          <div className="relative overflow-hidden rounded-3xl border border-slate-100 bg-white p-6 sm:p-8 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex flex-col sm:flex-row gap-5 items-center w-full md:w-auto">
+              <div className="h-24 w-24 rounded-2xl bg-slate-200 shrink-0" />
+              <div className="space-y-3 flex-1 w-full">
+                <div className="h-6 w-48 bg-slate-200 rounded-lg" />
+                <div className="h-4 w-64 bg-slate-200 rounded-lg" />
+              </div>
+            </div>
+            <div className="h-10 w-32 bg-slate-200 rounded-xl self-end md:self-center" />
+          </div>
+
+          {/* Completeness Gauge Skeleton */}
+          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-xs flex justify-between items-center gap-4">
+            <div className="space-y-3 flex-1">
+              <div className="h-4 w-40 bg-slate-200 rounded" />
+              <div className="h-8 w-20 bg-slate-200 rounded" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-4 bg-slate-100 rounded" />
+                ))}
+              </div>
+            </div>
+            <div className="h-16 w-16 rounded-full bg-slate-200 shrink-0" />
+          </div>
+
+          {/* Profile Summary Card Skeleton */}
+          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-xs space-y-3">
+            <div className="h-4 w-48 bg-slate-200 rounded" />
+            <div className="h-16 bg-slate-100 rounded-xl" />
+          </div>
+
+          {/* Grid Layout skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 space-y-6">
+              <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-xs space-y-3">
+                <div className="h-4 w-32 bg-slate-200 rounded" />
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-8 bg-slate-100 rounded-xl" />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="md:col-span-2 space-y-6">
+              <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-xs space-y-3">
+                <div className="h-4 w-32 bg-slate-200 rounded" />
+                <div className="space-y-4">
+                  {[1, 2].map(i => (
+                    <div key={i} className="space-y-2">
+                      <div className="h-5 w-48 bg-slate-200 rounded" />
+                      <div className="h-4 w-full bg-slate-100 rounded" />
+                      <div className="h-4 w-2/3 bg-slate-100 rounded" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-slate-50/30 overflow-hidden py-8 px-4 sm:px-6 lg:px-8 text-left text-slate-700 font-sans text-xs">

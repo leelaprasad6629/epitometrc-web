@@ -1,18 +1,36 @@
-import type { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/common/Container";
+import { Metadata, Viewport } from "next";
+import { generateSEOMetadata, generateBreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy | Epitome TRC",
-  description: "Official privacy policy and data governance practices at EpitomeTRC.",
+export const metadata: Metadata = generateSEOMetadata({
+  title: "Privacy Policy",
+  description: "Official privacy policy, details on personal information processing, and data governance practices at EpitomeTRC.",
+  keywords: ["Privacy Policy", "Data Protection", "GDPR Compliance", "Personal Data Usage"],
+  path: "/privacy",
+});
+
+export const viewport: Viewport = {
+  themeColor: "#0b172a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function PrivacyPage() {
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", item: "/" },
+    { name: "Privacy Policy", item: "/privacy" },
+  ]);
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <Navbar />
-      <main className="pt-24 pb-16 font-sans bg-slate-50/50">
+      <main id="main-content" className="pt-24 pb-16 font-sans bg-slate-50/50">
         <Container className="max-w-3xl bg-white border border-slate-100 rounded-3xl p-8 md:p-12 shadow-sm space-y-6">
           <div className="space-y-2 border-b border-slate-100 pb-4">
             <h1 className="font-display text-3xl font-extrabold text-[#0b172a]">Privacy Policy</h1>

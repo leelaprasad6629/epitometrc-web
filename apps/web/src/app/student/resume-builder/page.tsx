@@ -15,6 +15,7 @@ import { useResumeStore, CareerGoal, ResumeVersion } from "@/lib/ai/store/resume
 import { Input } from "@/components/ui/input";
 import ResumeMediaManager from "@/components/ResumeMediaManager";
 import AIAvatarInterviewer from "@/components/ai/AIAvatarInterviewer";
+import InterviewLayout from "@/components/AvatarInterviewer/InterviewLayout";
 
 type TabId = "dashboard" | "resume" | "learning" | "interview" | "career" | "jobs";
 
@@ -2007,271 +2008,33 @@ export default function AICareerCopilotPage() {
                     )}
                   </div>
                 ) : (
-                  /* Active Live Mock Session */
-                  <div className="space-y-4 bg-white p-6 rounded-3xl overflow-y-auto w-full h-full">
+                  <InterviewLayout
+                    question={mockQuestion}
+                    answer={mockAnswer}
+                    onAnswerChange={setMockAnswer}
+                    questionNumber={mockCount}
+                    isLoading={mockLoading}
+                    errorMsg={mockError}
+                    violationAlert={showViolationAlert}
+                    violationCount={violationCount}
+                    mediaStream={mockStream}
+                    videoRef={mockVideoRef}
+                    isSpeaking={mockSpeakActive}
+                    isListening={mockIsListening}
+                    onToggleListening={toggleMockListening}
+                    onRepeatAudio={() => speakMockText(mockQuestion)}
+                    onSubmitAnswer={submitMockAnswer}
+                    onExit={closeMockSession}
+                    isCodingQuestion={isCodingQuestion}
+                    codeSubmission={codeSubmission}
+                    onCodeChange={setCodeSubmission}
+                    codeLanguage={codeLanguage}
+                    onLanguageChange={setCodeLanguage}
+                    compilerOutput={compilerOutput}
+                    compilerRunning={compilerRunning}
+                    onRunCode={runMockCompiler}
+                  />
 
-                    {/* Integrity Warnings Popup Banner */}
-                    {showViolationAlert && (
-                      <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[10.5px] text-red-700 font-bold flex items-start gap-2 shadow-sm">
-                        <AlertCircle className="h-4.5 w-4.5 shrink-0 text-red-600" />
-                        <div className="space-y-0.5 text-left">
-                          <span>{showViolationAlert}</span>
-                          <span className="block text-[9.5px] font-normal text-slate-500">Leaving full-screen focus triggers security logging. Warning count: {violationCount} of 3.</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                      {/* Left Avatar & Video panel */}
-                      <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-2xl flex flex-col items-center justify-between gap-4 text-center min-h-[360px] shadow-xs">
-                        
-                        {/* Main AI Interviewer Avatar Container with User Video PIP */}
-                        <div className="w-full relative rounded-3xl overflow-hidden bg-slate-950 shadow-inner">
-                          <AIAvatarInterviewer isSpeaking={mockSpeakActive} />
-                          
-                          {/* Floating User Video Feed PIP */}
-                          <div className="absolute bottom-3 left-3 h-20 w-24 rounded-xl border border-slate-800 bg-slate-900 overflow-hidden shadow-md z-30">
-                            {mockStream ? (
-                              <video 
-                                ref={mockVideoRef}
-                                autoPlay 
-                                playsInline 
-                                muted 
-                                className="w-full h-full object-cover transform -scale-x-100" 
-                              />
-                            ) : (
-                              <div className="flex flex-col items-center justify-center h-full gap-1 text-slate-500 text-[8px] font-mono">
-                                <VideoOff className="h-4 w-4 text-slate-700" />
-                                <span>Cam Off</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Status tag */}
-                          <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-xl text-[8.5px] font-black text-slate-200 font-mono tracking-wider z-30 border border-white/10">
-                            <div className={`h-1.5 w-1.5 rounded-full ${mockStream ? "bg-red-500 animate-ping" : "bg-slate-400"}`} />
-                            {mockStream ? "REC LIVE" : "STBY"}
-                          </div>
-                        </div>
-
-                        <div className="w-full space-y-1 text-left px-1">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Interviewer Avatar State</h4>
-                            <span className={`inline-flex px-2 py-0.5 rounded-full text-[8.5px] font-black border ${
-                              mockSpeakActive 
-                                ? "bg-violet-50 border-violet-200 text-violet-650"
-                                : mockIsListening 
-                                  ? "bg-orange-50 border-orange-200 text-orange-650 animate-pulse"
-                                  : "bg-slate-50 border-slate-200 text-slate-500"
-                            }`}>
-                              {mockSpeakActive ? "Speaking..." : mockIsListening ? "Listening..." : "Idle"}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Listening Visualizer wave animation bars */}
-                        {mockIsListening && (
-                          <div className="flex gap-1 justify-center items-end h-8 my-1 w-full">
-                            {[1.5, 3.5, 2, 4.5, 2.5, 3.5, 1.5, 4, 2].map((h, idx) => (
-                              <div 
-                                key={idx} 
-                                className="bg-orange-500 w-1 rounded-full animate-pulse transition-all duration-300"
-                                style={{ 
-                                  height: `${h * 6}px`,
-                                  animationDelay: `${idx * 80}ms` 
-                                }} 
-                              />
-                            ))}
-                          </div>
-                        )}
-
-                        <button 
-                          onClick={closeMockSession}
-                          className="w-full h-8.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 font-bold text-xs"
-                        >
-                          Exit Interview Screen
-                        </button>
-                      </div>
-
-                      {/* Right active QA panel (Coding Editor / Standard split pane) */}
-                      <div className="lg:col-span-3 space-y-4 text-left">
-                        {isCodingQuestion ? (
-                          /* split coding workspace */
-                          <div className="grid grid-cols-1 gap-4">
-                            
-                            {/* Question context */}
-                            <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-1">
-                              <span className="text-[8.5px] font-mono font-black text-violet-600 uppercase tracking-wider block">Coding challenge question</span>
-                              <p className="text-xs font-bold text-slate-800 leading-relaxed font-sans">{mockQuestion}</p>
-                            </div>
-
-                            {/* Code editor card */}
-                            <div className="bg-slate-900 text-slate-200 rounded-3xl border border-slate-800 overflow-hidden shadow-lg flex flex-col min-h-[360px]">
-                              
-                              {/* Editor header */}
-                              <div className="bg-slate-950 border-b border-slate-805 px-4 py-2 flex items-center justify-between">
-                                <span className="text-[9px] font-mono text-slate-400 font-black uppercase tracking-wider flex items-center gap-1.5">
-                                  <div className="h-1.5 w-1.5 rounded-full bg-violet-500" /> coding_workspace.cpp
-                                </span>
-                                
-                                <select 
-                                  value={codeLanguage}
-                                  onChange={e => setCodeLanguage(e.target.value)}
-                                  className="h-7 rounded bg-slate-900 border border-slate-800 px-2 py-0.5 text-[10px] text-slate-300 font-bold outline-none"
-                                >
-                                  <option value="javascript">JavaScript</option>
-                                  <option value="python">Python</option>
-                                  <option value="cpp">C++</option>
-                                  <option value="java">Java</option>
-                                </select>
-                              </div>
-
-                              {/* Editor block */}
-                              <div className="flex-1 flex bg-slate-900 font-mono text-[11px] relative p-3">
-                                <div className="text-slate-650 select-none text-right pr-3 border-r border-slate-800 leading-relaxed text-[11px] font-mono">
-                                  {Array.from({ length: 12 }).map((_, i) => (
-                                    <div key={i}>{i + 1}</div>
-                                  ))}
-                                </div>
-                                <textarea 
-                                  value={codeSubmission}
-                                  onChange={e => setCodeSubmission(e.target.value)}
-                                  placeholder="// Write solution code details here..."
-                                  className="flex-1 bg-transparent text-slate-200 outline-none resize-none pl-3 leading-relaxed font-mono focus:ring-0 focus:outline-none"
-                                />
-                              </div>
-
-                              {/* Console Output */}
-                              {compilerOutput && (
-                                <div className="bg-slate-950 border-t border-slate-800 p-3 font-mono text-[10px] text-slate-350 text-left space-y-1">
-                                  <span className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest block">Console Output</span>
-                                  <pre className="whitespace-pre-wrap leading-relaxed">{compilerOutput}</pre>
-                                </div>
-                              )}
-
-                              {/* Editor buttons bar */}
-                              <div className="bg-slate-950 border-t border-slate-800 p-3 flex justify-between gap-3">
-                                <button 
-                                  disabled={compilerRunning}
-                                  onClick={runMockCompiler}
-                                  className="h-8.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold tracking-wider transition-all"
-                                >
-                                  {compilerRunning ? "Running..." : "Run Test Cases"}
-                                </button>
-                                
-                                <button 
-                                  disabled={mockLoading || !codeSubmission.trim()}
-                                  onClick={submitMockAnswer}
-                                  className="h-8.5 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white text-[10.5px] font-bold tracking-wider transition-all"
-                                >
-                                  {mockLoading ? "Submitting Solution..." : "Submit Code Solution"}
-                                </button>
-                              </div>
-
-                            </div>
-
-                            {/* Verbal Explanation */}
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">Explain Solution verbally</span>
-                                <button 
-                                  onClick={toggleMockListening}
-                                  className={`h-7 px-2.5 rounded-lg border text-[9.5px] font-bold transition-all flex items-center gap-1.5 ${
-                                    mockIsListening 
-                                      ? "bg-orange-500 border-orange-600 text-white animate-pulse"
-                                      : "bg-white border-slate-200 hover:bg-slate-50 text-slate-655"
-                                  }`}
-                                >
-                                  {mockIsListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5 text-violet-500" />} Speak Answer
-                                </button>
-                              </div>
-                              <textarea 
-                                placeholder="Speak or type your solution explanation details..."
-                                value={mockAnswer}
-                                onChange={e => setMockAnswer(e.target.value)}
-                                className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 text-xs text-slate-800 h-24 focus:outline-none"
-                              />
-                            </div>
-
-                          </div>
-                        ) : (
-                          /* Standard Verbal prompt panel */
-                          <div className="space-y-4">
-                            {/* Current Question panel */}
-                            <div className="bg-slate-50 border border-slate-200/60 p-5 rounded-2xl space-y-3">
-                              <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                                <span className="px-2 py-0.5 rounded-md bg-violet-50 border border-violet-100 text-[9px] font-black text-violet-650">
-                                  Question {mockCount}
-                                </span>
-                                <button 
-                                  onClick={() => speakMockText(mockQuestion)}
-                                  className="text-[9.5px] font-bold text-slate-400 hover:text-slate-700 flex items-center gap-1"
-                                >
-                                  <Volume2 className="h-4 w-4" /> Repeat Audio
-                                </button>
-                              </div>
-                              <p className="text-xs font-bold text-slate-800 leading-relaxed font-sans">{mockQuestion}</p>
-                            </div>
-
-                            {/* Transcribed response textarea */}
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Your Verbal Response</span>
-                                <button 
-                                  onClick={toggleMockListening}
-                                  className={`h-8 px-3 rounded-lg border text-[10px] font-black transition-all flex items-center gap-1.5 ${
-                                    mockIsListening 
-                                      ? "bg-orange-50 border-orange-600 text-white shadow-md animate-pulse"
-                                      : "bg-white border-slate-200 hover:bg-slate-50 text-slate-600"
-                                  }`}
-                                >
-                                  {mockIsListening ? (
-                                    <>
-                                      <MicOff className="h-3.5 w-3.5" /> Stop Voice Stream
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Mic className="h-3.5 w-3.5 text-violet-500" /> Speak Answer
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-
-                              <textarea 
-                                placeholder="Speak or type your technical response details here..."
-                                value={mockAnswer}
-                                onChange={e => setMockAnswer(e.target.value)}
-                                className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-800 h-36 focus:outline-none focus:border-slate-350"
-                              />
-
-                              {mockError && (
-                                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-[10px] text-red-650 flex items-center gap-1.5">
-                                  <AlertCircle className="h-4 w-4 shrink-0" /> {mockError}
-                                </div>
-                              )}
-
-                              <button 
-                                disabled={mockLoading || !mockAnswer.trim()}
-                                onClick={submitMockAnswer}
-                                className="w-full h-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
-                              >
-                                {mockLoading ? (
-                                  <>
-                                    <Loader2 className="h-4 w-4 animate-spin" /> Evaluating answer details...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Send className="h-4 w-4" /> Submit Response
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                    </div>
-                  </div>
                 )}
               </div>
             )}

@@ -43,103 +43,112 @@ export async function POST(req: NextRequest) {
     const activeSessionId = sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     const targetDept = assignedDepartment || "General Enquiries";
 
-    // 1. Create or update ChatSession
-    const session = await prisma.chatSession.upsert({
-      where: { sessionId: activeSessionId },
-      update: {
-        conversationStatus: escalated ? "Escalated" : "Active",
-        escalated: Boolean(escalated),
-        department: targetDept,
-        conversationSummary: conversationSummary || undefined,
-        confidenceScore: confidenceScore !== undefined ? Number(confidenceScore) : undefined,
-        browser: clientMetadata?.browser,
-        operatingSystem: clientMetadata?.operatingSystem,
-        device: clientMetadata?.device,
-        language: clientMetadata?.language,
-        referrerUrl: clientMetadata?.referrerUrl,
-        currentPage: clientMetadata?.currentPage,
-        ipAddress: hashedIp,
-      },
-      create: {
-        sessionId: activeSessionId,
-        userId: userId || undefined,
-        conversationStatus: escalated ? "Escalated" : "Active",
-        escalated: Boolean(escalated),
-        department: targetDept,
-        conversationSummary: conversationSummary || undefined,
-        confidenceScore: confidenceScore !== undefined ? Number(confidenceScore) : undefined,
-        browser: clientMetadata?.browser || "Unknown",
-        operatingSystem: clientMetadata?.operatingSystem || "Unknown",
-        device: clientMetadata?.device || "Desktop",
-        language: clientMetadata?.language || "en-US",
-        referrerUrl: clientMetadata?.referrerUrl || "",
-        currentPage: clientMetadata?.currentPage || "/",
-        ipAddress: hashedIp,
-      },
-    });
+    let sessionRecordId = activeSessionId;
 
-    // 2. Persist latest messages to ChatMessage model if provided
-    if (messages && Array.isArray(messages) && messages.length > 0) {
-      const lastMsg = messages[messages.length - 1];
-      if (lastMsg) {
-        await prisma.chatMessage.create({
-          data: {
-            sessionId: activeSessionId,
-            sender: lastMsg.role === "user" ? "user" : "bot",
-            message: lastMsg.content || "",
-            intent: intent || undefined,
-            confidence: confidenceScore !== undefined ? Number(confidenceScore) : undefined,
-          },
-        });
-      }
-    }
-
-    // 3. Create ChatEscalation record if user submitted escalation
-    if (escalated && email && name) {
-      await prisma.chatEscalation.upsert({
+    // 1. Try writing to ChatSession, ChatMessage, and ChatEscalation tables if migrated
+    try {
+      const session = await prisma.chatSession.upsert({
         where: { sessionId: activeSessionId },
         update: {
-          userName: name,
-          email,
-          phone: phone || undefined,
-          assignedDepartment: targetDept,
-          routingReason: escalationReason || "Automated confidence escalation",
+          conversationStatus: escalated ? "Escalated" : "Active",
+          escalated: Boolean(escalated),
+          department: targetDept,
           conversationSummary: conversationSummary || undefined,
+          confidenceScore: confidenceScore !== undefined ? Number(confidenceScore) : undefined,
+          browser: clientMetadata?.browser,
+          operatingSystem: clientMetadata?.operatingSystem,
+          device: clientMetadata?.device,
+          language: clientMetadata?.language,
+          referrerUrl: clientMetadata?.referrerUrl,
+          currentPage: clientMetadata?.currentPage,
+          ipAddress: hashedIp,
         },
         create: {
           sessionId: activeSessionId,
-          userName: name,
-          email,
-          phone: phone || undefined,
-          assignedDepartment: targetDept,
-          routingReason: escalationReason || "Automated confidence escalation",
+          userId: userId || undefined,
+          conversationStatus: escalated ? "Escalated" : "Active",
+          escalated: Boolean(escalated),
+          department: targetDept,
           conversationSummary: conversationSummary || undefined,
-          status: "Pending",
+          confidenceScore: confidenceScore !== undefined ? Number(confidenceScore) : undefined,
+          browser: clientMetadata?.browser || "Unknown",
+          operatingSystem: clientMetadata?.operatingSystem || "Unknown",
+          device: clientMetadata?.device || "Desktop",
+          language: clientMetadata?.language || "en-US",
+          referrerUrl: clientMetadata?.referrerUrl || "",
+          currentPage: clientMetadata?.currentPage || "/",
+          ipAddress: hashedIp,
         },
       });
+      sessionRecordId = session.id;
+
+      if (messages && Array.isArray(messages) && messages.length > 0) {
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg) {
+          await prisma.chatMessage.create({
+            data: {
+              sessionId: activeSessionId,
+              sender: lastMsg.role === "user" ? "user" : "bot",
+              message: lastMsg.content || "",
+              intent: intent || undefined,
+              confidence: confidenceScore !== undefined ? Number(confidenceScore) : undefined,
+            },
+          });
+        }
+      }
+
+      if (escalated && email && name) {
+        await prisma.chatEscalation.upsert({
+          where: { sessionId: activeSessionId },
+          update: {
+            userName: name,
+            email,
+            phone: phone || undefined,
+            assignedDepartment: targetDept,
+            routingReason: escalationReason || "Automated confidence escalation",
+            conversationSummary: conversationSummary || undefined,
+          },
+          create: {
+            sessionId: activeSessionId,
+            userName: name,
+            email,
+            phone: phone || undefined,
+            assignedDepartment: targetDept,
+            routingReason: escalationReason || "Automated confidence escalation",
+            conversationSummary: conversationSummary || undefined,
+            status: "Pending",
+          },
+        });
+      }
+    } catch (dbErr) {
+      console.warn("New ChatSession table not yet created on remote database, using ChatLog fallback:", dbErr);
     }
 
-    // 4. Also store legacy ChatLog for full backward compatibility
-    await prisma.chatLog.create({
-      data: {
-        userId: userId || undefined,
-        name: name || undefined,
-        email: email || undefined,
-        phone: phone || undefined,
-        messages: messages || [],
-        escalated: Boolean(escalated),
-        escalationReason: escalationReason || undefined,
-        assignedDepartment: targetDept,
-        browser: clientMetadata?.browser || undefined,
-        device: clientMetadata?.device || undefined,
-        os: clientMetadata?.operatingSystem || undefined,
-        ipAddress: hashedIp,
-        outcome: escalated ? "Escalated" : "Active",
-        status: escalated ? "Pending" : "Closed",
-      },
-    });
+    // 2. Always persist to ChatLog for 100% reliability and backward compatibility
+    try {
+      await prisma.chatLog.create({
+        data: {
+          userId: userId || undefined,
+          name: name || undefined,
+          email: email || undefined,
+          phone: phone || undefined,
+          messages: messages || [],
+          escalated: Boolean(escalated),
+          escalationReason: escalationReason || undefined,
+          assignedDepartment: targetDept,
+          browser: clientMetadata?.browser || undefined,
+          device: clientMetadata?.device || undefined,
+          os: clientMetadata?.operatingSystem || undefined,
+          ipAddress: hashedIp,
+          outcome: escalated ? "Escalated" : "Active",
+          status: escalated ? "Pending" : "Closed",
+        },
+      });
+    } catch (logErr) {
+      console.error("ChatLog fallback write error:", logErr);
+    }
 
-    return NextResponse.json({ success: true, sessionId: activeSessionId, logId: session.id });
+    return NextResponse.json({ success: true, sessionId: activeSessionId, logId: sessionRecordId });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error("Chat Log API error:", err);

@@ -52,8 +52,10 @@ export async function GET(req: NextRequest) {
       success: true,
       students: studentsList.map((s) => {
         const topEnrollment = s.enrollments[0];
+        const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBmaWxsPSIjRTJFOEYwIiBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCA0YzEu5MgMCAzLjUgMS41NyAzLjUgMy41UzEzLjkzIDEzIDEyIDEzcy0zLjUtMS41Ny0zLjUtMy41UzEwLjA3IDYgMTIgNnptMCAxNGMtMi4wMyAwLTQuNDMtMS01LjQ2LTIuNThDNy41NiAxNS44NCAxMC4wOSAxNSAxMiAxNXM0LjQ0Ljg0IDUuNDYgMi40MkMxNi40MyAxOSAxNC4wMyAyMCAxMiAyMHoiLz48L3N2Zz4=";
         const extraProfile = (s.profile as any)?.profile || {};
-        const avatar = extraProfile.profileImage || `https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces`;
+        const rawAvatar = extraProfile.profileImage || "";
+        const avatar = (rawAvatar && rawAvatar.includes("unsplash.com")) ? DEFAULT_AVATAR : (rawAvatar || DEFAULT_AVATAR);
         
         return {
           id: topEnrollment?.id || `no-enrollment-${s.id}`,

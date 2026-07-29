@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+  <msapplication>
+    <tile>
+      <square150x150logo src="/images/Epitome_logo_black.png"/>
+      <TileColor>#0b172a</TileColor>
+    </tile>
+  </msapplication>
+</browserconfig>

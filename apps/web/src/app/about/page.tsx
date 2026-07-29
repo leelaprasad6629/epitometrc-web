@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AboutHero from "@/components/about/AboutHero";
@@ -10,18 +9,36 @@ import CoreValues from "@/components/about/CoreValues";
 import Leadership from "@/components/about/Leadership";
 import Achievements from "@/components/about/Achievements";
 import CTA from "@/components/common/CTA";
+import { Metadata, Viewport } from "next";
+import { generateSEOMetadata, generateBreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "About Us | Epitome TRC",
-  description:
-    "Learn about EpitomeTRC — our mission, values, leadership, and commitment to strategic excellence across enterprise consulting and technology.",
+export const metadata: Metadata = generateSEOMetadata({
+  title: "About Us",
+  description: "Learn about EpitomeTRC — our mission, values, leadership, and commitment to strategic excellence across enterprise consulting and technology.",
+  keywords: ["About Us", "EpitomeTRC Story", "Company Values", "Executive Leadership Team", "Achievements"],
+  path: "/about",
+});
+
+export const viewport: Viewport = {
+  themeColor: "#0b172a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function AboutPage() {
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", item: "/" },
+    { name: "About", item: "/about" },
+  ]);
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <Navbar />
-      <main>
+      <main id="main-content">
         <AboutHero />
         <FounderMessage />
         <CompanyStory />
