@@ -200,7 +200,7 @@ export default function Navbar() {
               alt="EpitomeTRC Logo"
               width={499}
               height={390}
-              className="h-10 w-auto object-contain"
+              className="h-10 w-auto object-contain brightness-0"
               priority
             />
             <span className="font-heading text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
