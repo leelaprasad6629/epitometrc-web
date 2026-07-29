@@ -620,12 +620,12 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
     try {
       // 1. Try to fetch from server database first
-      const response = await fetch("/api/student/profile");
+      const response = await fetch("/api/student/profile?t=" + Date.now(), { cache: "no-store" });
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.profile) {
           const profile = data.profile;
-          if (profile.profileImage && profile.profileImage.includes("unsplash.com")) {
+          if (profile.profileImage && typeof profile.profileImage === "string" && profile.profileImage.includes("unsplash.com")) {
             profile.profileImage = null;
           }
           const confidence = data.confidenceScores || {};
@@ -662,12 +662,12 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
     // 2. Pre-populate details from /api/auth/me if no profile exists in DB
     try {
-      const authRes = await fetch("/api/auth/me");
+      const authRes = await fetch("/api/auth/me?t=" + Date.now(), { cache: "no-store" });
       if (authRes.ok) {
         const authData = await authRes.json();
         if (authData.success && authData.user) {
           const rawAuthAvatar = authData.user.profileImage || null;
-          const sanitizedAuthAvatar = (rawAuthAvatar && rawAuthAvatar.includes("unsplash.com")) ? null : rawAuthAvatar;
+          const sanitizedAuthAvatar = (rawAuthAvatar && typeof rawAuthAvatar === "string" && rawAuthAvatar.includes("unsplash.com")) ? null : rawAuthAvatar;
           const newProfile = {
             ...initialParsedResume,
             fullName: authData.user.name || "Student User",
