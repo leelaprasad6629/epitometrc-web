@@ -212,7 +212,7 @@ export default function ResumeMediaManager() {
               </div>
               <div>
                 <h3 className="font-bold text-slate-900 text-base">Document Resume</h3>
-                <p className="text-xs text-slate-500 font-medium">Supported: PDF, DOC, DOCX (Max 10 MB)</p>
+                <p className="text-xs text-slate-500 font-medium">Supported: PDF, DOC, DOCX (Maximum 25 MB)</p>
               </div>
             </div>
 
