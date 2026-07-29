@@ -60,6 +60,8 @@ function LoginForm() {
         throw new Error(data.error || "Login failed");
       }
 
+
+
       const role = data.user.role;
       if (role === "Student") {
         router.push("/student/dashboard");
