@@ -196,7 +196,7 @@ export default function StudentDashboard() {
       type: "today",
       description: "Practice mock interview slots corresponding to your experience to boost score.",
       actionLabel: "Start Practice",
-      onAction: () => { window.location.href = "/student/resume-builder?tab=interview"; }
+      onAction: () => { window.location.href = "/student/career-suite?tab=interview"; }
     });
   }
 
@@ -320,7 +320,7 @@ export default function StudentDashboard() {
             </p>
           </div>
         </div>
-        <Button href="/student/resume-builder?tab=interview" variant="primary" className="h-9 rounded-xl px-4 font-bold text-xs shrink-0 self-start md:self-auto bg-violet-650 bg-violet-600 hover:bg-violet-500 border-0">
+        <Button href="/student/career-suite?tab=interview" variant="primary" className="h-9 rounded-xl px-4 font-bold text-xs shrink-0 self-start md:self-auto bg-violet-650 bg-violet-600 hover:bg-violet-500 border-0">
           Launch Virtual Screen
           <ArrowRight className="ml-1.5 h-4 w-4" />
         </Button>
