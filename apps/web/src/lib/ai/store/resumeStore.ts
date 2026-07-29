@@ -365,20 +365,27 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; Max-Age=-99999999; path=/; SameSite=Lax`;
 }
 
-async function persistProfileToServer(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
-  if (typeof window === "undefined") return;
+async function persistProfileToServer(profile: ParsedResume | null, confidenceScores: Record<string, number>): Promise<ParsedResume | null> {
+  if (typeof window === "undefined") return null;
   try {
-    await fetch("/api/student/profile", {
+    const response = await fetch("/api/student/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ profile, confidenceScores })
     });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.profile) {
+        return data.profile;
+      }
+    }
   } catch (err) {
     console.error("Failed to persist profile to server:", err);
   }
+  return null;
 }
 
-function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
+async function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
   if (typeof window === "undefined") return;
   
   // Clear any existing legacy cookies & session storage to prevent leakage
@@ -387,7 +394,10 @@ function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScor
   sessionStorage.removeItem("student_profile_image");
 
   // Persist to server database async as single source of truth
-  persistProfileToServer(profile, confidenceScores);
+  const updatedProfile = await persistProfileToServer(profile, confidenceScores);
+  if (updatedProfile) {
+    useResumeStore.setState({ parsedResumeDetails: updatedProfile });
+  }
 }
 
 export const useResumeStore = create<ResumeStore>((set, get) => ({
