@@ -148,6 +148,7 @@ export interface ParsedResume {
   certifications: CertificationEntry[];
   internships: InternshipEntry[];
   achievements: AchievementEntry[];
+  awards?: AchievementEntry[];
   
   // Extra structured arrays
   publications: PublicationEntry[];
@@ -157,6 +158,7 @@ export interface ParsedResume {
   volunteerExperience: VolunteerEntry[];
   languagesKnown: string[];
   professionalInterests: string[];
+  interests?: string[];
 
   technicalSkills: string[];
   softSkills: string[];
@@ -181,6 +183,9 @@ export interface ParsedResume {
   versionControl: string[];
   
   verifiedSkills: string[];
+  
+  // Custom section order
+  sectionOrder?: string[];
   
   // Semantic career insights
   candidateProfile: string;
@@ -296,6 +301,7 @@ const initialParsedResume: ParsedResume = {
   certifications: [],
   internships: [],
   achievements: [],
+  awards: [],
   
   publications: [],
   workshops: [],
@@ -304,6 +310,7 @@ const initialParsedResume: ParsedResume = {
   volunteerExperience: [],
   languagesKnown: [],
   professionalInterests: [],
+  interests: [],
 
   technicalSkills: [],
   softSkills: [],
@@ -327,6 +334,18 @@ const initialParsedResume: ParsedResume = {
   versionControl: [],
   
   verifiedSkills: [],
+
+  sectionOrder: [
+    "summary",
+    "technicalSkills",
+    "experience",
+    "projects",
+    "education",
+    "certifications",
+    "achievements",
+    "languagesKnown",
+    "volunteerExperience"
+  ],
   
   candidateProfile: "",
   careerDomain: "",
