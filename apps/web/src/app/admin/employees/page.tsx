@@ -13,6 +13,45 @@ export default function AdminEmployeesPage() {
   const [search, setSearch] = useState("");
   const [showImportModal, setShowImportModal] = useState(false);
 
+  // Add Employee Modal States
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newRole, setNewRole] = useState("Employee");
+  const [addError, setAddError] = useState("");
+  const [addLoading, setAddLoading] = useState(false);
+
+  const handleAddEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddError("");
+    setAddLoading(true);
+
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create employee");
+      }
+
+      setShowAddModal(false);
+      setNewName("");
+      setNewEmail("");
+      setNewPassword("");
+      setNewRole("Employee");
+      loadEmployees(search);
+    } catch (err: any) {
+      setAddError(err.message || "Failed to add employee");
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
   const loadEmployees = (query = "") => {
     fetch(`/api/admin/users?role=Employee&search=${encodeURIComponent(query)}`)
       .then((res) => res.json())
@@ -80,7 +119,12 @@ export default function AdminEmployeesPage() {
           >
             <Upload className="h-4 w-4 text-slate-500" /> Import CSV
           </Button>
-          <Button variant="primary" size="sm" className="h-9 px-4 rounded-xl font-bold">
+          <Button 
+            onClick={() => setShowAddModal(true)}
+            variant="primary" 
+            size="sm" 
+            className="h-9 px-4 rounded-xl font-bold"
+          >
             <Plus className="mr-1 h-4 w-4" /> Add Employee
           </Button>
         </div>
@@ -155,6 +199,91 @@ export default function AdminEmployeesPage() {
         entityRole="Employee"
         onImportComplete={() => loadEmployees(search)}
       />
+
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-5">
+            <div className="space-y-1">
+              <h3 className="font-display text-lg font-bold text-slate-800">Add Staff Member</h3>
+              <p className="text-[11px] text-slate-500">Create a new corporate account with temporary login credentials.</p>
+            </div>
+
+            {addError && (
+              <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-semibold text-red-600">
+                {addError}
+              </div>
+            )}
+
+            <form onSubmit={handleAddEmployee} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-700 uppercase tracking-wider block">Full Name</label>
+                <Input
+                  type="text"
+                  required
+                  placeholder="e.g. John Doe"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="h-10 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-700 uppercase tracking-wider block">Email Address</label>
+                <Input
+                  type="email"
+                  required
+                  placeholder="e.g. j.doe@epitometrc.com"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="h-10 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-700 uppercase tracking-wider block">Temporary Password</label>
+                <Input
+                  type="text"
+                  required
+                  placeholder="e.g. TempPass123!"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="h-10 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-700 uppercase tracking-wider block">Assign Role</label>
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value)}
+                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold focus:border-orange-500 focus:outline-none focus:ring-orange-500/10 w-full"
+                >
+                  <option value="Employee">Employee</option>
+                  <option value="Intern">Intern</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="h-9 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+                <Button
+                  type="submit"
+                  disabled={addLoading}
+                  className="h-9 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs shadow-md transition-colors"
+                >
+                  {addLoading ? "Creating..." : "Create Account"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

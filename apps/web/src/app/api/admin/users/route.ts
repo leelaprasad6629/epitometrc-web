@@ -30,7 +30,11 @@ export async function GET(req: NextRequest) {
 
     const whereClause: any = {};
     if (role) {
-      whereClause.role = role;
+      if (role === "Employee") {
+        whereClause.role = { in: ["Employee", "Intern", "Admin"] };
+      } else {
+        whereClause.role = role;
+      }
     }
     if (search) {
       whereClause.OR = [
