@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/jwt";
+import fs from "fs/promises";
+import path from "path";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,16 +22,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (file.size > 4 * 1024 * 1024) {
-      return NextResponse.json({ error: "File size exceeds the 4MB limit" }, { status: 400 });
+    if (file.size > 10 * 1024 * 1024) { // allow up to 10MB to support video resumes
+      return NextResponse.json({ error: "File size exceeds the 10MB limit" }, { status: 400 });
     }
 
-    // Mock successful upload response
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    // Generate unique name to prevent collisions
+    const uniqueFileName = `${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
+    const filePath = path.join(uploadDir, uniqueFileName);
+    await fs.writeFile(filePath, buffer);
+
     return NextResponse.json({
       success: true,
       fileName: file.name,
       fileSize: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      url: `/uploads/${file.name}`,
+      url: `/uploads/${uniqueFileName}`,
     });
   } catch (error: any) {
     console.error("Media upload error:", error);

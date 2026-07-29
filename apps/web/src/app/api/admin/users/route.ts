@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
+import { logAuditAction } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -79,7 +80,7 @@ export async function DELETE(req: NextRequest) {
     // Verify role is Admin
     const user = await prisma.user.findUnique({
       where: { id: payload.id },
-      select: { role: true },
+      select: { role: true, email: true },
     });
 
     if (!user || user.role !== "Admin") {
@@ -98,9 +99,27 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Cannot delete your own admin account" }, { status: 400 });
     }
 
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true, role: true },
+    });
+
+    if (!targetUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     await prisma.user.delete({
       where: { id: userId },
     });
+
+    // Write audit log
+    await logAuditAction(
+      payload.id,
+      user.email,
+      "DELETE_USER",
+      { deletedUserId: userId, deletedUserEmail: targetUser.email, deletedUserRole: targetUser.role },
+      req.headers.get("x-forwarded-for")
+    );
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
@@ -124,7 +143,7 @@ export async function POST(req: NextRequest) {
     // Verify role is Admin
     const user = await prisma.user.findUnique({
       where: { id: payload.id },
-      select: { role: true },
+      select: { role: true, email: true },
     });
 
     if (!user || user.role !== "Admin") {
@@ -134,6 +153,17 @@ export async function POST(req: NextRequest) {
     const { name, email, password, role } = await req.json();
     if (!name || !email || !password || !role) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Input Validation
+    const validRoles = ["Student", "Employee", "Intern", "Admin"];
+    if (!validRoles.includes(role)) {
+      return NextResponse.json({ error: "Invalid role specified" }, { status: 400 });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
     // Check if user exists
@@ -155,6 +185,15 @@ export async function POST(req: NextRequest) {
         requirePasswordChange: false,
       },
     });
+
+    // Write audit log
+    await logAuditAction(
+      payload.id,
+      user.email,
+      "CREATE_USER",
+      { createdUserId: newUser.id, createdUserEmail: newUser.email, createdUserRole: newUser.role },
+      req.headers.get("x-forwarded-for")
+    );
 
     return NextResponse.json({ success: true, user: newUser });
   } catch (error: any) {
@@ -178,7 +217,7 @@ export async function PATCH(req: NextRequest) {
     // Verify role is Admin
     const user = await prisma.user.findUnique({
       where: { id: payload.id },
-      select: { role: true },
+      select: { role: true, email: true },
     });
 
     if (!user || user.role !== "Admin") {
@@ -190,6 +229,28 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
 
+    // Input Validation
+    if (role) {
+      const validRoles = ["Student", "Employee", "Intern", "Admin"];
+      if (!validRoles.includes(role)) {
+        return NextResponse.json({ error: "Invalid role specified" }, { status: 400 });
+      }
+    }
+
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+      }
+    }
+
+    if (status) {
+      const validStatuses = ["Active", "Inactive"];
+      if (!validStatuses.includes(status)) {
+        return NextResponse.json({ error: "Invalid status specified" }, { status: 400 });
+      }
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -199,6 +260,15 @@ export async function PATCH(req: NextRequest) {
         status,
       },
     });
+
+    // Write audit log
+    await logAuditAction(
+      payload.id,
+      user.email,
+      "UPDATE_USER",
+      { updatedUserId: userId, updatedFields: { name, email, role, status } },
+      req.headers.get("x-forwarded-for")
+    );
 
     return NextResponse.json({ success: true, user: updatedUser });
   } catch (error: any) {

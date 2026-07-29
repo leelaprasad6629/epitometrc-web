@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, SafeAreaView, Dimensions, ScrollView, Platform } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, SafeAreaView, Dimensions, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowRight, Sparkles, BrainCircuit, Briefcase, GraduationCap } from 'lucide-react-native';
 import * as SecureStore from 'expo-secure-store';
@@ -88,7 +88,11 @@ export default function WelcomeScreen() {
   };
 
   if (isFirstLaunch === null) {
-    return null; // Loading state handled by layout or just empty
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0b172a', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#F97316" />
+      </View>
+    );
   }
 
   if (isFirstLaunch) {

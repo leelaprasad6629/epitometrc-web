@@ -31,15 +31,35 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        passwordHash,
-        role: "Student",
-        status: "Active",
-        requirePasswordChange: false,
-      },
+    const user = await prisma.$transaction(async (tx) => {
+      const u = await tx.user.create({
+        data: {
+          name,
+          email,
+          passwordHash,
+          role: "Student",
+          status: "Active",
+          requirePasswordChange: false,
+        },
+      });
+
+      await tx.userProfile.create({
+        data: {
+          userId: u.id,
+          profile: {
+            name: u.name,
+            email: u.email,
+            contactNumber: contactNumber || null,
+            skills: [],
+            experience: [],
+            education: [],
+            projects: [],
+          },
+          confidenceScores: {},
+        },
+      });
+
+      return u;
     });
 
     const token = signToken({ id: user.id, email: user.email, role: user.role });

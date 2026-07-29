@@ -282,3 +282,13 @@ model ChatEscalation {
   createdAt           DateTime    @default(now())
   session             ChatSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
 }
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  userEmail String
+  action    String   // "CREATE_USER", "UPDATE_USER", "DELETE_USER", "UPDATE_SETTINGS", etc.
+  details   String   // JSON string of details
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
