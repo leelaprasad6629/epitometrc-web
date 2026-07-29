@@ -22,6 +22,7 @@ import Button from "@/components/common/Button";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import ProgressBar from "@/components/dashboard/ProgressBar";
 import { Input } from "@/components/ui/input";
+import { getAvatarUrl, compressAndCropImage } from "@/lib/avatar";
 
 export default function EmployeeProfilePage() {
   const [profile, setProfile] = useState<any>(null);
@@ -97,38 +98,32 @@ export default function EmployeeProfilePage() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const base64 = event.target?.result as string;
-      if (!base64) return;
-
-      try {
-        setSaving(true);
-        const res = await fetch("/api/employee/profile", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ profileImage: base64 }),
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          fetchProfile();
-          if (typeof window !== "undefined") {
-            window.dispatchEvent(new CustomEvent("user-profile-updated"));
-          }
-        } else {
-          alert(data.error || "Failed to upload photo");
+    setSaving(true);
+    try {
+      const compressedBase64 = await compressAndCropImage(file);
+      const res = await fetch("/api/employee/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileImage: compressedBase64 }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        fetchProfile();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("user-profile-updated"));
         }
-      } catch (err) {
-        console.error("Photo upload error:", err);
-      } finally {
-        setSaving(false);
+      } else {
+        alert(data.error || "Failed to upload photo");
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (error: any) {
+      alert(error.message || "Failed to process image.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const clientPortfolio = [
@@ -171,17 +166,11 @@ export default function EmployeeProfilePage() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-5 items-center">
                 <div className="relative h-20 w-20 rounded-2xl border border-slate-100 overflow-hidden shrink-0 shadow-inner group">
-                  {profile?.profileImage ? (
-                    <img
-                      src={profile.profileImage}
-                      alt="Advisor avatar"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-orange-50 text-orange-500 flex items-center justify-center font-bold text-2xl">
-                      {profile?.name?.charAt(0) || "U"}
-                    </div>
-                  )}
+                  <img
+                    src={getAvatarUrl(profile?.name || "User", profile?.profileImage)}
+                    alt="Advisor avatar"
+                    className="h-full w-full object-cover"
+                  />
                   {/* Photo Upload Overlay */}
                   <label className="absolute inset-0 bg-black/45 text-white text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-center p-1 font-sans">
                     Upload

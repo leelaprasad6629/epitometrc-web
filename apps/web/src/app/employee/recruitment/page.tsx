@@ -23,6 +23,7 @@ import {
   Send,
   ArrowLeft,
 } from "lucide-react";
+import { getAvatarUrl } from "@/lib/avatar";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -398,11 +399,7 @@ export default function EmployeeRecruitmentPage() {
                   >
                     <div className="flex gap-3 items-center min-w-0">
                       <div className="h-9 w-9 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center shrink-0 border border-slate-100">
-                        {c.avatar && (c.avatar.startsWith("data:image") || c.avatar.startsWith("http")) ? (
-                          <img src={c.avatar} className="h-full w-full object-cover" />
-                        ) : (
-                          <User className="h-4.5 w-4.5 text-slate-600" />
-                        )}
+                        <img src={getAvatarUrl(c.name, c.avatar)} className="h-full w-full object-cover" />
                       </div>
                       <div className="text-left min-w-0 space-y-0.5">
                         <h3 className="font-display text-xs font-bold text-[#0b172a] truncate">

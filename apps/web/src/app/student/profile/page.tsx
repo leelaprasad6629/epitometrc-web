@@ -19,6 +19,7 @@ import {
 import AIResumeMatchWidget from "@/components/ai/AIResumeMatchWidget";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import ResumeMediaManager from "@/components/ResumeMediaManager";
+import { getAvatarUrl, compressAndCropImage } from "@/lib/avatar";
 
 const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBmaWxsPSIjRTJFOEYwIiBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCA0YzEuOTMgMCAzLjUgMS41NyAzLjUgMy41UzEzLjkzIDEzIDEyIDEzcy0zLjUtMS41Ny0zLjUtMy41UzEwLjA3IDYgMTIgNnptMCAxNGMtMi4wMyAwLTQuNDMtMS01LjQ2LTIuNThDNy41NiAxNS44NCAxMC4wOSAxNSAxMiAxNXM0LjQ0Ljg0IDUuNDYgMi40MkMxNi40MyAxOSAxNC4wMyAyMCAxMiAyMHoiLz48L3N2Zz4=";
 
@@ -237,19 +238,20 @@ export default function StudentProfilePage() {
   }, [parsedResumeDetails]);
 
   // Image Upload handler
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
-      setProfileImage(base64);
-      updateParsedDetails({ profileImage: base64 });
+    try {
+      const compressedBase64 = await compressAndCropImage(file);
+      setProfileImage(compressedBase64);
+      updateParsedDetails({ profileImage: compressedBase64 });
+    } catch (error: any) {
+      alert(error.message || "Failed to process image.");
+    } finally {
       setUploading(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleRemoveImage = () => {
@@ -530,7 +532,7 @@ export default function StudentProfilePage() {
   };
 
   // Helpers
-  const activeAvatar = profileImage || DEFAULT_AVATAR;
+  const activeAvatar = getAvatarUrl(fullName || parsedResumeDetails?.fullName || "Student", profileImage);
   const displayHeadline = headline || "Software Engineering Apprentice";
   const verifiedSkillsList = parsedResumeDetails?.verifiedSkills || [];
   const overallCompleteness = parsedResumeDetails?.overallCompleteness || 0;
@@ -628,12 +630,10 @@ export default function StudentProfilePage() {
           <div className="flex flex-col sm:flex-row gap-5 items-center text-center sm:text-left w-full md:w-auto">
             {/* Avatar upload */}
             <div className="relative h-24 w-24 rounded-2xl border border-slate-200 overflow-hidden group shrink-0 bg-slate-50 shadow-inner">
-              <Image
+              <img
                 src={activeAvatar}
                 alt={fullName || "User Avatar"}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="96px"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 cursor-pointer">
                 <label className="cursor-pointer text-white flex flex-col items-center">

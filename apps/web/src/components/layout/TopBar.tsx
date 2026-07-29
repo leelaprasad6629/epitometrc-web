@@ -7,6 +7,7 @@ import { Bell, Search, Menu, LogOut, User, Settings, Check } from "lucide-react"
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useResumeStore } from "@/lib/ai/store/resumeStore";
+import { getAvatarUrl } from "@/lib/avatar";
 
 type TopBarProps = {
   role: "student" | "employee" | "admin";
@@ -83,19 +84,17 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
       .then((res) => res.json())
       .then((payload) => {
         if (payload.success && payload.user) {
-          const rawAvatar = payload.user.profileImage || "";
-          const sanitizedAvatar = (rawAvatar && rawAvatar.includes("unsplash.com")) ? defaultAvatar : (rawAvatar || defaultAvatar);
           setCurrentUser({
             name: payload.user.name,
             email: payload.user.email,
-            avatar: sanitizedAvatar,
+            avatar: getAvatarUrl(payload.user.name, payload.user.profileImage),
           });
         }
       })
       .catch(() => {
         // If auth fails, keep default state
       });
-  }, [defaultAvatar]);
+  }, []);
 
   useEffect(() => {
     fetchUserData();
@@ -212,12 +211,10 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
             className="flex items-center gap-2 rounded-xl p-1 hover:bg-slate-50 transition-colors"
           >
             <div className="relative h-8 w-8 overflow-hidden rounded-full border border-slate-200">
-              <Image
+              <img
                 src={currentUser.avatar}
                 alt={currentUser.name}
-                fill
-                className="object-cover"
-                sizes="32px"
+                className="h-full w-full object-cover"
               />
             </div>
             <div className="hidden lg:block text-left pr-1.5">
