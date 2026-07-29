@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
+import { logDebug } from "@/lib/debugLog";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,11 +14,14 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    logDebug(`GET /api/auth/me: token found = ${!!token}`);
+
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const payload = verifyToken(token) as { id: string; email: string; role: string } | null;
+    logDebug(`GET /api/auth/me: verified payload id = ${payload?.id}, role = ${payload?.role}`);
 
     if (!payload) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -40,12 +44,16 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    logDebug(`GET /api/auth/me: db user found = ${!!user}, status = ${user?.status}, name = ${user?.name}`);
+
     if (!user || user.status !== "Active") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const rawProfileImage = (user.profile as any)?.profile?.profileImage || null;
     const profileImage = (rawProfileImage && rawProfileImage.includes("unsplash.com")) ? null : rawProfileImage;
+
+    logDebug(`GET /api/auth/me: profileImage = ${profileImage}`);
 
     return NextResponse.json({
       success: true,
@@ -60,6 +68,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error: any) {
+    logDebug(`GET /api/auth/me: catch error = ${error.message || error}`);
     console.error("Auth me error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
