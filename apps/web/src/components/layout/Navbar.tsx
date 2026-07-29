@@ -131,8 +131,8 @@ function NavDropdown({
         className={cn(
           "flex items-center gap-1 py-1.5 px-3.5 rounded-xl text-sm font-semibold transition-all duration-250",
           isActive 
-            ? "text-orange-600 bg-orange-50/50" 
-            : "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900",
+            ? "text-orange-400 bg-white/10" 
+            : "text-slate-300 hover:bg-white/5 hover:text-white",
         )}
       >
         {item.name}
@@ -145,14 +145,14 @@ function NavDropdown({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 top-full z-50 mt-1.5 min-w-[240px] rounded-2xl border border-slate-200/60 bg-white/95 p-1.5 shadow-[0_12px_38px_-4px_rgba(15,23,42,0.08)] backdrop-blur-md"
+            className="absolute left-0 top-full z-50 mt-1.5 min-w-[240px] rounded-2xl border border-slate-800 bg-slate-950/95 p-1.5 shadow-[0_12px_38px_-4px_rgba(0,0,0,0.5)] backdrop-blur-md"
           >
             {item.children?.map((child) => (
               <Link
                 key={child.name}
                 href={child.href}
                 onClick={() => setIsOpen(false)}
-                className="block rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                className="block rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
               >
                 {child.name}
               </Link>
@@ -187,8 +187,8 @@ export default function Navbar() {
       className={cn(
         "fixed left-0 right-0 top-0 z-50 transition-all duration-300 border-b",
         isScrolled
-          ? "border-slate-200/90 bg-[#e6f1fc]/92 py-3 shadow-[0_10px_35px_rgba(15,23,42,0.06)] backdrop-blur-lg"
-          : "border-slate-200/50 bg-[#f0f7ff]/80 py-4.5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] backdrop-blur-md",
+          ? "border-slate-800 bg-[#0b172a]/95 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.3)] backdrop-blur-md"
+          : "border-slate-800/40 bg-[#0b172a]/90 py-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-md",
       )}
       aria-label="Main navigation"
     >
@@ -196,14 +196,14 @@ export default function Navbar() {
         <div className="flex h-12 items-center justify-between">
           <Link href="/" className="flex shrink-0 items-center space-x-2.5 hover:opacity-90 transition-opacity">
             <Image
-              src="/images/Epitome_logo_black.png"
+              src="/images/Epitome_logo_white.png"
               alt="EpitomeTRC Logo"
               width={499}
               height={390}
-              className="h-10 w-auto object-contain brightness-0"
+              className="h-10 w-auto object-contain"
               priority
             />
-            <span className="font-heading text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+            <span className="font-heading text-xl font-extrabold tracking-tight text-white sm:text-2xl">
               Epitome<span className="text-orange-500">TRC</span>
             </span>
           </Link>
@@ -219,8 +219,8 @@ export default function Navbar() {
                   className={cn(
                     "py-1.5 px-3.5 rounded-xl text-sm font-semibold transition-all duration-250",
                     pathname === item.href
-                      ? "text-orange-600 bg-orange-50/50"
-                      : "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900",
+                      ? "text-orange-400 bg-white/10"
+                      : "text-slate-300 hover:bg-white/5 hover:text-white",
                   )}
                 >
                   {item.name}
@@ -232,13 +232,13 @@ export default function Navbar() {
           <div className="hidden items-center space-x-4 md:flex">
             <Link
               href="/login"
-              className="px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:text-slate-900"
+              className="px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
             >
               Login
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.15)] hover:shadow-[0_6px_16px_rgba(249,115,22,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+              className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
             >
               Register Now
               <ArrowRight className="ml-1.5 h-4 w-4" />
@@ -248,7 +248,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="inline-flex items-center justify-center rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus:outline-none md:xl:hidden"
+            className="inline-flex items-center justify-center rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white focus:outline-none md:xl:hidden"
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
           >
