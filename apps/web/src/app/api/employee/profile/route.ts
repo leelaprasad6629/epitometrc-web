@@ -74,8 +74,54 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     let { name, phone, specialization, office, availability, availabilityStatus, profileImage } = body;
 
-    if (profileImage && profileImage.includes("unsplash.com")) {
+    if (profileImage && typeof profileImage === "string" && profileImage.includes("unsplash.com")) {
       profileImage = null;
+    }
+
+    // Decode and save profile image to Supabase storage if it is a base64 string
+    if (profileImage && typeof profileImage === "string" && profileImage.startsWith("data:image/")) {
+      const match = profileImage.match(/^data:(image\/\w+);base64,(.+)$/);
+      if (match) {
+        const mimeType = match[1];
+        const base64Data = match[2];
+        const fileBuffer = Buffer.from(base64Data, "base64");
+        const extension = mimeType.split("/")[1] || "png";
+        const safeFileName = `avatar_${payload.id}_${Date.now()}.${extension}`;
+
+        try {
+          const { supabase } = await import("@/lib/supabase");
+
+          // Ensure avatars bucket exists
+          try {
+            const { data: buckets } = await supabase.storage.listBuckets();
+            const bucketExists = buckets?.some(b => b.name === 'avatars');
+            if (!bucketExists) {
+              await supabase.storage.createBucket('avatars', { public: true });
+            }
+          } catch (bucketErr) {
+            console.warn("Failed to check/create avatars bucket:", bucketErr);
+          }
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(safeFileName, fileBuffer, {
+              contentType: mimeType,
+              cacheControl: '3600',
+              upsert: true,
+            });
+
+          if (uploadError) {
+            console.error("Supabase avatar upload failed:", uploadError);
+          } else {
+            const { data: urlData } = supabase.storage
+              .from('avatars')
+              .getPublicUrl(safeFileName);
+            profileImage = urlData.publicUrl;
+          }
+        } catch (err) {
+          console.error("Failed to upload image to Supabase storage:", err);
+        }
+      }
     }
 
     // Update User details

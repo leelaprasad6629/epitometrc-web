@@ -397,6 +397,7 @@ async function syncProfileToClientStorage(profile: ParsedResume | null, confiden
   const updatedProfile = await persistProfileToServer(profile, confidenceScores);
   if (updatedProfile) {
     useResumeStore.setState({ parsedResumeDetails: updatedProfile });
+    window.dispatchEvent(new CustomEvent("user-profile-updated"));
   }
 }
 

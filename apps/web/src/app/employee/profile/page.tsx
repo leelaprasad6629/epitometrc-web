@@ -80,6 +80,9 @@ export default function EmployeeProfilePage() {
       if (res.ok && data.success) {
         setSaveStatus("Profile updated successfully!");
         fetchProfile();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("user-profile-updated"));
+        }
         setTimeout(() => {
           setIsEditing(false);
           setSaveStatus(null);
@@ -113,6 +116,9 @@ export default function EmployeeProfilePage() {
         const data = await res.json();
         if (res.ok && data.success) {
           fetchProfile();
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("user-profile-updated"));
+          }
         } else {
           alert(data.error || "Failed to upload photo");
         }
