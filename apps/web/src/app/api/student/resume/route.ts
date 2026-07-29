@@ -89,39 +89,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { supabase } = await import("@/lib/supabase");
-    
-    // Auto-create resumes bucket if missing
-    try {
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(b => b.name === 'resumes');
-      if (!bucketExists) {
-        await supabase.storage.createBucket('resumes', { public: true });
-      }
-    } catch {
-      // Proceed hoping it exists
-    }
-
     const safeFileName = `${userId}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
     const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('resumes')
-      .upload(safeFileName, fileBuffer, {
-        contentType: file.type || 'application/pdf',
-        cacheControl: '3600',
-        upsert: true,
-      });
-
-    if (uploadError) {
-      throw new Error("Supabase upload failed: " + uploadError.message);
+    // 1. Guaranteed Local Server Storage (public/uploads)
+    let fileUrl = `/uploads/${safeFileName}`;
+    try {
+      const fs = await import("fs/promises");
+      const path = await import("path");
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      await fs.mkdir(uploadDir, { recursive: true });
+      const localFilePath = path.join(uploadDir, safeFileName);
+      await fs.writeFile(localFilePath, fileBuffer);
+    } catch (fsErr) {
+      console.warn("Failed to write resume file to local disk:", fsErr);
     }
 
-    const { data: urlData } = supabase.storage
-      .from('resumes')
-      .getPublicUrl(safeFileName);
+    // 2. Optional: Cloud Storage Mirror (Supabase Storage)
+    try {
+      const { supabase } = await import("@/lib/supabase");
+      try {
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const bucketExists = buckets?.some(b => b.name === 'resumes');
+        if (!bucketExists) {
+          await supabase.storage.createBucket('resumes', { public: true });
+        }
+      } catch {}
 
-    const fileUrl = urlData.publicUrl;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(safeFileName, fileBuffer, {
+          contentType: file.type || 'application/pdf',
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage
+          .from('resumes')
+          .getPublicUrl(safeFileName);
+        if (urlData?.publicUrl) {
+          fileUrl = urlData.publicUrl;
+        }
+      } else {
+        console.warn("Supabase upload error, using local server storage URL:", uploadError.message);
+      }
+    } catch (cloudErr) {
+      console.warn("Supabase mirror skipped, using local server storage URL:", cloudErr);
+    }
 
     const resumeMetadata = {
       userId,
