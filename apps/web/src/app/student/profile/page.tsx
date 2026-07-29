@@ -268,6 +268,15 @@ export default function StudentProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const MAX_SIZE = 25 * 1024 * 1024; // 25MB
+    const ext = file.name.toLowerCase();
+    const isValidFormat = ext.endsWith(".pdf") || ext.endsWith(".doc") || ext.endsWith(".docx");
+
+    if (file.size > MAX_SIZE || !isValidFormat) {
+      alert("Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB.");
+      return;
+    }
+
     setUploading(true);
     setSuccessMsg("Parsing new resume details...");
     try {

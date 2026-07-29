@@ -29,7 +29,7 @@ const ALLOWED_MIME_TYPES = new Set([
 ]);
 
 const ALLOWED_EXTENSIONS = new Set([".pdf", ".doc", ".docx"]);
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
 export async function GET(req: NextRequest) {
   try {
@@ -70,21 +70,21 @@ export async function POST(req: NextRequest) {
     const ext = path.extname(file.name).toLowerCase();
     if (!ALLOWED_EXTENSIONS.has(ext)) {
       return NextResponse.json(
-        { success: false, error: "Invalid file type. Only PDF, DOC, and DOCX files are allowed." },
+        { success: false, error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB." },
         { status: 400 }
       );
     }
 
     if (file.type && !ALLOWED_MIME_TYPES.has(file.type)) {
       return NextResponse.json(
-        { success: false, error: "Invalid MIME type. Only PDF, DOC, and DOCX files are allowed." },
+        { success: false, error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB." },
         { status: 400 }
       );
     }
 
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { success: false, error: `File size exceeds the 10 MB limit (${(file.size / (1024 * 1024)).toFixed(2)} MB uploaded).` },
+        { success: false, error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB." },
         { status: 400 }
       );
     }

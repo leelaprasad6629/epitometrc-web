@@ -113,16 +113,10 @@ export default function ResumeMediaManager() {
     // Validate type
     const validExts = [".pdf", ".doc", ".docx"];
     const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
-    if (!validExts.includes(ext)) {
-      setDocError("Invalid file type. Please upload a PDF, DOC, or DOCX document.");
-      if (docInputRef.current) docInputRef.current.value = "";
-      return;
-    }
-
-    // Validate size (10 MB)
-    const maxDocSize = 10 * 1024 * 1024;
-    if (file.size > maxDocSize) {
-      setDocError(`File size exceeds 10 MB limit (${formatBytes(file.size)}).`);
+    // Validate extension & size (25 MB)
+    const maxDocSize = 25 * 1024 * 1024;
+    if (!validExts.includes(ext) || file.size > maxDocSize) {
+      setDocError("Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB.");
       if (docInputRef.current) docInputRef.current.value = "";
       return;
     }

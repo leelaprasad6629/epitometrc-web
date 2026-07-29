@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (file.size > 10 * 1024 * 1024) { // allow up to 10MB to support video resumes
-      return NextResponse.json({ error: "File size exceeds the 10MB limit" }, { status: 400 });
+    if (file.size > 25 * 1024 * 1024) { // allow up to 25MB to support resumes & media
+      return NextResponse.json({ error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB." }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
