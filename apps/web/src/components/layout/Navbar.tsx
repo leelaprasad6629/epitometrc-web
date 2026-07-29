@@ -187,8 +187,8 @@ export default function Navbar() {
       className={cn(
         "fixed left-0 right-0 top-0 z-50 transition-all duration-300 border-b",
         isScrolled
-          ? "border-slate-200/80 bg-[#f0f7ff]/80 py-3 shadow-[0_8px_30px_rgba(15,23,42,0.04)] backdrop-blur-lg"
-          : "border-transparent bg-transparent py-5",
+          ? "border-slate-200/90 bg-[#e6f1fc]/92 py-3 shadow-[0_10px_35px_rgba(15,23,42,0.06)] backdrop-blur-lg"
+          : "border-slate-200/50 bg-[#f0f7ff]/80 py-4.5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] backdrop-blur-md",
       )}
       aria-label="Main navigation"
     >
