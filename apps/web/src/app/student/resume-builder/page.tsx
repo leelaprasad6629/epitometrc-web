@@ -97,6 +97,7 @@ export default function AICareerCopilotPage() {
   const mockVideoRef = useRef<HTMLVideoElement | null>(null);
   const interviewContainerRef = useRef<HTMLDivElement | null>(null);
   const recognitionRef = useRef<any>(null);
+  const questionStartTimeRef = useRef<number>(Date.now());
 
   // Integrity & Onboarding states
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
@@ -328,6 +329,7 @@ export default function AICareerCopilotPage() {
     setMockCount(1);
     setMockQuestion(initialQ);
     setMockSessionActive(true);
+    questionStartTimeRef.current = Date.now();
 
     setTimeout(() => speakMockText(initialQ), 400);
   };
@@ -356,6 +358,8 @@ export default function AICareerCopilotPage() {
     if (!mockAnswer.trim() || mockLoading) return;
     setMockLoading(true);
 
+    const durationSeconds = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
+
     if (mockIsListening && recognitionRef.current) {
       recognitionRef.current.stop();
       setMockIsListening(false);
@@ -374,7 +378,8 @@ export default function AICareerCopilotPage() {
           history: mockHistory,
           resumeContext: parsedResumeDetails,
           codeSubmission: isCodingQuestion ? codeSubmission : "",
-          codeLanguage: isCodingQuestion ? codeLanguage : ""
+          codeLanguage: isCodingQuestion ? codeLanguage : "",
+          responseTime: durationSeconds
         })
       });
 
@@ -382,11 +387,11 @@ export default function AICareerCopilotPage() {
       if (res.ok && data.success && data.result) {
         const r = data.result;
         
-        // Append user turn to history
+        // Append user turn to history including responseTime metric
         const updatedHistory = [
           ...mockHistory,
           { role: "assistant", content: mockQuestion },
-          { role: "user", content: mockAnswer }
+          { role: "user", content: mockAnswer, responseTime: durationSeconds }
         ];
         setMockHistory(updatedHistory);
 
@@ -428,6 +433,7 @@ export default function AICareerCopilotPage() {
           setMockCount(prev => prev + 1);
           setMockQuestion(r.nextQuestion);
           setMockAnswer("");
+          questionStartTimeRef.current = Date.now(); // RESET TIMER FOR NEXT TURN
           setTimeout(() => speakMockText(r.nextQuestion), 400);
         }
       } else {
@@ -1972,6 +1978,33 @@ export default function AICareerCopilotPage() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Ideal Sample Answers Model Responses */}
+                    {mockReport?.idealSampleAnswers && mockReport.idealSampleAnswers.length > 0 && (
+                      <div className="bg-white border border-slate-200 p-5 rounded-2xl space-y-4 shadow-xs text-left">
+                        <div className="space-y-0.5">
+                          <h5 className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                            <Lightbulb className="h-4.5 w-4.5 text-violet-500" /> Ideal Sample Answers (Model Responses)
+                          </h5>
+                          <p className="text-[10px] text-slate-450">Review the target answers showing the standard expected by technical recruiters.</p>
+                        </div>
+
+                        <div className="space-y-3">
+                          {mockReport.idealSampleAnswers.map((item: any, idx: number) => (
+                            <div key={idx} className="bg-slate-50 border border-slate-200/60 p-4.5 rounded-xl space-y-2">
+                              <div className="flex items-start gap-2">
+                                <span className="flex-shrink-0 bg-violet-100 text-violet-700 font-black text-[9px] px-1.5 py-0.5 rounded-md font-mono mt-0.5">Q{idx + 1}</span>
+                                <h6 className="text-xs font-bold text-slate-800 leading-relaxed">{item.question}</h6>
+                              </div>
+                              <div className="border-t border-slate-250 pt-2 pl-6">
+                                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest font-mono block mb-1">Model Answer</span>
+                                <p className="text-xs text-slate-600 leading-relaxed font-normal whitespace-pre-wrap">{item.sampleAnswer}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   /* Active Live Mock Session */

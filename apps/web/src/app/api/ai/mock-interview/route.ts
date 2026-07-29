@@ -5,7 +5,20 @@ export const maxDuration = 60; // 60s Vercel serverless function timeout extensi
 
 export async function POST(req: NextRequest) {
   try {
-    const { role, interviewType, difficulty, question, answer, history, company, jobDescription, resumeContext, codeSubmission, codeLanguage } = await req.json();
+    const { 
+      role, 
+      interviewType, 
+      difficulty, 
+      question, 
+      answer, 
+      history, 
+      company, 
+      jobDescription, 
+      resumeContext, 
+      codeSubmission, 
+      codeLanguage,
+      responseTime 
+    } = await req.json();
 
     const isFinalQuestion = history && history.length >= 8; // 5 question session (10 entries in history)
 
@@ -22,19 +35,26 @@ ${resumeContext ? `Candidate Resume Background Context: ${JSON.stringify(resumeC
 
 Current Question Asked: "${question}"
 Candidate's Response: "${answer}"
+Candidate's Response Time (current turn): ${responseTime ? `${responseTime} seconds` : "Not measured"}
 ${codeSubmission ? `Candidate's Code Submission (${codeLanguage}):\n\`\`\`\n${codeSubmission}\n\`\`\`` : ""}
-Conversation History: ${JSON.stringify(history)}
+Conversation History (containing previous questions, answers, and response times if recorded): ${JSON.stringify(history)}
 
-INSTRUCTIONS:
+INSTRUCTIONS FOR AI EVALUATION:
 1. Conduct an adaptive interview. Evaluate the quality, accuracy, and depth of the candidate's last answer (evaluating both their explanation/response text AND their code submission correctness, style, and complexity, if provided).
-2. If this is NOT the final question (isFinalQuestion: ${isFinalQuestion ? "YES" : "NO"}), formulate a highly conversational follow-up question.
+2. Look for speech patterns:
+   - Identify filler words in the response transcript (e.g. "like", "um", "uh", "basically", "actually", "you know", "sort of", "kind of"). Count occurrences and deduct points from Fluency.
+   - Evaluate Response Time: If responseTime is under 10 seconds, check if the response is too brief or incomplete. If responseTime is over 90 seconds, check if they rambled or were hesitant. Deduct Confidence/Fluency scores accordingly.
+3. If this is NOT the final question (isFinalQuestion: NO), formulate a highly conversational follow-up question.
    - Do NOT ask generic template questions.
    - Reference concepts the candidate brought up in their response.
-   - Challenge weak, vague, or textbook answers (e.g. ask "how did you optimize that specifically?" or "what trade-offs did you consider?").
+   - Challenge weak, vague, or textbook answers.
    - If they did exceptionally well, increase complexity. If they struggled, ask a clarifying sub-question to test foundation.
    - If the role is highly technical and coding is expected, feel free to ask a coding challenge question as the next question!
-3. If this IS the final question (isFinalQuestion: YES), compile a comprehensive, expert interview intelligence report.
-4. Respond strictly with a JSON object. Ensure it contains no markdown code block wrapper or extra comments.
+4. If this IS the final question (isFinalQuestion: YES), compile a comprehensive, expert interview intelligence report.
+   - Calculate all scores dynamically based ONLY on the candidate's actual answers in the conversation history and current response.
+   - Provide a dynamic Hiring Recommendation: select from "Strong Hire", "Hire", "Borderline", or "No Hire" based on response completeness and technical accuracy.
+   - Under "idealSampleAnswers", provide the exact list of questions asked during the session, and for each question, write a high-quality, professional sample answer demonstrating the ideal standard.
+5. Respond strictly with a JSON object. Ensure it contains no markdown code block wrapper or extra comments.
 
 Response format required:
 {
@@ -59,11 +79,14 @@ Response format required:
           "questionsAnsweredPoorly": ["List of questions answered weakly..."],
           "missedConcepts": ["Core concepts or topics missed..."],
           "learningTopics": ["Suggested technologies/concepts to study..."],
-          "recommendedCertifications": ["Certifications recommendations..."],
-          "recommendedProjects": ["Specific projects to build..."],
-          "recommendedResources": ["Learning links/resources..."],
+          "idealSampleAnswers": [
+            {
+              "question": "The interview question...",
+              "sampleAnswer": "The ideal professional model answer for this question..."
+            }
+          ],
           "recruiterScorecard": {
-            "hiringRecommendation": "Strong Hire / Hire / Hold / No Hire",
+            "hiringRecommendation": "Strong Hire / Hire / Borderline / No Hire",
             "candidateReadiness": "Job Ready / Needs Mentoring / Unprepared",
             "suitableRoles": ["Suggested role titles..."],
             "skillGaps": ["Skills gaps detected..."],
@@ -124,8 +147,14 @@ Response format required:
             recommendedCertifications: ["AWS Certified Developer Associate"],
             recommendedProjects: ["High-throughput message queue system"],
             recommendedResources: ["Designing Data-Intensive Applications by Martin Kleppmann"],
+            idealSampleAnswers: [
+              {
+                question: question || "Describe a difficult system scaling challenge you solved.",
+                sampleAnswer: "A strong response details a specific project (e.g. migrating to a distributed key-value store), the metrics (latency reduced by 40%), and the exact database partitioning strategy used."
+              }
+            ],
             recruiterScorecard: {
-              hiringRecommendation: "Hold",
+              hiringRecommendation: "Borderline",
               candidateReadiness: "Needs Mentoring",
               suitableRoles: [role || "Associate Engineer"],
               skillGaps: ["System Scaling", "Database Internals"],
