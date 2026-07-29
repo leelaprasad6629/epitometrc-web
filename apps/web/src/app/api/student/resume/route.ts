@@ -61,10 +61,10 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
+    const file = formData.get("file");
 
-    if (!file) {
-      return NextResponse.json({ success: false, error: "No file uploaded." }, { status: 400 });
+    if (!file || typeof file === "string") {
+      return NextResponse.json({ success: false, error: "No file uploaded or invalid file format." }, { status: 400 });
     }
 
     const ext = path.extname(file.name).toLowerCase();
@@ -98,8 +98,8 @@ export async function POST(req: NextRequest) {
       if (!bucketExists) {
         await supabase.storage.createBucket('resumes', { public: true });
       }
-    } catch {
-      // Proceed hoping it exists
+    } catch (bucketErr) {
+      console.warn("Failed to check/create resumes bucket:", bucketErr);
     }
 
     const safeFileName = `${userId}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
@@ -114,7 +114,11 @@ export async function POST(req: NextRequest) {
       });
 
     if (uploadError) {
-      throw new Error("Supabase upload failed: " + uploadError.message);
+      console.error("Supabase upload failed:", uploadError);
+      return NextResponse.json({
+        success: false,
+        error: `Supabase upload failed: ${uploadError.message}. Ensure the 'resumes' bucket exists in your Supabase project.`
+      }, { status: 500 });
     }
 
     const { data: urlData } = supabase.storage

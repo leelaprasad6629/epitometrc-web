@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import MobileMenu from "@/components/layout/MobileMenu";
 import Image from "next/image";
+import { getAvatarUrl } from "@/lib/avatar";
 
 type DesktopNavItem = {
   name: string;
@@ -170,10 +171,40 @@ export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
 
+  const [user, setUser] = useState<{ name: string; role: string; profileImage?: string | null } | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 15);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.user) {
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+
+    const handleProfileUpdate = () => {
+      fetch("/api/auth/me")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.user) {
+            setUser(data.user);
+          }
+        })
+        .catch(() => {});
+    };
+    window.addEventListener("user-profile-updated", handleProfileUpdate);
+    return () => window.removeEventListener("user-profile-updated", handleProfileUpdate);
   }, []);
 
   const [prevPathname, setPrevPathname] = useState(pathname);
@@ -194,55 +225,95 @@ export default function Navbar() {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-12 items-center justify-between">
-          <Link href="/" className="flex shrink-0 items-center space-x-2.5 hover:opacity-90 transition-opacity">
-            <Image
-              src="/images/Epitome_logo_white.png"
-              alt="EpitomeTRC Logo"
-              width={499}
-              height={390}
-              className="h-10 w-auto object-contain"
-              priority
-            />
-            <span className="font-heading text-xl font-extrabold tracking-tight text-white sm:text-2xl">
-              Epitome<span className="text-orange-500">TRC</span>
-            </span>
-          </Link>
+          <div className="flex items-center space-x-10">
+            <Link href="/" className="flex shrink-0 items-center space-x-2.5 hover:opacity-90 transition-opacity">
+              <Image
+                src="/images/Epitome_logo_white.png"
+                alt="EpitomeTRC Logo"
+                width={499}
+                height={390}
+                className="h-10 w-auto object-contain"
+                priority
+              />
+              <span className="font-heading text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+                Epitome<span className="text-orange-500">TRC</span>
+              </span>
+            </Link>
 
-          <div className="hidden items-center gap-1.5 xl:flex">
-            {desktopNavItems.map((item) =>
-              item.children ? (
-                <NavDropdown key={item.name} item={item} pathname={pathname} />
-              ) : (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "py-1.5 px-3.5 rounded-xl text-sm font-semibold transition-all duration-250",
-                    pathname === item.href
-                      ? "text-orange-400 bg-white/10"
-                      : "text-slate-300 hover:bg-white/5 hover:text-white",
-                  )}
-                >
-                  {item.name}
-                </Link>
-              ),
-            )}
+            <div className="hidden items-center gap-1.5 xl:flex">
+              {desktopNavItems.map((item) =>
+                item.children ? (
+                  <NavDropdown key={item.name} item={item} pathname={pathname} />
+                ) : (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "py-1.5 px-3.5 rounded-xl text-sm font-semibold transition-all duration-250",
+                      pathname === item.href
+                        ? "text-orange-400 bg-white/10"
+                        : "text-slate-300 hover:bg-white/5 hover:text-white",
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                ),
+              )}
+            </div>
           </div>
 
           <div className="hidden items-center space-x-4 md:flex">
-            <Link
-              href="/login"
-              className="px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-            >
-              Register Now
-              <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Link>
+            {loading ? (
+              <div className="h-9 w-20 animate-pulse rounded-xl bg-white/5" />
+            ) : user ? (
+              <div className="flex items-center space-x-4">
+                <Link
+                  href={
+                    user.role === "Student"
+                      ? "/student/dashboard"
+                      : user.role === "Admin"
+                      ? "/admin/dashboard"
+                      : "/employee/dashboard"
+                  }
+                  className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                >
+                  Dashboard
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Link>
+                <Link
+                  href={
+                    user.role === "Student"
+                      ? "/student/profile"
+                      : user.role === "Admin"
+                      ? "/admin/dashboard"
+                      : "/employee/profile"
+                  }
+                  className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-slate-700 bg-slate-800 transition-transform hover:scale-105"
+                >
+                  <img
+                    src={getAvatarUrl(user.name, user.profileImage)}
+                    alt={user.name}
+                    className="h-full w-full object-cover"
+                  />
+                </Link>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                >
+                  Register Now
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Link>
+              </>
+            )}
           </div>
 
           <button
