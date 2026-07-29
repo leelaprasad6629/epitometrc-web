@@ -120,41 +120,39 @@ function NavDropdown({
     item.children?.some((c) => pathname === c.href.split("#")[0]);
 
   return (
-    <div ref={ref} className="relative flex items-center gap-0.5" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+    <div 
+      ref={ref} 
+      className="relative flex items-center" 
+      onMouseEnter={() => setIsOpen(true)} 
+      onMouseLeave={() => setIsOpen(false)}
+    >
       <Link
         href={item.href}
         className={cn(
-          "flex items-center py-2 text-sm font-medium transition-colors",
-          isActive ? "text-orange-500" : "text-slate-600 hover:text-[#0b172a]",
+          "flex items-center gap-1 py-1.5 px-3.5 rounded-xl text-sm font-semibold transition-all duration-250",
+          isActive 
+            ? "text-orange-600 bg-orange-50/50" 
+            : "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900",
         )}
       >
         {item.name}
+        <ChevronDown className={cn("h-3.5 w-3.5 opacity-60 transition-transform duration-250", isOpen && "rotate-180")} />
       </Link>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="py-2 px-1 text-slate-400 hover:text-[#0b172a] transition-colors"
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        suppressHydrationWarning
-      >
-        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-250", isOpen && "rotate-180")} />
-      </button>
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.2 }}
-            className="absolute left-0 top-full z-50 mt-1 min-w-[220px] rounded-xl border border-slate-100 bg-white py-2 shadow-lg"
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.15 }}
+            className="absolute left-0 top-full z-50 mt-1.5 min-w-[240px] rounded-2xl border border-slate-200/60 bg-white/95 p-1.5 shadow-[0_12px_38px_-4px_rgba(15,23,42,0.08)] backdrop-blur-md"
           >
             {item.children?.map((child) => (
               <Link
                 key={child.name}
                 href={child.href}
                 onClick={() => setIsOpen(false)}
-                className="block px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#0b172a]"
+                className="block rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
               >
                 {child.name}
               </Link>
@@ -173,7 +171,7 @@ export default function Navbar() {
   const isHome = pathname === "/";
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    const handleScroll = () => setIsScrolled(window.scrollY > 15);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -187,16 +185,16 @@ export default function Navbar() {
   return (
     <nav
       className={cn(
-        "fixed left-0 right-0 top-0 z-50 transition-all duration-300",
-        isScrolled || !isHome
-          ? "border-b border-slate-200/50 bg-white/90 py-3 shadow-md backdrop-blur-md"
-          : "bg-transparent py-5",
+        "fixed left-0 right-0 top-0 z-50 transition-all duration-300 border-b",
+        isScrolled
+          ? "border-slate-200/80 bg-[#f0f7ff]/80 py-3 shadow-[0_8px_30px_rgba(15,23,42,0.04)] backdrop-blur-lg"
+          : "border-transparent bg-transparent py-5",
       )}
       aria-label="Main navigation"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-12 items-center justify-between">
-          <Link href="/" className="flex shrink-0 items-center space-x-2">
+          <Link href="/" className="flex shrink-0 items-center space-x-2.5 hover:opacity-90 transition-opacity">
             <Image
               src="/images/Epitome_logo_black.png"
               alt="EpitomeTRC Logo"
@@ -205,12 +203,12 @@ export default function Navbar() {
               className="h-10 w-auto object-contain"
               priority
             />
-            <span className="font-display text-xl font-bold tracking-tight text-[#0b172a] sm:text-2xl">
+            <span className="font-heading text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
               Epitome<span className="text-orange-500">TRC</span>
             </span>
           </Link>
 
-          <div className="hidden items-center gap-5 xl:flex">
+          <div className="hidden items-center gap-1.5 xl:flex">
             {desktopNavItems.map((item) =>
               item.children ? (
                 <NavDropdown key={item.name} item={item} pathname={pathname} />
@@ -219,34 +217,28 @@ export default function Navbar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "relative py-2 text-sm font-medium transition-colors group",
+                    "py-1.5 px-3.5 rounded-xl text-sm font-semibold transition-all duration-250",
                     pathname === item.href
-                      ? "text-orange-500"
-                      : "text-slate-600 hover:text-[#0b172a]",
+                      ? "text-orange-600 bg-orange-50/50"
+                      : "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900",
                   )}
                 >
                   {item.name}
-                  <span
-                    className={cn(
-                      "absolute bottom-0 left-0 h-0.5 w-full origin-left bg-orange-500 transition-transform",
-                      pathname === item.href ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
-                    )}
-                  />
                 </Link>
               ),
             )}
           </div>
 
-          <div className="hidden items-center space-x-3 md:flex xl:space-x-4">
+          <div className="hidden items-center space-x-4 md:flex">
             <Link
               href="/login"
-              className="px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:text-[#0b172a]"
+              className="px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:text-slate-900"
             >
               Login
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+              className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.15)] hover:shadow-[0_6px_16px_rgba(249,115,22,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
             >
               Register Now
               <ArrowRight className="ml-1.5 h-4 w-4" />
@@ -256,7 +248,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-[#0b172a] focus:outline-none md:xl:hidden"
+            className="inline-flex items-center justify-center rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus:outline-none md:xl:hidden"
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
           >
