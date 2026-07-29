@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Clock, Award, Users, ArrowRight, Calendar, ExternalLink, Video, X, Mic, MicOff, VideoOff, PhoneOff } from "lucide-react";
 import Image from "next/image";
@@ -31,11 +31,8 @@ export default function StudentDashboard() {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    loadProfileFromServer();
-    
-    // Fetch current user
-    fetch("/api/auth/me")
+  const fetchCurrentUser = useCallback(() => {
+    fetch("/api/auth/me?t=" + Date.now(), { cache: "no-store" })
       .then((res) => res.json())
       .then((payload) => {
         if (payload.success && payload.user) {
@@ -43,7 +40,21 @@ export default function StudentDashboard() {
         }
       })
       .catch(() => {});
+  }, []);
 
+  useEffect(() => {
+    loadProfileFromServer();
+    fetchCurrentUser();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("user-profile-updated", fetchCurrentUser);
+      return () => {
+        window.removeEventListener("user-profile-updated", fetchCurrentUser);
+      };
+    }
+  }, [loadProfileFromServer, fetchCurrentUser]);
+
+  useEffect(() => {
     // Fetch dashboard data
     fetch("/api/student/dashboard")
       .then((res) => res.json())
@@ -56,7 +67,7 @@ export default function StudentDashboard() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [loadProfileFromServer]);
+  }, []);
 
   const handleRequestReview = async () => {
     try {

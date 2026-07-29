@@ -148,6 +148,7 @@ export interface ParsedResume {
   certifications: CertificationEntry[];
   internships: InternshipEntry[];
   achievements: AchievementEntry[];
+  awards?: AchievementEntry[];
   
   // Extra structured arrays
   publications: PublicationEntry[];
@@ -157,6 +158,7 @@ export interface ParsedResume {
   volunteerExperience: VolunteerEntry[];
   languagesKnown: string[];
   professionalInterests: string[];
+  interests?: string[];
 
   technicalSkills: string[];
   softSkills: string[];
@@ -181,6 +183,9 @@ export interface ParsedResume {
   versionControl: string[];
   
   verifiedSkills: string[];
+  
+  // Custom section order
+  sectionOrder?: string[];
   
   // Semantic career insights
   candidateProfile: string;
@@ -296,6 +301,7 @@ const initialParsedResume: ParsedResume = {
   certifications: [],
   internships: [],
   achievements: [],
+  awards: [],
   
   publications: [],
   workshops: [],
@@ -304,6 +310,7 @@ const initialParsedResume: ParsedResume = {
   volunteerExperience: [],
   languagesKnown: [],
   professionalInterests: [],
+  interests: [],
 
   technicalSkills: [],
   softSkills: [],
@@ -327,6 +334,18 @@ const initialParsedResume: ParsedResume = {
   versionControl: [],
   
   verifiedSkills: [],
+
+  sectionOrder: [
+    "summary",
+    "technicalSkills",
+    "experience",
+    "projects",
+    "education",
+    "certifications",
+    "achievements",
+    "languagesKnown",
+    "volunteerExperience"
+  ],
   
   candidateProfile: "",
   careerDomain: "",
@@ -365,20 +384,27 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; Max-Age=-99999999; path=/; SameSite=Lax`;
 }
 
-async function persistProfileToServer(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
-  if (typeof window === "undefined") return;
+async function persistProfileToServer(profile: ParsedResume | null, confidenceScores: Record<string, number>): Promise<ParsedResume | null> {
+  if (typeof window === "undefined") return null;
   try {
-    await fetch("/api/student/profile", {
+    const response = await fetch("/api/student/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ profile, confidenceScores })
     });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.profile) {
+        return data.profile;
+      }
+    }
   } catch (err) {
     console.error("Failed to persist profile to server:", err);
   }
+  return null;
 }
 
-function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
+async function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScores: Record<string, number>) {
   if (typeof window === "undefined") return;
   
   // Clear any existing legacy cookies & session storage to prevent leakage
@@ -387,7 +413,11 @@ function syncProfileToClientStorage(profile: ParsedResume | null, confidenceScor
   sessionStorage.removeItem("student_profile_image");
 
   // Persist to server database async as single source of truth
-  persistProfileToServer(profile, confidenceScores);
+  const updatedProfile = await persistProfileToServer(profile, confidenceScores);
+  if (updatedProfile) {
+    useResumeStore.setState({ parsedResumeDetails: updatedProfile });
+    window.dispatchEvent(new CustomEvent("user-profile-updated"));
+  }
 }
 
 export const useResumeStore = create<ResumeStore>((set, get) => ({
@@ -590,12 +620,12 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
     try {
       // 1. Try to fetch from server database first
-      const response = await fetch("/api/student/profile");
+      const response = await fetch("/api/student/profile?t=" + Date.now(), { cache: "no-store" });
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.profile) {
           const profile = data.profile;
-          if (profile.profileImage && profile.profileImage.includes("unsplash.com")) {
+          if (profile.profileImage && typeof profile.profileImage === "string" && profile.profileImage.includes("unsplash.com")) {
             profile.profileImage = null;
           }
           const confidence = data.confidenceScores || {};
@@ -632,12 +662,12 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
     // 2. Pre-populate details from /api/auth/me if no profile exists in DB
     try {
-      const authRes = await fetch("/api/auth/me");
+      const authRes = await fetch("/api/auth/me?t=" + Date.now(), { cache: "no-store" });
       if (authRes.ok) {
         const authData = await authRes.json();
         if (authData.success && authData.user) {
           const rawAuthAvatar = authData.user.profileImage || null;
-          const sanitizedAuthAvatar = (rawAuthAvatar && rawAuthAvatar.includes("unsplash.com")) ? null : rawAuthAvatar;
+          const sanitizedAuthAvatar = (rawAuthAvatar && typeof rawAuthAvatar === "string" && rawAuthAvatar.includes("unsplash.com")) ? null : rawAuthAvatar;
           const newProfile = {
             ...initialParsedResume,
             fullName: authData.user.name || "Student User",

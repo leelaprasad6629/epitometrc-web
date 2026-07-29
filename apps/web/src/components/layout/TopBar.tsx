@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Bell, Search, Menu, LogOut, User, Settings, Check } from "lucide-react";
@@ -78,8 +78,8 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
     avatar: defaultAvatar,
   });
 
-  useEffect(() => {
-    fetch("/api/auth/me")
+  const fetchUserData = useCallback(() => {
+    fetch("/api/auth/me?t=" + Date.now(), { cache: "no-store" })
       .then((res) => res.json())
       .then((payload) => {
         if (payload.success && payload.user) {
@@ -95,7 +95,18 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
       .catch(() => {
         // If auth fails, keep default state
       });
-  }, [role, defaultAvatar]);
+  }, [defaultAvatar]);
+
+  useEffect(() => {
+    fetchUserData();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("user-profile-updated", fetchUserData);
+      return () => {
+        window.removeEventListener("user-profile-updated", fetchUserData);
+      };
+    }
+  }, [role, fetchUserData]);
 
   const handleSignOut = async () => {
     setProfileOpen(false);

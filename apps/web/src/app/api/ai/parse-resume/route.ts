@@ -142,13 +142,35 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(fileBase64, "base64");
+
+    // 1. File Size Validation (Max 10 MB)
+    const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+    if (buffer.length > MAX_SIZE_BYTES) {
+      return NextResponse.json({
+        success: false,
+        error: "File size exceeds the 10 MB limit. Please upload a smaller file."
+      }, { status: 400 });
+    }
+
+    // 2. Extension & MIME Validation
+    const lowerName = fileName.toLowerCase();
+    const isValidExtension = lowerName.endsWith(".pdf") || lowerName.endsWith(".doc") || lowerName.endsWith(".docx");
+    const isValidMime = !fileMimeType || fileMimeType.includes("pdf") || fileMimeType.includes("msword") || fileMimeType.includes("officedocument") || fileMimeType.includes("text");
+    
+    if (!isValidExtension && !isValidMime) {
+      return NextResponse.json({
+        success: false,
+        error: "Unsupported file format. Please upload a PDF, DOC, or DOCX file."
+      }, { status: 400 });
+    }
+
     let rawText = "";
 
-    if (fileMimeType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf")) {
+    if (fileMimeType === "application/pdf" || lowerName.endsWith(".pdf")) {
       rawText = await parsePdfBuffer(buffer);
     } else if (
       fileMimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
-      fileName.toLowerCase().endsWith(".docx")
+      lowerName.endsWith(".docx") || lowerName.endsWith(".doc")
     ) {
       rawText = await parseDocxBuffer(buffer);
     } else {
@@ -165,23 +187,21 @@ export async function POST(req: NextRequest) {
 
     // Production prompt for Groq Llama-3.3-70b-versatile
     const systemPrompt = `You are a production-grade Resume Intelligence Engine.
-Your job is to parse the raw text of a candidate's resume and normalize it into a strict JSON payload.
-Ensure all details are accurately extracted without any summary omissions.
+Your job is to parse the raw text of a candidate's resume and extract ONLY the text content, ignoring any visual layout, design, formatting, or font styles.
+Ensure all candidate details are accurately extracted into plain data strings without any summary omissions.
 
 CRITICAL INSTRUCTIONS FOR WEB & SOCIAL LINKS:
-1. Thoroughly scan the raw text (especially the header, contact section, projects, and about sections) for links, URLs, shorthand paths, or plain usernames/handles.
-2. Even if links are listed in shorthand (e.g., "github.com/username", "linkedin.com/in/username") or as domainless handles (e.g. "GitHub: username" or "leetcode: username"), you MUST resolve and output them as full absolute URLs with the "https://" protocol (e.g. "https://github.com/username", "https://linkedin.com/in/username").
-3. LinkedIn URL Normalization: LinkedIn profile handles almost always use lowercase kebab-case (hyphen-separated) format. If you find a plain handle in PascalCase, camelCase, or containing spaces (e.g. "MudigondaLalithaSreya" or "Mudigonda Lalitha Sreya"), you MUST convert it to kebab-case (e.g. "mudigonda-lalitha-sreya") and prepend the LinkedIn domain to yield: "https://www.linkedin.com/in/mudigonda-lalitha-sreya/".
-4. Handle Separation: If the contact info contains multiple handles separated by characters like "|" or "/" (e.g., "LalithaSreya | MudigondaLalithaSreya"), isolate each handle individually, clean it, and map it to its respective platform (e.g. "https://github.com/LalithaSreya" and "https://www.linkedin.com/in/mudigonda-lalitha-sreya/").
-5. Assign these resolved URLs to the respective JSON fields below. If a link/social profile is not present in the resume, return an empty string (""). Never invent mock URLs.
+1. Thoroughly scan the raw text for links, URLs, shorthand paths, or plain usernames/handles.
+2. Even if links are listed in shorthand (e.g. "github.com/username", "linkedin.com/in/username"), resolve and output them as full absolute URLs with "https://".
+3. LinkedIn URL Normalization: Convert handle to kebab-case and format as "https://www.linkedin.com/in/username/".
 
 Output ONLY a valid JSON object matching this exact structure:
 {
   "fullName": "Full Name",
-  "headline": "Professional Headline / Job Title",
+  "headline": "Professional Title / Target Role",
   "email": "email@example.com",
   "phone": "Phone number",
-  "location": "City, Country or State",
+  "location": "City, State or Address",
   "linkedin": "LinkedIn profile URL",
   "github": "GitHub profile URL",
   "portfolioWebsite": "Portfolio URL",
@@ -191,16 +211,16 @@ Output ONLY a valid JSON object matching this exact structure:
   "codechef": "CodeChef profile URL",
   "codeforces": "Codeforces profile URL",
   "kaggle": "Kaggle profile URL",
-  "bio": "Detailed career summary biography",
+  "bio": "Professional Summary",
   "education": [
     {
       "degree": "Degree (e.g. B.Tech)",
       "branch": "Branch/Major (e.g. Computer Science)",
-      "institution": "School or College Name",
+      "institution": "College Name",
       "university": "University Name",
       "startYear": "YYYY",
       "endYear": "YYYY",
-      "cgpa": "GPA or Percentage"
+      "cgpa": "GPA or Grade"
     }
   ],
   "experience": [
@@ -210,8 +230,8 @@ Output ONLY a valid JSON object matching this exact structure:
       "employmentType": "Full-Time / Part-Time / Internship",
       "startDate": "Month YYYY",
       "endDate": "Month YYYY or Present",
-      "duration": "Duration in Months/Years",
-      "responsibilities": "Job description and achievements bullet points",
+      "duration": "Duration",
+      "responsibilities": "Bullet point achievements",
       "technologiesUsed": ["React", "Node"]
     }
   ],
@@ -235,20 +255,40 @@ Output ONLY a valid JSON object matching this exact structure:
   ],
   "achievements": [
     {
-      "title": "Award Title",
-      "description": "Short description of achievement"
+      "title": "Achievement Title",
+      "description": "Short description"
     }
   ],
-  "publications": [],
+  "awards": [
+    {
+      "title": "Award Title",
+      "description": "Issuer and description"
+    }
+  ],
+  "publications": [
+    {
+      "title": "Paper Title",
+      "publisher": "Journal or Publisher",
+      "date": "YYYY",
+      "url": "Link URL"
+    }
+  ],
+  "volunteerExperience": [
+    {
+      "role": "Volunteer Role",
+      "organization": "Organization",
+      "description": "Activities"
+    }
+  ],
   "workshops": [],
   "hackathons": [],
   "leadershipRoles": [],
-  "volunteerExperience": [],
-  "languagesKnown": [],
+  "languagesKnown": ["English", "Spanish"],
+  "interests": ["Open Source Contributing", "Tech Writing"],
   "technicalSkills": ["React", "Node.js", "Java", "Docker"],
-  "softSkills": ["Communication", "Leadership"],
-  "candidateProfile": "Paragraph summary of candidate profiles",
-  "careerDomain": "General Domain (e.g. Frontend Development)",
+  "softSkills": ["Communication", "Problem Solving", "Leadership"],
+  "candidateProfile": "Paragraph summary of candidate profile",
+  "careerDomain": "General Domain",
   "experienceLevel": "Fresher / Junior / Mid / Senior"
 }`;
 
