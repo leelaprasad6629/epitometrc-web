@@ -15,6 +15,7 @@ model User {
   passwordHash  String
   role          String        @default("Student") // Student, Employee, Admin
   status        String        @default("Active")
+  requirePasswordChange Boolean @default(false)
   createdAt     DateTime      @default(now())
   enrollments   Enrollment[]
   applications  Application[]

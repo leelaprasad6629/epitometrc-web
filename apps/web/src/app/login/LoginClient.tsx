@@ -60,6 +60,11 @@ function LoginForm() {
         throw new Error(data.error || "Login failed");
       }
 
+      if (data.requirePasswordChange) {
+        router.push(`/change-password?email=${encodeURIComponent(email)}`);
+        return;
+      }
+
       const role = data.user.role;
       if (role === "Student") {
         router.push("/student/dashboard");

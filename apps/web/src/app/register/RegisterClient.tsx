@@ -9,11 +9,9 @@ import { Input } from "@/components/ui/input";
 import DnaCanvas from "@/components/common/DnaCanvas";
 import Image from "next/image";
 
-type UserRole = "Student" | "Employer" | "Organization";
-
 export default function RegisterClient() {
   const router = useRouter();
-  const [role, setRole] = useState<UserRole>("Student");
+  const [role] = useState<string>("Student");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
@@ -80,11 +78,7 @@ export default function RegisterClient() {
         throw new Error(loginData.error || "Auto-login failed");
       }
 
-      if (role === "Student") {
-        router.push("/student/dashboard");
-      } else {
-        router.push("/employee/dashboard");
-      }
+      router.push("/student/dashboard");
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -180,28 +174,7 @@ export default function RegisterClient() {
               </div>
             )}
 
-            {/* Role Selection Buttons */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
-                Role Selection
-              </label>
-              <div className="grid grid-cols-3 gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100">
-                {(["Student", "Employer", "Organization"] as UserRole[]).map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setRole(r)}
-                    className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                      role === r
-                        ? "bg-white text-orange-600 shadow-sm border border-slate-100"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
-            </div>
+
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
