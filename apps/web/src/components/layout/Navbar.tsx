@@ -167,6 +167,7 @@ function NavDropdown({
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const pathname = usePathname();
   const isHome = pathname === "/";
 
@@ -174,6 +175,17 @@ export default function Navbar() {
     const handleScroll = () => setIsScrolled(window.scrollY > 15);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.user) {
+          setUser(data.user);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const [prevPathname, setPrevPathname] = useState(pathname);
@@ -208,7 +220,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <div className="hidden items-center gap-1.5 xl:flex">
+          <div className="hidden items-center gap-5 xl:flex">
             {desktopNavItems.map((item) =>
               item.children ? (
                 <NavDropdown key={item.name} item={item} pathname={pathname} />
@@ -230,19 +242,42 @@ export default function Navbar() {
           </div>
 
           <div className="hidden items-center space-x-4 md:flex">
-            <Link
-              href="/login"
-              className="px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-            >
-              Register Now
-              <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href={user.role === "Student" ? "/student/dashboard" : "/employee/dashboard"}
+                  className="px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={async () => {
+                    await fetch("/api/auth/logout", { method: "POST" });
+                    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    window.location.href = "/";
+                  }}
+                  className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                >
+                  Register Now
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Link>
+              </>
+            )}
           </div>
 
           <button
