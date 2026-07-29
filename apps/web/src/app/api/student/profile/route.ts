@@ -16,23 +16,62 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const profileRecord = await prisma.userProfile.findUnique({
-      where: { userId },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
       select: {
-        profile: true,
-        confidenceScores: true
+        name: true,
+        email: true,
+        contactNumber: true,
+        profile: {
+          select: {
+            profile: true,
+            confidenceScores: true
+          }
+        }
       }
     });
 
-    let profile = profileRecord?.profile as any || null;
-    if (profile && profile.profileImage && profile.profileImage.includes("unsplash.com")) {
+    if (!user) {
+      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+    }
+
+    let profile = (user.profile as any)?.profile || null;
+    const confidenceScores = (user.profile as any)?.confidenceScores || {};
+
+    if (!profile) {
+      // Construct a default profile based on the registration User table record
+      profile = {
+        fullName: user.name,
+        email: user.email,
+        phone: user.contactNumber || "",
+        headline: "Software Engineering Apprentice",
+        bio: "",
+        education: [],
+        experience: [],
+        projects: [],
+        technicalSkills: [],
+        verifiedSkills: [],
+        certifications: [],
+        achievements: [],
+        languagesKnown: [],
+        professionalInterests: []
+      };
+    } else {
+      // Ensure registration keys are bridged if present
+      profile.fullName = profile.fullName || profile.name || user.name;
+      profile.email = profile.email || user.email;
+      profile.phone = profile.phone || profile.contactNumber || user.contactNumber || "";
+      profile.headline = profile.headline || "Software Engineering Apprentice";
+    }
+
+    if (profile.profileImage && typeof profile.profileImage === "string" && profile.profileImage.includes("unsplash.com")) {
       profile.profileImage = null;
     }
 
     return NextResponse.json({
       success: true,
       profile,
-      confidenceScores: profileRecord?.confidenceScores || {}
+      confidenceScores
     });
   } catch (err) {
     console.error("Failed to read profile:", err);
