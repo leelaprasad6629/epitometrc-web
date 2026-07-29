@@ -243,18 +243,24 @@ export default function StudentProfilePage() {
 
     setUploading(true);
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = async () => {
       const base64 = reader.result as string;
       setProfileImage(base64);
-      updateParsedDetails({ profileImage: base64 });
+      await updateParsedDetails({ profileImage: base64 });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("user-profile-updated"));
+      }
       setUploading(false);
     };
     reader.readAsDataURL(file);
   };
 
-  const handleRemoveImage = () => {
+  const handleRemoveImage = async () => {
     setProfileImage(null);
-    updateParsedDetails({ profileImage: null });
+    await updateParsedDetails({ profileImage: null });
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("user-profile-updated"));
+    }
   };
 
   // Reupload & delete handlers
