@@ -8,6 +8,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      spacing: {
+        "4.5": "1.125rem", // 18px
+        "9.5": "2.375rem", // 38px
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
@@ -32,6 +36,20 @@ const config: Config = {
         "chart-3": "var(--chart-3)",
         "chart-4": "var(--chart-4)",
         "chart-5": "var(--chart-5)",
+        // Custom color patches for non-standard Tailwind class overrides
+        slate: {
+          150: "#edf2f7",
+          205: "#e2e8f0",
+          450: "#7a8a9e",
+          605: "#475569",
+          655: "#3f4b5a",
+        },
+        red: {
+          650: "#dc2626",
+        },
+        orange: {
+          655: "#ea580c",
+        },
       },
       borderRadius: {
         lg: "var(--radius-lg)",
