@@ -11,7 +11,7 @@ import Image from "next/image";
 
 export default function RegisterClient() {
   const router = useRouter();
-  const [role] = useState<string>("Student");
+  const [role, setRole] = useState<string>("Student");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
@@ -78,7 +78,11 @@ export default function RegisterClient() {
         throw new Error(loginData.error || "Auto-login failed");
       }
 
-      router.push("/student/dashboard");
+      if (role === "Student") {
+        router.push("/student/dashboard");
+      } else {
+        router.push("/employee/dashboard");
+      }
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -173,8 +177,20 @@ export default function RegisterClient() {
                 <span>{error}</span>
               </div>
             )}
-
-
+             <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
+                Register As
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/10 font-bold text-slate-700"
+              >
+                <option value="Student">Student (Public)</option>
+                <option value="Employee">Employee (Official)</option>
+                <option value="Intern">Intern (Official)</option>
+              </select>
+            </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">

@@ -44,25 +44,25 @@ export async function GET(req: NextRequest) {
     });
 
     // Compute average ATS score from parsed profile completeness
-    const profiles = await prisma.userProfile.findMany({ select: { profile: true } });
-    let totalCompleteness = 0;
-    let profileCount = 0;
-    profiles.forEach((p) => {
-      if (p.profile && typeof p.profile === "object") {
-        const completeness = (p.profile as any).overallCompleteness;
-        if (typeof completeness === "number") {
-          totalCompleteness += completeness;
-          profileCount++;
-        }
-      }
-    });
-    const averageAtsScore = profileCount > 0 ? Math.round(totalCompleteness / profileCount) : 85;
+    const atsScoreResult = await prisma.$queryRaw<any[]>`
+      SELECT AVG((profile->>'overallCompleteness')::numeric) as "avgCompleteness"
+      FROM "UserProfile"
+      WHERE profile IS NOT NULL
+        AND (profile->>'overallCompleteness') IS NOT NULL
+    `;
+    const rawScore = atsScoreResult?.[0]?.avgCompleteness ?? atsScoreResult?.[0]?.avgcompleteness;
+    const averageAtsScore = rawScore !== null && rawScore !== undefined
+      ? Math.round(Number(rawScore))
+      : 85;
 
     // Compute average placement readiness based on student course progress
-    const enrollmentsProgress = await prisma.enrollment.findMany({ select: { progress: true } });
-    const totalProgress = enrollmentsProgress.reduce((sum, e) => sum + e.progress, 0);
-    const placementReadiness = enrollmentsProgress.length > 0 
-      ? Math.round(totalProgress / enrollmentsProgress.length) 
+    const enrollmentsAvg = await prisma.enrollment.aggregate({
+      _avg: {
+        progress: true,
+      },
+    });
+    const placementReadiness = enrollmentsAvg._avg.progress !== null
+      ? Math.round(enrollmentsAvg._avg.progress)
       : 75;
 
     // Fetch pipeline counts

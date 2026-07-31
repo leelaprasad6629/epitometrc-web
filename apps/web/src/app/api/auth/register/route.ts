@@ -18,8 +18,12 @@ export async function POST(req: NextRequest) {
 
     const userRole = role || "Student";
 
-    if (userRole !== "Student") {
-      return NextResponse.json({ error: "Access Denied: Public registration is restricted to Student accounts." }, { status: 400 });
+    if (userRole !== "Student" && userRole !== "Employee" && userRole !== "Intern") {
+      return NextResponse.json({ error: "Access Denied: Invalid registration role." }, { status: 400 });
+    }
+
+    if ((userRole === "Employee" || userRole === "Intern") && !email.toLowerCase().endsWith("@epitometrc.com")) {
+      return NextResponse.json({ error: "Access Denied: Employee/Intern registration is restricted to official @epitometrc.com accounts." }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -37,7 +41,7 @@ export async function POST(req: NextRequest) {
           name,
           email,
           passwordHash,
-          role: "Student",
+          role: userRole,
           status: "Active",
           requirePasswordChange: false,
         },

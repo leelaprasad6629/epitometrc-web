@@ -78,7 +78,7 @@ export async function PATCH(req: NextRequest) {
       profileImage = null;
     }
 
-    // Decode and save profile image to Supabase storage if it is a base64 string
+    // Decode and save profile image to permanent server storage (/uploads) & Supabase storage
     if (profileImage && typeof profileImage === "string" && profileImage.startsWith("data:image/")) {
       const match = profileImage.match(/^data:(image\/\w+);base64,(.+)$/);
       if (match) {
@@ -89,37 +89,47 @@ export async function PATCH(req: NextRequest) {
         const safeFileName = `avatar_${payload.id}_${Date.now()}.${extension}`;
 
         try {
-          const { supabase } = await import("@/lib/supabase");
+          // 1. Guaranteed Local Server Storage (public/uploads)
+          const fs = await import("fs/promises");
+          const path = await import("path");
+          const uploadDir = path.join(process.cwd(), "public", "uploads");
+          await fs.mkdir(uploadDir, { recursive: true });
+          const localFilePath = path.join(uploadDir, safeFileName);
+          await fs.writeFile(localFilePath, fileBuffer);
 
-          // Ensure avatars bucket exists
+          // Set persistent local URL first
+          profileImage = `/uploads/${safeFileName}`;
+
+          // 2. Optional: Cloud Storage Mirror (Supabase Storage)
           try {
+            const { supabase } = await import("@/lib/supabase");
             const { data: buckets } = await supabase.storage.listBuckets();
             const bucketExists = buckets?.some(b => b.name === 'avatars');
             if (!bucketExists) {
               await supabase.storage.createBucket('avatars', { public: true });
             }
-          } catch (bucketErr) {
-            console.warn("Failed to check/create avatars bucket:", bucketErr);
-          }
 
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('avatars')
-            .upload(safeFileName, fileBuffer, {
-              contentType: mimeType,
-              cacheControl: '3600',
-              upsert: true,
-            });
-
-          if (uploadError) {
-            console.error("Supabase avatar upload failed:", uploadError);
-          } else {
-            const { data: urlData } = supabase.storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
               .from('avatars')
-              .getPublicUrl(safeFileName);
-            profileImage = urlData.publicUrl;
+              .upload(safeFileName, fileBuffer, {
+                contentType: mimeType,
+                cacheControl: '3600',
+                upsert: true,
+              });
+
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(safeFileName);
+              if (urlData?.publicUrl) {
+                profileImage = urlData.publicUrl;
+              }
+            }
+          } catch (cloudErr) {
+            console.warn("Supabase mirror skipped, using persistent local server URL:", cloudErr);
           }
         } catch (err) {
-          console.error("Failed to upload image to Supabase storage:", err);
+          console.error("Failed to save avatar image file:", err);
         }
       }
     }

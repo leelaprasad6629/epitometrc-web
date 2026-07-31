@@ -109,14 +109,8 @@ export default function PortalWebView({ path }: PortalWebViewProps) {
 
   const handleNavigationStateChange = async (navState: any) => {
     const url = navState.url;
-    // Intercept redirects to login/home screen and log out natively
-    if (
-      url.includes('/login') ||
-      url === `${API_BASE_URL}/` ||
-      url === `${API_BASE_URL}` ||
-      url === 'https://epitometrc-web.vercel.app/' ||
-      url === 'https://epitometrc-web.vercel.app'
-    ) {
+    // Intercept redirects to login/logout screens and log out natively
+    if (url.includes('/login') || url.includes('/logout')) {
       await setStoredToken(null);
       router.replace('/');
     }

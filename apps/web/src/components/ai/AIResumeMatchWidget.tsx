@@ -253,7 +253,7 @@ export default function AIResumeMatchWidget() {
             {loading ? "Analyzing resume contents..." : "Select Resume File"}
             <input type="file" accept=".pdf,.docx,.doc,.txt" onChange={handleResumeUpload} className="hidden" disabled={loading} />
           </label>
-          <span className="text-[9px] text-slate-400 font-medium">Supports PDF, DOCX up to 10MB</span>
+          <span className="text-[9px] text-slate-400 font-medium">Supported: PDF, DOC, DOCX (Maximum 25 MB)</span>
         </div>
       </DashboardCard>
     );

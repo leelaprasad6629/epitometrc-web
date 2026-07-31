@@ -143,12 +143,12 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(fileBase64, "base64");
 
-    // 1. File Size Validation (Max 10 MB)
-    const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+    // 1. File Size Validation (Max 25 MB)
+    const MAX_SIZE_BYTES = 25 * 1024 * 1024; // 25MB
     if (buffer.length > MAX_SIZE_BYTES) {
       return NextResponse.json({
         success: false,
-        error: "File size exceeds the 10 MB limit. Please upload a smaller file."
+        error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB."
       }, { status: 400 });
     }
 
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
     if (!isValidExtension && !isValidMime) {
       return NextResponse.json({
         success: false,
-        error: "Unsupported file format. Please upload a PDF, DOC, or DOCX file."
+        error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB."
       }, { status: 400 });
     }
 

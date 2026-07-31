@@ -165,21 +165,18 @@ export default function AIResumeStudioPage() {
 
   const strengthBadge = getStrengthBadge(atsScoreVal);
 
-  // File Upload Handler (PDF, DOC, DOCX up to 10MB)
+  // File Upload Handler (PDF, DOC, DOCX up to 25MB)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadError("");
-    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
-    if (file.size > MAX_SIZE) {
-      setUploadError("File size exceeds 10 MB limit. Please select a smaller file.");
-      return;
-    }
-
+    const MAX_SIZE = 25 * 1024 * 1024; // 25MB
     const ext = file.name.toLowerCase();
-    if (!ext.endsWith(".pdf") && !ext.endsWith(".doc") && !ext.endsWith(".docx")) {
-      setUploadError("Unsupported file format. Please upload a PDF, DOC, or DOCX file.");
+    const isValidFormat = ext.endsWith(".pdf") || ext.endsWith(".doc") || ext.endsWith(".docx");
+
+    if (file.size > MAX_SIZE || !isValidFormat) {
+      setUploadError("Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB.");
       return;
     }
 
@@ -447,7 +444,7 @@ export default function AIResumeStudioPage() {
                   Upload Existing Resume
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-                  Upload your existing resume in PDF, DOC, or DOCX format (up to 10 MB). AI extracts all content into editable fields and formats it into our fixed master template.
+                  Upload your existing resume in PDF, DOC, or DOCX format (up to 25 MB). AI extracts all content into editable fields and formats it into our fixed master template.
                 </p>
 
                 {/* Upload Drag/Drop Box */}
@@ -472,7 +469,7 @@ export default function AIResumeStudioPage() {
                       <span className="text-xs font-bold text-purple-600 dark:text-purple-400 block">
                         Click to Choose File (PDF, DOC, DOCX)
                       </span>
-                      <span className="text-[10px] text-slate-400">Max size: 10 MB</span>
+                      <span className="text-[10px] text-slate-400 font-medium">Supported: PDF, DOC, DOCX (Maximum 25 MB)</span>
                     </div>
                   )}
                 </label>
