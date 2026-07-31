@@ -119,7 +119,7 @@ export default function LoginScreen() {
         {/* Title */}
         <View style={styles.titleContainer}>
           <Image
-            source={require('@/assets/images/logo.png')}
+            source={require('@/assets/images/Epitome_logo_black.png')}
             style={styles.smallLogo}
             resizeMode="contain"
           />

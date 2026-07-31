@@ -160,14 +160,10 @@ export default function WelcomeScreen() {
         {/* Header Logo */}
         <View style={styles.logoContainer}>
           <Image
-            source={require('@/assets/images/logo.png')}
+            source={require('@/assets/images/Epitome_logo_black.png')}
             style={styles.logo}
             resizeMode="contain"
-            defaultSource={require('@/assets/images/icon.png')}
           />
-          <Text style={styles.logoText}>
-            Epitome<Text style={styles.orangeText}>TRC</Text>
-          </Text>
         </View>
 
         {/* Hero Card */}
@@ -285,12 +281,13 @@ const styles = StyleSheet.create({
   // Common Styles
   logoContainer: {
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: 28,
+    marginBottom: 20,
   },
   logo: {
-    height: 80,
-    width: 80,
-    marginBottom: 12,
+    width: 140,
+    aspectRatio: 499 / 390,
+    opacity: 1,
   },
   logoText: {
     fontSize: 26,
