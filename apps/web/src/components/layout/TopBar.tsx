@@ -74,9 +74,10 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
   const defaultAvatar = defaultAvatars[normalizedRole] || DEFAULT_AVATAR;
 
   const [currentUser, setCurrentUser] = useState<any>({
-    name: "Loading...",
+    name: "",
     email: "",
     avatar: defaultAvatar,
+    loading: true,
   });
 
   const fetchUserData = useCallback(() => {
@@ -88,11 +89,14 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
             name: payload.user.name,
             email: payload.user.email,
             avatar: getAvatarUrl(payload.user.name, payload.user.profileImage),
+            loading: false,
           });
+        } else {
+          setCurrentUser((prev: any) => ({ ...prev, loading: false }));
         }
       })
       .catch(() => {
-        // If auth fails, keep default state
+        setCurrentUser((prev: any) => ({ ...prev, loading: false }));
       });
   }, []);
 
@@ -206,22 +210,32 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
 
         {/* Profile Menu Dropdown */}
         <div ref={profileRef} className="relative">
-          <button
-            onClick={() => setProfileOpen(!profileOpen)}
-            className="flex items-center gap-2 rounded-xl p-1 hover:bg-slate-50 transition-colors"
-          >
-            <div className="relative h-8 w-8 overflow-hidden rounded-full border border-slate-200">
-              <img
-                src={currentUser.avatar}
-                alt={currentUser.name}
-                className="h-full w-full object-cover"
-              />
+          {currentUser.loading ? (
+            <div className="flex items-center gap-2 rounded-xl p-1">
+              <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 animate-pulse border border-slate-200/60" />
+              <div className="hidden lg:block space-y-1.5 text-left pr-1.5">
+                <div className="h-3 w-16 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md" />
+                <div className="h-2 w-10 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md" />
+              </div>
             </div>
-            <div className="hidden lg:block text-left pr-1.5">
-              <p className="text-xs font-bold text-[#0b172a] leading-none">{currentUser.name}</p>
-              <span className="text-[9px] font-bold text-orange-500 uppercase tracking-wider block mt-1 leading-none">{role}</span>
-            </div>
-          </button>
+          ) : (
+            <button
+              onClick={() => setProfileOpen(!profileOpen)}
+              className="flex items-center gap-2 rounded-xl p-1 hover:bg-slate-50 transition-colors animate-in fade-in duration-200"
+            >
+              <div className="relative h-8 w-8 overflow-hidden rounded-full border border-slate-200">
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="hidden lg:block text-left pr-1.5">
+                <p className="text-xs font-bold text-[#0b172a] leading-none">{currentUser.name}</p>
+                <span className="text-[9px] font-bold text-orange-500 uppercase tracking-wider block mt-1 leading-none">{role}</span>
+              </div>
+            </button>
+          )}
 
           {profileOpen && (
             <div className="absolute right-0 mt-2.5 w-56 rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-200">
