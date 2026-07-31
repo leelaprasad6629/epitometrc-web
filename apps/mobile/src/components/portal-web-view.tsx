@@ -110,6 +110,11 @@ export default function PortalWebView({ path }: PortalWebViewProps) {
       const style = document.createElement('style');
       style.type = 'text/css';
       style.innerHTML = \`
+        /* Hide global web topbar inside mobile app WebView */
+        #global-topbar {
+          display: none !important;
+        }
+
         /* 1. Portal & Popup Z-Index Rules */
         [role="dialog"], [role="menu"], [role="listbox"], [data-radix-portal], .radix-portal, div[style*="z-index"] {
           z-index: 99999 !important;

@@ -125,7 +125,7 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
+    <header id="global-topbar" className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
       {/* Breadcrumbs and Menu Toggle */}
       <div className="flex items-center space-x-3">
         <button

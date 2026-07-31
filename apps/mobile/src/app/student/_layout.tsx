@@ -27,7 +27,7 @@ export default function StudentLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
         tabBarActiveTintColor: '#F97316',
         tabBarInactiveTintColor: '#64748B',
         tabBarStyle: {
