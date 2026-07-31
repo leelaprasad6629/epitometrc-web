@@ -115,6 +115,54 @@ export default function PortalWebView({ path }: PortalWebViewProps) {
           display: none !important;
         }
 
+        /* AI Resume Builder Header optimizations for mobile WebView */
+        #resume-builder-header {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: stretch !important;
+          padding: 12px !important;
+          gap: 10px !important;
+          height: auto !important;
+          position: relative !important;
+        }
+
+        /* Horizontal Scrollable Tabs for Mobile */
+        #resume-builder-header .nav-tabs {
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
+          overflow-x: auto !important;
+          justify-content: flex-start !important;
+          width: 100% !important;
+          padding: 4px !important;
+          gap: 6px !important;
+          -webkit-overflow-scrolling: touch;
+        }
+        
+        #resume-builder-header .nav-tabs::-webkit-scrollbar {
+          display: none !important;
+        }
+
+        #resume-builder-header .nav-tabs button {
+          flex: 0 0 auto !important;
+          white-space: nowrap !important;
+        }
+
+        /* Actions panel under tabs */
+        #resume-builder-header .action-buttons {
+          display: flex !important;
+          flex-direction: row !important;
+          justify-content: space-between !important;
+          width: 100% !important;
+          gap: 8px !important;
+        }
+        
+        #resume-builder-header .action-buttons button {
+          flex: 1 1 0% !important;
+          justify-content: center !important;
+          white-space: nowrap !important;
+        }
+
         /* 1. Portal & Popup Z-Index Rules */
         [role="dialog"], [role="menu"], [role="listbox"], [data-radix-portal], .radix-portal, div[style*="z-index"] {
           z-index: 99999 !important;
