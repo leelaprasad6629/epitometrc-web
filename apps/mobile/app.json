@@ -22,7 +22,7 @@
       "package": "com.epitometrc.app",
       "newArchEnabled": true,
       "adaptiveIcon": {
-        "backgroundColor": "#000000",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
