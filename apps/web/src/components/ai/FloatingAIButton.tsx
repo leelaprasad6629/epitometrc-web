@@ -38,7 +38,7 @@ export default function FloatingAIButton() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed bottom-6 right-6 z-50 group"
+            className="fixed bottom-6 right-6 z-[9998] group"
           >
             {/* Persistent Tooltip Label */}
             <div className="absolute right-16 bottom-2.5 bg-[#0b172a] text-white text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-lg border border-slate-800 whitespace-nowrap flex items-center gap-1.5 animate-bounce">

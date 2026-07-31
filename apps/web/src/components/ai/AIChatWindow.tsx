@@ -192,12 +192,36 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
     setEscalationSubmitted(false);
   };
 
+  const formatMessageContent = (content: string) => {
+    if (!content) return "";
+    const lines = content.split('\n');
+    return lines.map((line, lineIdx) => {
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      const renderedLine = parts.map((part, partIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return (
+            <strong key={partIdx} className="font-extrabold text-slate-950 dark:text-white">
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        return part;
+      });
+
+      return (
+        <p key={lineIdx} className={cn("leading-relaxed", lineIdx > 0 && "mt-1.5")}>
+          {renderedLine}
+        </p>
+      );
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-45 flex h-[530px] w-[calc(100vw-32px)] sm:w-[390px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md"
+      className="fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-[9999] flex h-[530px] max-h-[calc(100vh-120px)] w-[calc(100vw-32px)] sm:w-[390px] flex-col overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 shadow-2xl backdrop-blur-md"
     >
       {/* Header */}
       <div className="flex items-center justify-between bg-gradient-to-r from-slate-900 via-blue-900 to-orange-600 p-4 text-white">
@@ -247,7 +271,7 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
       </div>
 
       {/* Messages Window */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 font-sans text-xs bg-slate-50/40">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 font-sans text-xs bg-slate-50/40 dark:bg-slate-950/40">
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -260,16 +284,16 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
               className={cn(
                 "rounded-2xl p-3.5 leading-relaxed shadow-xs",
                 msg.role === "user"
-                  ? "bg-slate-900 text-white rounded-br-none"
-                  : "bg-white text-slate-800 border border-slate-200/80 rounded-bl-none"
+                  ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-br-none"
+                  : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800/80 rounded-bl-none"
               )}
             >
-              {msg.content}
+              {formatMessageContent(msg.content)}
             </div>
             {msg.role === "assistant" && msg.content && (
               <button
                 onClick={() => handleCopy(msg.content, idx)}
-                className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-colors px-1"
+                className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors px-1"
               >
                 {copiedId === idx ? (
                   <>
@@ -286,10 +310,10 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
         ))}
 
         {loading && (
-          <div className="flex max-w-[80%] items-center gap-1.5 bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3 shadow-xs text-slate-400">
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]"></span>
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]"></span>
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400"></span>
+          <div className="flex max-w-[80%] items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl rounded-bl-none p-3 shadow-xs text-slate-400 dark:text-slate-500">
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-slate-600 [animation-delay:-0.3s]"></span>
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-slate-600 [animation-delay:-0.15s]"></span>
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-slate-600"></span>
           </div>
         )}
 
@@ -298,20 +322,20 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 rounded-2xl bg-gradient-to-br from-orange-50 to-blue-50 border border-orange-200 shadow-md space-y-3 my-2"
+            className="p-4 rounded-2xl bg-gradient-to-br from-orange-50 to-blue-50 dark:from-slate-900/60 dark:to-slate-800/60 border border-orange-200 dark:border-slate-700 shadow-md space-y-3 my-2"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <UserCheck className="h-4 w-4 text-orange-600" />
-                <h4 className="font-bold text-slate-900 text-xs">Connect to Specialist</h4>
+                <h4 className="font-bold text-slate-900 dark:text-white text-xs">Connect to Specialist</h4>
               </div>
               <button onClick={() => setShowEscalation(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <p className="text-[11px] text-slate-600 leading-normal">
-              Pre-routed to our <strong className="text-slate-900">{department}</strong> team.
+            <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-normal">
+              Pre-routed to our <strong className="text-slate-900 dark:text-white">{department}</strong> team.
             </p>
 
             <form onSubmit={handleEscalationSubmit} className="space-y-2">
@@ -321,7 +345,7 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Full Name *"
-                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-medium"
+                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-orange-500 font-medium"
               />
               <input
                 type="email"
@@ -329,20 +353,20 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Work Email *"
-                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-medium"
+                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-orange-500 font-medium"
               />
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Phone (Optional)"
-                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-medium"
+                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-orange-500 font-medium"
               />
 
               <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-medium text-slate-700"
+                className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:border-orange-500 font-medium text-slate-700 dark:text-slate-300"
               >
                 <option value="Recruitment & Staffing">Recruitment & Staffing</option>
                 <option value="AI Resume Builder Support">AI Resume Builder Support</option>
@@ -370,14 +394,14 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
 
       {/* Suggested Questions */}
       {messages.length === 1 && !showEscalation && (
-        <div className="px-4 py-2 border-t border-slate-100 space-y-1 bg-white">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Suggested Questions</p>
+        <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-800 space-y-1 bg-white dark:bg-slate-950">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Suggested Questions</p>
           <div className="flex flex-wrap gap-1.5">
             {suggestedQuestions.map((q) => (
               <button
                 key={q}
                 onClick={() => handleSend(q)}
-                className="rounded-lg border border-slate-200 bg-slate-50/60 px-2.5 py-1 text-[10.5px] font-semibold text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all text-left"
+                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 px-2.5 py-1 text-[10.5px] font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all text-left"
               >
                 {q}
               </button>
@@ -392,19 +416,19 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
           e.preventDefault();
           handleSend(input);
         }}
-        className="flex items-center gap-2 border-t border-slate-200 bg-white p-3.5"
+        className="flex items-center gap-2 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-3.5"
       >
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask AI guide or request specialist..."
-          className="flex-1 text-xs border-0 outline-none focus:ring-0 p-1 text-slate-800 font-medium"
+          className="flex-1 text-xs border-0 outline-none focus:ring-0 p-1 text-slate-800 dark:text-slate-200 bg-transparent placeholder-slate-400 dark:placeholder-slate-500 font-medium"
         />
         <button
           type="submit"
           disabled={!input.trim() || loading}
-          className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:hover:bg-slate-900"
+          className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-orange-600 dark:hover:bg-orange-500 transition-colors disabled:opacity-50 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600"
         >
           <Send className="h-3.5 w-3.5" />
         </button>
