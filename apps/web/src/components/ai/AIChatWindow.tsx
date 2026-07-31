@@ -221,7 +221,7 @@ export default function AIChatWindow({ onClose, onMinimize, showToast }: AIChatW
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-[9999] flex h-[530px] max-h-[calc(100vh-120px)] w-[calc(100vw-32px)] sm:w-[390px] flex-col overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 shadow-2xl backdrop-blur-md"
+      className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 z-[9999] flex h-full sm:h-[530px] w-full sm:w-[390px] flex-col overflow-hidden rounded-none sm:rounded-3xl border-0 sm:border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-2xl"
     >
       {/* Header */}
       <div className="flex items-center justify-between bg-gradient-to-r from-slate-900 via-blue-900 to-orange-600 p-4 text-white">
