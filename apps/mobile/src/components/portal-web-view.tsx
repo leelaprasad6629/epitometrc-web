@@ -110,11 +110,6 @@ export default function PortalWebView({ path }: PortalWebViewProps) {
       const style = document.createElement('style');
       style.type = 'text/css';
       style.innerHTML = \`
-        /* Hide global web topbar inside mobile app WebView */
-        #global-topbar {
-          display: none !important;
-        }
-
         /* AI Resume Builder Header optimizations for mobile WebView */
         #resume-builder-header {
           display: flex !important;
