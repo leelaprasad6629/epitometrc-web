@@ -21,18 +21,18 @@ export default function AIToast({ message, onClose }: AIToastProps) {
         initial={{ opacity: 0, y: 50, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        className="fixed bottom-24 right-6 z-50 flex items-center gap-3 rounded-2xl border border-red-100 bg-white p-4 shadow-xl shadow-red-500/5 max-w-sm"
+        className="fixed bottom-24 right-6 z-[10001] flex items-center gap-3 rounded-2xl border border-red-100 dark:border-red-950/60 bg-white dark:bg-slate-900 p-4 shadow-xl max-w-sm shadow-red-500/5"
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 dark:bg-red-950/40 text-red-500">
           <AlertCircle className="h-5 w-5" />
         </div>
         <div className="flex-1 space-y-0.5">
-          <h4 className="text-xs font-bold text-[#0b172a] font-display">System Connection Alert</h4>
-          <p className="text-[10.5px] font-semibold text-slate-500 leading-snug">{message}</p>
+          <h4 className="text-xs font-bold text-[#0b172a] dark:text-white font-display">System Connection Alert</h4>
+          <p className="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 leading-snug">{message}</p>
         </div>
         <button
           onClick={onClose}
-          className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+          className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
         >
           <X className="h-4 w-4" />
         </button>
