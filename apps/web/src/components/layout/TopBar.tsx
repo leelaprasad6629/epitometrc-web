@@ -125,7 +125,7 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
   };
 
   return (
-    <header id="global-topbar" className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
+    <header id="global-topbar" className="sticky top-0 z-[100] flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
       {/* Breadcrumbs and Menu Toggle */}
       <div className="flex items-center space-x-3">
         <button
@@ -238,7 +238,7 @@ export default function TopBar({ role, onMenuToggle }: TopBarProps) {
           )}
 
           {profileOpen && (
-            <div className="absolute right-0 mt-2.5 w-56 rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute right-0 mt-2.5 w-56 z-50 rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-3.5 py-2.5 border-b border-slate-100">
                 <p className="text-xs font-bold text-[#0b172a] leading-none">{currentUser.name}</p>
                 <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">{currentUser.email}</p>
