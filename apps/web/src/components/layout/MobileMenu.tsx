@@ -107,7 +107,7 @@ export default function MobileMenu({ isOpen, onClose, navItems }: MobileMenuProp
             {/* Mobile App Download Button in Drawer */}
             <div className="mt-4 px-3 pt-4 border-t border-slate-100">
               <a
-                href="/EpitomeTRC-release.apk"
+                href="https://expo.dev/artifacts/eas/UnUPOw6wiqEFsv6FASNgtmb_EwBb7-4A5esjEdE5DhA.apk"
                 download
                 className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 py-3 text-sm font-bold text-white shadow hover:opacity-95 active:scale-95 transition-all"
               >

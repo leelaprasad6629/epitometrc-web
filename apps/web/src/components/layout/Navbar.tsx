@@ -208,7 +208,7 @@ export default function Navbar() {
       <div className="bg-gradient-to-r from-orange-600 to-amber-500 text-white text-[11px] font-bold px-4 py-2 text-center flex items-center justify-center gap-2 md:hidden border-b border-orange-500/20">
         <span>🚀 Experience EpitomeTRC on Android!</span>
         <a
-          href="/EpitomeTRC-release.apk"
+          href="https://expo.dev/artifacts/eas/UnUPOw6wiqEFsv6FASNgtmb_EwBb7-4A5esjEdE5DhA.apk"
           download
           className="bg-white text-orange-600 px-2.5 py-0.5 rounded-lg shadow-sm hover:bg-orange-50 active:scale-95 transition-all"
         >
