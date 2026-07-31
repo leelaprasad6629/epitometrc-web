@@ -450,10 +450,12 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
   setResumeData: (fileName, fileBase64, fileMimeType, parsedResult, confidenceScores) =>
     set((state) => {
+      const existingName = state.parsedResumeDetails?.fullName || "";
       const mergedDetails = {
         ...initialParsedResume,
         ...state.parsedResumeDetails,
-        ...parsedResult
+        ...parsedResult,
+        ...(existingName ? { fullName: existingName } : {})
       };
 
       const parsedTech = parsedResult.technicalSkills || [];
