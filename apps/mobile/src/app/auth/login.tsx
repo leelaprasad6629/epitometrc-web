@@ -70,7 +70,7 @@ export default function LoginScreen() {
       // 2. Open secure system browser session
       const result = await WebBrowser.openAuthSessionAsync(
         payload.url,
-        'epitometrc://auth-callback'
+        'epitometrc:///auth-callback'
       );
 
       // 3. Process redirect result and extract token

@@ -303,26 +303,28 @@ export default function AIResumeStudioPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans pb-12">
       
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-xl text-white shadow-md">
-            <Brain className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              AI Resume Studio <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 font-extrabold uppercase">Pro</span>
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Fixed Master ATS-Friendly Single-Column Layout Generator
-            </p>
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 md:px-6 py-3 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between shadow-sm">
+        <div className="flex items-center justify-between w-full lg:w-auto">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-xl text-white shadow-md">
+              <Brain className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                AI Resume Studio <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 font-extrabold uppercase">Pro</span>
+              </h1>
+              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
+                Fixed Master ATS-Friendly Single-Column Layout Generator
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+        <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto max-w-full shrink-0 scrollbar-thin">
           <button
             onClick={() => setActiveTab("choice")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
               activeTab === "choice"
                 ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
@@ -332,7 +334,7 @@ export default function AIResumeStudioPage() {
           </button>
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
               activeTab === "dashboard"
                 ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
@@ -342,7 +344,7 @@ export default function AIResumeStudioPage() {
           </button>
           <button
             onClick={() => setActiveTab("studio")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
               activeTab === "studio"
                 ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
@@ -352,7 +354,7 @@ export default function AIResumeStudioPage() {
           </button>
           <button
             onClick={() => setActiveTab("versions")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
               activeTab === "versions"
                 ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
@@ -363,17 +365,17 @@ export default function AIResumeStudioPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 w-full lg:w-auto justify-end shrink-0">
           <button
             onClick={() => setShowEnhancementModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium text-xs rounded-lg shadow hover:opacity-95 transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium text-xs rounded-lg shadow hover:opacity-95 transition-all shrink-0"
           >
             <Sparkles className="w-3.5 h-3.5" />
             Enhance with AI
           </button>
           <button
             onClick={handleSaveDraft}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium text-xs rounded-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium text-xs rounded-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition-all shrink-0"
           >
             <Save className="w-3.5 h-3.5" />
             Save Draft
