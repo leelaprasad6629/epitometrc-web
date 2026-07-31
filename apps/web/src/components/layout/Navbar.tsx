@@ -204,6 +204,18 @@ export default function Navbar() {
       )}
       aria-label="Main navigation"
     >
+      {/* Mobile App Download Prompt Banner */}
+      <div className="bg-gradient-to-r from-orange-600 to-amber-500 text-white text-[11px] font-bold px-4 py-2 text-center flex items-center justify-center gap-2 md:hidden border-b border-orange-500/20">
+        <span>🚀 Experience EpitomeTRC on Android!</span>
+        <a
+          href="/EpitomeTRC-release.apk"
+          download
+          className="bg-white text-orange-600 px-2.5 py-0.5 rounded-lg shadow-sm hover:bg-orange-50 active:scale-95 transition-all"
+        >
+          Download APK
+        </a>
+      </div>
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-12 items-center justify-between">
           <Link href="/" className="flex shrink-0 items-center space-x-2.5 hover:opacity-90 transition-opacity">
