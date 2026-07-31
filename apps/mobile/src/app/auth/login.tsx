@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Lock, Mail, ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { api, setStoredToken } from '@/services/api';
@@ -9,11 +9,18 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { error } = useLocalSearchParams<{ error?: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (error) {
+      setErrorMsg(error);
+    }
+  }, [error]);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -73,10 +80,13 @@ export default function LoginScreen() {
         'epitometrc:///auth-callback'
       );
 
-      // 3. Process redirect result and extract token
+      // 3. Process redirect result and extract token or error
       if (result.type === 'success' && result.url) {
-        const match = result.url.match(/[?&]token=([^&#]+)/);
-        const token = match ? match[1] : null;
+        const tokenMatch = result.url.match(/[?&]token=([^&#]+)/);
+        const errorMatch = result.url.match(/[?&]error=([^&#]+)/);
+        const token = tokenMatch ? tokenMatch[1] : null;
+        const errorVal = errorMatch ? decodeURIComponent(errorMatch[1]) : null;
+
         if (token) {
           await setStoredToken(token);
           
@@ -94,6 +104,8 @@ export default function LoginScreen() {
             setErrorMsg('Failed to resolve authenticated profile.');
             await setStoredToken(null);
           }
+        } else if (errorVal) {
+          setErrorMsg(errorVal);
         } else {
           setErrorMsg('Failed to acquire secure session token.');
         }

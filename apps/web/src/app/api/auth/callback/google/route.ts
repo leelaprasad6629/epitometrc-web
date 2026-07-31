@@ -98,29 +98,22 @@ export async function GET(req: NextRequest) {
         },
       });
     } else {
-      // Auto-create student user account
-      const defaultPassword = Math.random().toString(36).slice(-10);
-      const passwordHash = await bcrypt.hash(defaultPassword, 10);
-
-      user = await prisma.user.create({
-        data: {
-          name: name || "Student",
-          email,
-          passwordHash,
-          role: "Student",
-          status: "Active",
-        },
-      });
-
-      await prisma.userProfile.create({
-        data: {
-          userId: user.id,
-          profile: {
-            picture: picture || null,
-            provider: "google",
+      // Reject Google Sign-in if user account does not exist, prompting them to create credentials first
+      const errorMessage = "Account not found. Please create an account with email and password first, then you can login with Google.";
+      
+      const state = searchParams.get("state");
+      if (state === "mobile") {
+        return new Response(null, {
+          status: 307,
+          headers: {
+            Location: `epitometrc:///auth-callback?error=${encodeURIComponent(errorMessage)}`,
           },
-        },
-      });
+        });
+      }
+
+      return NextResponse.redirect(
+        new URL(`/register?error=${encodeURIComponent(errorMessage)}`, req.url)
+      );
     }
 
     // Sign session token
