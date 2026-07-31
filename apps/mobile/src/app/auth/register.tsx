@@ -10,7 +10,7 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [contactNumber, setContactNumber] = useState('');
-  const [role, setRole] = useState<'Student' | 'Employee'>('Student');
+  const [role, setRole] = useState<'Student' | 'Employee' | 'Intern'>('Student');
   
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -21,14 +21,30 @@ export default function RegisterScreen() {
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMsg('Password must be at least 6 characters long.');
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    // Contact number validation (10 to 15 digits)
+    const phoneRegex = /^[0-9+() -]{10,15}$/;
+    if (!phoneRegex.test(contactNumber.trim())) {
+      setErrorMsg('Please enter a valid contact number (10-15 digits).');
+      return;
+    }
+
+    // Strong password validation
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!strongPasswordRegex.test(password)) {
+      setErrorMsg('Password must be at least 8 characters long, and contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
       return;
     }
 
     // Role-specific email gate validation
-    if (role === 'Employee' && !email.toLowerCase().endsWith('@epitometrc.com')) {
-      setErrorMsg('Employees must use official @epitometrc.com emails.');
+    if ((role === 'Employee' || role === 'Intern') && !email.toLowerCase().endsWith('@epitometrc.com')) {
+      setErrorMsg('Employee/Intern registration is restricted to official @epitometrc.com accounts.');
       return;
     }
 
@@ -96,7 +112,13 @@ export default function RegisterScreen() {
             style={[styles.roleTab, role === 'Employee' && styles.activeRoleTab]}
             onPress={() => setRole('Employee')}
           >
-            <Text style={[styles.roleTabText, role === 'Employee' && styles.activeRoleTabText]}>Advisor / Employee</Text>
+            <Text style={[styles.roleTabText, role === 'Employee' && styles.activeRoleTabText]}>Employee</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.roleTab, role === 'Intern' && styles.activeRoleTab]}
+            onPress={() => setRole('Intern')}
+          >
+            <Text style={[styles.roleTabText, role === 'Intern' && styles.activeRoleTabText]}>Intern</Text>
           </TouchableOpacity>
         </View>
 
