@@ -47,6 +47,7 @@ export default function RootLayout() {
     if (!rootNavigationState?.key) return;
 
     async function initApp() {
+      let target = '/';
       try {
         // 1. Check if the app was opened via an authentication deep link
         const initialUrl = await Linking.getInitialURL();
@@ -74,11 +75,9 @@ export default function RootLayout() {
             setIsAuthenticated(true);
             await setStoredRole(userRole);
 
-            const target = userRole === 'Student'
+            target = userRole === 'Student'
               ? '/student/dashboard'
               : '/employee/dashboard';
-            setResolvedTarget(target);
-            return;
           } else {
             // Stale or invalid credentials: clean storage
             await setStoredToken(null);
@@ -88,7 +87,7 @@ export default function RootLayout() {
       } catch (err) {
         console.error('Session restoration failed:', err);
       } finally {
-        setResolvedTarget('/');
+        setResolvedTarget(target);
       }
     }
 
@@ -133,7 +132,7 @@ export default function RootLayout() {
     }
   }, [incomingUrl, rootNavigationState?.key]);
 
-  // Synchronize route and hide splash overlay when target is reached
+  // Synchronize route and hide splash overlay when target is reached during boot
   useEffect(() => {
     if (!resolvedTarget || !rootNavigationState?.key) return;
 
@@ -147,15 +146,75 @@ export default function RootLayout() {
       setIsNavigating(false);
       SplashScreen.hideAsync();
     } else {
-      if (resolvedTarget === '/') {
-        router.replace('/');
-      } else if (resolvedTarget === '/student/dashboard') {
-        router.replace('/student/dashboard');
-      } else if (resolvedTarget === '/employee/dashboard') {
-        router.replace('/employee/dashboard');
+      if (isNavigating) {
+        if (resolvedTarget === '/') {
+          router.replace('/');
+        } else if (resolvedTarget === '/student/dashboard') {
+          router.replace('/student/dashboard');
+        } else if (resolvedTarget === '/employee/dashboard') {
+          router.replace('/employee/dashboard');
+        }
       }
     }
-  }, [resolvedTarget, segments, rootNavigationState?.key]);
+  }, [resolvedTarget, segments, isNavigating, rootNavigationState?.key]);
+
+  // Active navigation guard: protects routes during active usage after boot
+  useEffect(() => {
+    if (isNavigating) return;
+    if (!rootNavigationState?.key) return;
+
+    const inAuthGroup = segments[0] === 'auth';
+    const inStudentGroup = segments[0] === 'student';
+    const inEmployeeGroup = segments[0] === 'employee';
+
+    async function checkNavigation() {
+      const token = await getStoredToken();
+      const isAuth = !!token;
+
+      if (!isAuth) {
+        if (inStudentGroup || inEmployeeGroup) {
+          router.replace('/');
+        }
+      } else {
+        let currentRole = role;
+        if (!currentRole) {
+          const cachedRole = await getStoredRole();
+          if (cachedRole) {
+            currentRole = cachedRole;
+            setRole(currentRole);
+          } else {
+            try {
+              const { status, data } = await api.auth.me();
+              if (status === 200 && data.success && data.user) {
+                currentRole = data.user.role;
+                setRole(currentRole);
+                await setStoredRole(currentRole);
+              } else {
+                await setStoredToken(null);
+                await setStoredRole(null);
+                router.replace('/');
+                return;
+              }
+            } catch {
+              return;
+            }
+          }
+        }
+
+        if (currentRole === 'Student') {
+          if (!inStudentGroup) {
+            router.replace('/student/dashboard');
+          }
+        } else if (currentRole === 'Employee' || currentRole === 'Admin' || currentRole === 'Employer' || currentRole === 'Organization') {
+          if (!inEmployeeGroup) {
+            router.replace('/employee/dashboard');
+          }
+        }
+      }
+    }
+
+    checkNavigation();
+  }, [segments, isNavigating, role, rootNavigationState?.key]);
 
   return (
     <View style={{ flex: 1 }}>
