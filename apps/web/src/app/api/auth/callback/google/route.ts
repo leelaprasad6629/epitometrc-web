@@ -128,7 +128,12 @@ export async function GET(req: NextRequest) {
 
     const state = searchParams.get("state");
     if (state === "mobile") {
-      return NextResponse.redirect(`epitometrc://auth-callback?token=${token}`);
+      return new Response(null, {
+        status: 307,
+        headers: {
+          Location: `epitometrc:///auth-callback?token=${token}`,
+        },
+      });
     }
 
     const response = NextResponse.redirect(new URL("/student/dashboard", req.url));
