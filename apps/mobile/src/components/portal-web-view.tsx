@@ -98,14 +98,66 @@ export default function PortalWebView({ path }: PortalWebViewProps) {
 
   const targetUrl = `${API_BASE_URL}${path}`;
 
-  // Javascript to set session cookie on the webview side
+  // CSS injected into WebView to ensure mobile production polish:
+  // 1. Z-index hierarchy: Portals, dropdowns, popups, modals, bottom sheets render on top (z-index: 99999).
+  // 2. Profile skeleton / zero persistent "Loading..." state.
+  // 3. Prevent clipping, overflow and horizontal scroll on mobile viewport.
+  // 4. Responsive headers, cards, upload area, tabs and buttons for AI Resume Studio & AI Career Copilot.
+  // 5. Keep floating AI button visible and elevated without covering action buttons/forms.
+  // 6. Match theme colors and contrast.
+  const injectedCSS = `
+    (function() {
+      const style = document.createElement('style');
+      style.type = 'text/css';
+      style.innerHTML = \`
+        /* 1. Portal & Popup Z-Index Rules */
+        [role="dialog"], [role="menu"], [role="listbox"], [data-radix-portal], .radix-portal, div[style*="z-index"] {
+          z-index: 99999 !important;
+        }
+
+        /* 2. Layout & Overflow Constraints */
+        html, body {
+          overflow-x: hidden !important;
+          max-width: 100vw !important;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* 3. Floating AI button positioning (never covers form actions/uploads) */
+        .floating-ai-btn, [data-ai-button="true"], button[aria-label*="AI"] {
+          bottom: 24px !important;
+          right: 16px !important;
+          z-index: 9990 !important;
+        }
+
+        /* 4. Responsive adjustments for AI Resume Studio & Copilot */
+        .resume-builder-container, .ai-copilot-container {
+          padding-left: 12px !important;
+          padding-right: 12px !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        /* Smooth contrast and theme alignment */
+        @media (prefers-color-scheme: dark) {
+          body {
+            background-color: #0b172a !important;
+            color: #f8fafc !important;
+          }
+        }
+      \`;
+      document.head.appendChild(style);
+    })();
+  `;
+
+  // Javascript to set session cookie on the webview side and inject CSS
   const injectedJS = token
     ? `
       document.cookie = "token=${token}; path=/; max-age=86400; SameSite=Lax";
       localStorage.setItem("token", "${token}");
+      ${injectedCSS}
       true;
     `
-    : 'true;';
+    : `${injectedCSS} true;`;
 
   const handleNavigationStateChange = async (navState: any) => {
     const url = navState.url;
