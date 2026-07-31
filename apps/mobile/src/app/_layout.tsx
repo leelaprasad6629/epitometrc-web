@@ -18,29 +18,23 @@ export default function RootLayout() {
   const rootNavigationState = useRootNavigationState();
   const incomingUrl = Linking.useURL();
 
-  // Check for EAS OTA Updates on app launch
+  const updatesInfo = typeof Updates.useUpdates === 'function' ? Updates.useUpdates() : null;
+  const isUpdatePending = updatesInfo?.isUpdatePending;
+
+  // Prompt the user to restart as soon as the background OTA update finishes downloading
   useEffect(() => {
-    async function checkUpdates() {
-      if (__DEV__) return;
-      try {
-        const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          await Updates.fetchUpdateAsync();
-          Alert.alert(
-            'App Update Available',
-            'A new version is ready. Restart the app to apply UI optimizations and bug fixes.',
-            [
-              { text: 'Later', style: 'cancel' },
-              { text: 'Restart Now', onPress: () => Updates.reloadAsync() }
-            ]
-          );
-        }
-      } catch {
-        // Silent catch if update server is unreachable
-      }
+    if (__DEV__) return;
+    if (isUpdatePending) {
+      Alert.alert(
+        'App Update Available',
+        'A new version has been downloaded. Restart the app to apply optimizations and fixes.',
+        [
+          { text: 'Later', style: 'cancel' },
+          { text: 'Restart Now', onPress: () => Updates.reloadAsync() }
+        ]
+      );
     }
-    checkUpdates();
-  }, []);
+  }, [isUpdatePending]);
 
   // Initialize, restore session, and resolve route on cold launch
   useEffect(() => {
