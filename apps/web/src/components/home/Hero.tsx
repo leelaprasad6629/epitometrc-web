@@ -290,10 +290,38 @@ export default function Hero({ persona, setPersona }: HeroProps) {
   }, []);
 
   const categories = [
-    { name: "PEOPLE AND ORGANISATION CONSULTING", href: "/consulting" },
-    { name: "LEADERSHIP ACADEMY", href: "/training" },
-    { name: "GREAT MANAGER AWARDS", href: "/careers" },
-    { name: "GREAT MANAGER ACADEMY", href: "/courses" },
+    { 
+      name: "PEOPLE AND ORGANISATION CONSULTING", 
+      href: "/consulting",
+      color: "bg-blue-500",
+      hoverBg: "hover:bg-blue-50/40",
+      accentColor: "group-hover:text-blue-500",
+      arrowColor: "group-hover:text-blue-500"
+    },
+    { 
+      name: "LEADERSHIP ACADEMY", 
+      href: "/training",
+      color: "bg-orange-500",
+      hoverBg: "hover:bg-orange-50/40",
+      accentColor: "group-hover:text-orange-500",
+      arrowColor: "group-hover:text-orange-500"
+    },
+    { 
+      name: "GREAT MANAGER AWARDS", 
+      href: "/careers",
+      color: "bg-emerald-500",
+      hoverBg: "hover:bg-emerald-50/40",
+      accentColor: "group-hover:text-emerald-500",
+      arrowColor: "group-hover:text-emerald-500"
+    },
+    { 
+      name: "GREAT MANAGER ACADEMY", 
+      href: "/courses",
+      color: "bg-indigo-500",
+      hoverBg: "hover:bg-indigo-50/40",
+      accentColor: "group-hover:text-indigo-500",
+      arrowColor: "group-hover:text-indigo-500"
+    },
   ];
 
   return (
@@ -395,7 +423,7 @@ export default function Hero({ persona, setPersona }: HeroProps) {
           </Link>
           <Link
             href="/login"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white/60 hover:bg-white transition-all uppercase tracking-wider px-5 py-2.5 rounded-xl border border-slate-200/80 shadow-sm"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white/60 hover:bg-[#fff9f4] hover:text-orange-600 hover:border-orange-200/80 transition-all uppercase tracking-wider px-5 py-2.5 rounded-xl border border-slate-200/80 shadow-sm"
           >
             Login to Dashboard
           </Link>
@@ -409,15 +437,15 @@ export default function Hero({ persona, setPersona }: HeroProps) {
             <Link
               key={idx}
               href={cat.href}
-              className="group p-6 flex flex-col justify-between hover:bg-slate-50/50 transition-all duration-300 min-h-[120px]"
+              className={`group p-6 flex flex-col justify-between ${cat.hoverBg} transition-all duration-300 min-h-[120px]`}
             >
               <div className="flex justify-between items-start gap-4">
-                <span className="text-[11px] font-bold text-slate-700 tracking-wider group-hover:text-orange-500 transition-colors">
+                <span className={`text-[11px] font-bold text-slate-700 tracking-wider ${cat.accentColor} transition-colors`}>
                   {cat.name}
                 </span>
-                <ArrowUpRight className="h-4 w-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                <ArrowUpRight className={`h-4 w-4 text-slate-400 ${cat.arrowColor} group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all`} />
               </div>
-              <div className="h-[2px] w-0 bg-orange-500 group-hover:w-full transition-all duration-300 mt-4" />
+              <div className={`h-[2px] w-0 ${cat.color} group-hover:w-full transition-all duration-300 mt-4`} />
             </Link>
           ))}
         </div>

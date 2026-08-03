@@ -100,7 +100,7 @@ export default function Courses({ persona }: CoursesProps) {
     <div id="courses-parent-wrapper">
       
       {/* 1. Our Strategic Roadmap Section */}
-      <section id="solutions" className="py-20 md:py-28 bg-[#f8fafd] relative border-b border-slate-200/40">
+      <section id="solutions" className="py-20 md:py-28 bg-[#f2f3fa] relative border-b border-[#e1e2f3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Header */}
@@ -156,7 +156,7 @@ export default function Courses({ persona }: CoursesProps) {
       </section>
 
       {/* 2. Strategic Insights / Courses Section */}
-      <section id="blog" className="py-20 md:py-28 bg-gradient-to-b from-[#F4F8FD] to-[#EEF6FF] relative">
+      <section id="blog" className="py-20 md:py-28 bg-white border-b border-slate-100 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Header */}
@@ -190,7 +190,7 @@ export default function Courses({ persona }: CoursesProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="group flex flex-col h-full bg-[#f8fafd] border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:bg-white transition-all duration-300"
+                className="group flex flex-col h-full bg-slate-50/50 border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:bg-white transition-all duration-300"
               >
                 {/* Image */}
                 <div className="relative h-48 overflow-hidden">
