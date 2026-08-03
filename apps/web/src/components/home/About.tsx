@@ -106,7 +106,7 @@ export default function About({ persona }: AboutProps) {
     <div id="about-parent-wrapper">
       
       {/* 1. Trust & Executive Section */}
-      <section id="about" className="py-20 md:py-28 bg-gradient-to-b from-[#F8FAFC] to-[#F4F8FD] relative">
+      <section id="about" className="py-20 md:py-28 bg-[#edf4f0]/90 relative border-b border-[#d4eae0]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
@@ -184,22 +184,22 @@ export default function About({ persona }: AboutProps) {
       </section>
 
       {/* 2. Executive Voices Section */}
-      <section className="bg-[#050e1e] py-20 md:py-24 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+      <section className="bg-[#faf5f0] py-20 md:py-24 text-slate-800 border-b border-[#ede0d4] relative overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-80 h-80 bg-orange-500/3 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-blue-500/3 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Header with Nav Arrows */}
           <div className="flex items-end justify-between mb-12 md:mb-16">
             <div>
-              <span className="text-orange-500 font-semibold text-xs uppercase tracking-wider block mb-2 font-sans">
+              <span className="text-orange-600 font-semibold text-xs uppercase tracking-wider block mb-2 font-sans">
                 TESTIMONIALS
               </span>
-              <h2 className="text-3xl sm:text-4xl font-display font-bold text-white tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-display font-bold text-[#0b172a] tracking-tight">
                 Executive Voices
               </h2>
-              <p className="text-slate-400 text-sm md:text-base mt-2 font-sans max-w-md">
+              <p className="text-slate-650 text-sm md:text-base mt-2 font-sans max-w-md">
                 Hear what leading technology officers and operational directors say about collaborating with EpitomeTRC.
               </p>
             </div>
@@ -208,13 +208,13 @@ export default function About({ persona }: AboutProps) {
             <div className="flex space-x-3">
               <button
                 onClick={handlePrev}
-                className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 hover:border-slate-700 transition-all focus:outline-none"
+                className="p-2.5 rounded-lg bg-white border border-[#e8dcd0] text-slate-700 hover:bg-orange-50 hover:text-orange-650 hover:border-orange-200 transition-all focus:outline-none shadow-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={handleNext}
-                className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 hover:border-slate-700 transition-all focus:outline-none"
+                className="p-2.5 rounded-lg bg-white border border-[#e8dcd0] text-slate-700 hover:bg-orange-50 hover:text-orange-650 hover:border-orange-200 transition-all focus:outline-none shadow-sm"
               >
                 <ArrowRight className="h-4 w-4" />
               </button>
@@ -230,29 +230,29 @@ export default function About({ persona }: AboutProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: idx * 0.1 }}
-                className={`bg-[#0a1526] border rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-lg transition-all duration-300 ${
+                className={`bg-white border rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-md transition-all duration-300 ${
                   activeTestimonial === idx
-                    ? "border-orange-500 bg-[#0e1d33]"
-                    : "border-slate-800 hover:border-slate-700"
+                    ? "border-orange-500 bg-orange-50/10 shadow-orange-500/5"
+                    : "border-[#e8dcd0] hover:border-orange-350"
                 }`}
               >
                 <div>
-                  <div className="flex space-x-1 mb-6 text-orange-400">
+                  <div className="flex space-x-1 mb-6 text-orange-550">
                     {Array.from({ length: test.stars }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-orange-400" />
+                      <Star key={i} className="h-4 w-4 fill-orange-500" />
                     ))}
                   </div>
-                  <p className="text-slate-200 text-base sm:text-lg font-sans leading-relaxed italic mb-8">
+                  <p className="text-slate-700 text-base sm:text-lg font-sans leading-relaxed italic mb-8">
                     &ldquo;{test.quote}&rdquo;
                   </p>
                 </div>
 
-                <div className="border-t border-slate-800/80 pt-6 flex items-center justify-between">
+                <div className="border-t border-[#f2e6db] pt-6 flex items-center justify-between">
                   <div>
-                    <h4 className="font-display font-bold text-white text-base">
+                    <h4 className="font-display font-bold text-[#0b172a] text-base">
                       {test.author}
                     </h4>
-                    <p className="text-xs text-slate-400 font-medium font-sans mt-0.5">
+                    <p className="text-xs text-slate-500 font-medium font-sans mt-0.5">
                       {test.role}
                     </p>
                   </div>
