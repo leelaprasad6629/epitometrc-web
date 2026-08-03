@@ -199,8 +199,8 @@ export default function Navbar() {
       className={cn(
         "fixed left-0 right-0 top-0 z-50 transition-all duration-300 border-b",
         isScrolled
-          ? "border-slate-800 bg-[#0b172a]/95 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.3)] backdrop-blur-md"
-          : "border-slate-800/40 bg-[#0b172a]/90 py-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-md",
+          ? "border-slate-800 bg-[#0b172a]/95 py-1 shadow-[0_10px_40px_rgba(0,0,0,0.3)] backdrop-blur-md"
+          : "border-slate-800/40 bg-[#0b172a]/90 py-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-md",
       )}
       aria-label="Main navigation"
     >
@@ -217,7 +217,7 @@ export default function Navbar() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex shrink-0 items-center space-x-2.5 hover:opacity-90 transition-opacity">
             <Image
               src="/images/Epitome_logo_white.png"
