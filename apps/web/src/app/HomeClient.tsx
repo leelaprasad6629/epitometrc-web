@@ -7,6 +7,8 @@ import WalkthroughDemo from "@/components/home/WalkthroughDemo";
 import About from "@/components/home/About";
 import Services from "@/components/home/Services";
 import Courses from "@/components/home/Courses";
+import TrustedBy from "@/components/home/TrustedBy";
+import Testimonials from "@/components/home/Testimonials";
 import Footer from "@/components/layout/Footer";
 
 export default function HomeClient() {
@@ -17,9 +19,11 @@ export default function HomeClient() {
       <Navbar />
       <Hero persona={persona} setPersona={setPersona} />
       <WalkthroughDemo />
+      <TrustedBy />
       <About persona={persona} />
       <Services persona={persona} />
       <Courses persona={persona} />
+      <Testimonials />
       <Footer />
     </>
   );

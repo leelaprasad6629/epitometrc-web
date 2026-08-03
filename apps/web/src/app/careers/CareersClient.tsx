@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, MapPin, Briefcase, Clock, ArrowRight, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
@@ -14,6 +14,18 @@ export default function CareersClient() {
   const [department, setDepartment] = useState("All");
   const [location, setLocation] = useState("All");
   const [jobType, setJobType] = useState("All");
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/company/info")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.stats) {
+          setStats(data.stats);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const jobs = [
     {
@@ -201,6 +213,16 @@ export default function CareersClient() {
               <p className="text-slate-500 text-sm font-sans leading-relaxed">
                 Kickstart your career with EpitomeTRC. We collaborate with top universities to provide hands-on experience in real-world consulting and development projects.
               </p>
+              {stats && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-orange-50 border border-orange-100 text-[10px] font-bold text-orange-600 uppercase">
+                    {stats.trainingsInternships}+ Internships Facilitated
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 border border-blue-100 text-[10px] font-bold text-blue-600 uppercase">
+                    {stats.collegeTieUps}+ College Partners
+                  </span>
+                </div>
+              )}
               <div className="space-y-3 font-sans text-slate-600 text-xs font-semibold">
                 <span className="flex items-center gap-2"><CheckCircle2 className="h-4.5 w-4.5 text-orange-500 shrink-0" /> 12-week summer placements</span>
                 <span className="flex items-center gap-2"><CheckCircle2 className="h-4.5 w-4.5 text-orange-500 shrink-0" /> Direct mentorship from senior partners</span>

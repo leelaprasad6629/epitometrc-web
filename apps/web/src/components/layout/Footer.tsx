@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Mail, Phone, MapPin, ArrowRight } from "lucide-react";
 import { FaFacebook, FaInstagram, FaLinkedin } from "react-icons/fa";
@@ -13,6 +14,18 @@ import {
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/company/info")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.stats) {
+          setStats(data.stats);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <footer className="bg-[#050e1e] pt-20 text-white">
@@ -60,7 +73,7 @@ export default function Footer() {
                 alt="EpitomeTRC Logo"
                 width={499}
                 height={390}
-                className="h-11 w-auto object-contain"
+                className="h-18 w-auto object-contain"
               />
               <span className="font-display text-2xl font-bold tracking-tight text-white">
                 Epitome<span className="text-orange-500">TRC</span>
@@ -69,6 +82,12 @@ export default function Footer() {
             <p className="max-w-sm font-sans text-sm leading-relaxed text-slate-400">
               Precision in Strategy, Excellence in Execution. We design robust digital transformations and enterprise software systems to connect technology with clear outcomes.
             </p>
+            {stats && (
+              <div className="inline-flex items-center self-start gap-2 rounded-xl bg-orange-500/10 border border-orange-500/20 px-3.5 py-1.5 text-xs font-bold text-orange-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />
+                <span>{stats.trainingsInternships}+ Trainings &amp; Internships Facilitated</span>
+              </div>
+            )}
             <div className="flex space-x-3">
               {[
                 { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn" },

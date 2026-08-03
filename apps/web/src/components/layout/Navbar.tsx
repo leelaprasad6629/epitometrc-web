@@ -217,14 +217,14 @@ export default function Navbar() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-12 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           <Link href="/" className="flex shrink-0 items-center space-x-2.5 hover:opacity-90 transition-opacity">
             <Image
               src="/images/Epitome_logo_white.png"
               alt="EpitomeTRC Logo"
               width={499}
               height={390}
-              className="h-10 w-auto object-contain"
+              className="h-16 w-auto object-contain"
               priority
             />
             <span className="font-heading text-xl font-extrabold tracking-tight text-white sm:text-2xl">
@@ -232,7 +232,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <div className="hidden items-center gap-5 xl:flex">
+          <div className="hidden items-center gap-1.5 xl:gap-2.5 xl:flex">
             {desktopNavItems.map((item) =>
               item.children ? (
                 <NavDropdown key={item.name} item={item} pathname={pathname} />
@@ -241,7 +241,7 @@ export default function Navbar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "py-1.5 px-3.5 rounded-xl text-sm font-semibold transition-all duration-250",
+                    "py-1.5 px-2 xl:px-3.5 rounded-xl text-sm font-semibold transition-all duration-250",
                     pathname === item.href
                       ? "text-orange-400 bg-white/10"
                       : "text-slate-300 hover:bg-white/5 hover:text-white",
@@ -253,12 +253,12 @@ export default function Navbar() {
             )}
           </div>
 
-          <div className="hidden items-center space-x-4 md:flex">
+          <div className="hidden items-center space-x-2 xl:space-x-4 md:flex">
             {user ? (
               <>
                 <Link
                   href={user.role === "Student" ? "/student/dashboard" : "/employee/dashboard"}
-                  className="px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+                  className="px-2.5 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
                 >
                   Dashboard
                 </Link>
@@ -268,7 +268,7 @@ export default function Navbar() {
                     document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
                     window.location.href = "/";
                   }}
-                  className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                  className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-3.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
                 >
                   Sign Out
                 </button>
@@ -277,13 +277,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+                  className="px-2.5 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                  className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-3.5 h-10 text-sm font-bold text-white shadow-[0_4px_12px_rgba(249,115,22,0.2)] hover:bg-orange-600 hover:shadow-[0_6px_16px_rgba(249,115,22,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
                 >
                   Register Now
                   <ArrowRight className="ml-1.5 h-4 w-4" />
