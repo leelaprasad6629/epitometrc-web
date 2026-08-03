@@ -10,10 +10,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Too many registration attempts. Please try again in 1 minute." }, { status: 429 });
     }
 
-    const { name, email, password, role, contactNumber } = await req.json();
+    const { name, email, password, role, contactNumber, policyAccepted } = await req.json();
 
     if (!name || !email || !password || !contactNumber) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    if (policyAccepted !== true) {
+      return NextResponse.json({ error: "You must read and agree to the Terms & Conditions and Privacy Policy to create an account." }, { status: 400 });
     }
 
     const userRole = role || "Student";
@@ -44,6 +48,9 @@ export async function POST(req: NextRequest) {
           role: userRole,
           status: "Active",
           requirePasswordChange: false,
+          policyAccepted: true,
+          policyAcceptedAt: new Date(),
+          policyVersion: "v1.0",
         },
       });
 

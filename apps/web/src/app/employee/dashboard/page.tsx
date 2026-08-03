@@ -21,6 +21,7 @@ import PriorityAlert, { PriorityItem } from "@/components/dashboard/PriorityAler
 export default function EmployeeDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [companyStats, setCompanyStats] = useState<any>(null);
 
   useEffect(() => {
     fetch("/api/employee/dashboard")
@@ -32,6 +33,15 @@ export default function EmployeeDashboard() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    fetch("/api/company/info")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success && payload.stats) {
+          setCompanyStats(payload.stats);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const stats = [
@@ -145,6 +155,39 @@ export default function EmployeeDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Platform trust milestones banner */}
+      {companyStats && (
+        <div className="rounded-2xl border border-slate-100 bg-[#0a1526] text-slate-100 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 font-sans">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 shrink-0">
+              <Award className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">EpitomeTRC Platform Milestones</p>
+              <p className="text-[10px] text-slate-400 font-medium leading-normal">Empowering your career with verified corporate credibility indicators.</p>
+            </div>
+          </div>
+          <div className="flex gap-4 sm:gap-6 text-center text-xs shrink-0">
+            <div>
+              <span className="block text-sm font-extrabold text-orange-400">{companyStats.trainingsInternships}+</span>
+              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mt-0.5">Trainings</span>
+            </div>
+            <div>
+              <span className="block text-sm font-extrabold text-orange-400">{companyStats.clients}+</span>
+              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mt-0.5">Clients</span>
+            </div>
+            <div>
+              <span className="block text-sm font-extrabold text-orange-400">{companyStats.projects}+</span>
+              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mt-0.5">Projects</span>
+            </div>
+            <div>
+              <span className="block text-sm font-extrabold text-orange-400">{companyStats.collegeTieUps}+</span>
+              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mt-0.5">Colleges</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Action Center - Urgent Tasks */}
       <div className="w-full">

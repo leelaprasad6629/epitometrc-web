@@ -17,6 +17,9 @@ model User {
   status        String        @default("Active")
   requirePasswordChange Boolean @default(false)
   createdAt     DateTime      @default(now())
+  policyAccepted   Boolean   @default(false)
+  policyAcceptedAt DateTime?
+  policyVersion    String?   @default("v1.0")
   enrollments   Enrollment[]
   applications  Application[]
   profile       UserProfile?

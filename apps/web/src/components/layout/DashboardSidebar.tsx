@@ -151,7 +151,7 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
               height={390}
               className={cn(
                 "object-contain transition-all duration-300 shrink-0",
-                collapsed ? "h-7 w-auto" : "h-9 w-auto"
+                collapsed ? "h-11 w-auto" : "h-16 w-auto"
               )}
               priority
             />

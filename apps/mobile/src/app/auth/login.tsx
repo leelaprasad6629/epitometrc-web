@@ -15,6 +15,14 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [policyAccepted, setPolicyAccepted] = useState(false);
+
+  const openTerms = () => {
+    WebBrowser.openBrowserAsync('https://epitometrc-web.vercel.app/terms');
+  };
+  const openPrivacy = () => {
+    WebBrowser.openBrowserAsync('https://epitometrc-web.vercel.app/privacy');
+  };
 
   React.useEffect(() => {
     if (error) {
@@ -62,6 +70,10 @@ export default function LoginScreen() {
   };
 
   const handleGoogleLogin = async () => {
+    if (!policyAccepted) {
+      setErrorMsg('You must read and agree to the Terms & Conditions and Privacy Policy before signing in with Google.');
+      return;
+    }
     setLoading(true);
     setErrorMsg(null);
     try {
@@ -208,11 +220,28 @@ export default function LoginScreen() {
             <View style={styles.separatorLine} />
           </View>
 
+          {/* Compliance Checkbox */}
+          <TouchableOpacity 
+            style={styles.checkboxContainer} 
+            onPress={() => setPolicyAccepted(!policyAccepted)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.checkbox, policyAccepted && styles.checkboxChecked]}>
+              {policyAccepted && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={styles.checkboxLabel}>
+              I have read and agree to the{' '}
+              <Text style={styles.linkText} onPress={openTerms}>Terms &amp; Conditions</Text>
+              {' '}and{' '}
+              <Text style={styles.linkText} onPress={openPrivacy}>Privacy Policy</Text>.
+            </Text>
+          </TouchableOpacity>
+
           {/* Google Login Button */}
           <TouchableOpacity
-            style={[styles.googleButton, loading && styles.disabledButton]}
+            style={[styles.googleButton, (loading || !policyAccepted) && styles.disabledButton]}
             onPress={handleGoogleLogin}
-            disabled={loading}
+            disabled={loading || !policyAccepted}
           >
             <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity>
@@ -253,8 +282,8 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   smallLogo: {
-    height: 48,
-    width: 48,
+    height: 60,
+    width: 60,
     marginBottom: 16,
   },
   title: {
@@ -369,6 +398,44 @@ const styles = StyleSheet.create({
   googleButtonText: {
     color: '#475569',
     fontSize: 14,
+    fontWeight: '700',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  checkbox: {
+    height: 18,
+    width: 18,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    backgroundColor: '#FFFFFF',
+  },
+  checkboxChecked: {
+    backgroundColor: '#F97316',
+    borderColor: '#F97316',
+  },
+  checkmark: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  checkboxLabel: {
+    flex: 1,
+    fontSize: 11,
+    color: '#475569',
+    lineHeight: 16,
+    fontWeight: '600',
+  },
+  linkText: {
+    color: '#F97316',
     fontWeight: '700',
   },
 });

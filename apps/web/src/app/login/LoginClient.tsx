@@ -18,6 +18,7 @@ function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [agree, setAgree] = useState(false);
 
   useEffect(() => {
     const errParam = searchParams?.get("error");
@@ -28,6 +29,10 @@ function LoginForm() {
 
   const handleOAuthLogin = async (provider: "google" | "facebook") => {
     setError("");
+    if (!agree) {
+      setError(`You must read and agree to the Terms & Conditions and Privacy Policy before signing in with ${provider === 'google' ? 'Google' : 'Facebook'}.`);
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/auth/oauth/url?provider=${provider}`);
@@ -96,7 +101,7 @@ function LoginForm() {
             alt="EpitomeTRC Logo"
             width={499}
             height={390}
-            className="h-10 w-auto object-contain"
+            className="h-18 w-auto object-contain"
             priority
           />
           <span className="font-display text-xl font-bold tracking-tight text-white">
@@ -138,7 +143,7 @@ function LoginForm() {
                 alt="EpitomeTRC Logo"
                 width={499}
                 height={390}
-                className="h-10 w-auto object-contain"
+                className="h-16 w-auto object-contain"
                 priority
               />
               <span className="font-display text-xl font-bold tracking-tight text-[#0b172a]">
@@ -240,11 +245,31 @@ function LoginForm() {
             </div>
           </div>
 
-          <div className="w-full">
+          <div className="w-full space-y-3">
+            <label className="flex items-start space-x-2.5 cursor-pointer py-1.5">
+              <input
+                type="checkbox"
+                checked={agree}
+                onChange={(e) => setAgree(e.target.checked)}
+                className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-4 w-4 mt-0.5 accent-orange-500"
+              />
+              <span className="text-xs text-slate-500 font-medium font-sans leading-relaxed">
+                I have read and agree to the{" "}
+                <Link href="/terms" className="text-orange-500 hover:underline">
+                  Terms &amp; Conditions
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" className="text-orange-500 hover:underline">
+                  Privacy Policy
+                </Link>{" "}
+                before signing in.
+              </span>
+            </label>
+
             <button
               type="button"
               onClick={() => handleOAuthLogin("google")}
-              disabled={loading}
+              disabled={loading || !agree}
               className="flex items-center justify-center gap-2.5 h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98] disabled:opacity-50"
             >
               <svg className="h-4.5 w-4.5" viewBox="0 0 24 24">

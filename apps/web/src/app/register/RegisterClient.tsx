@@ -56,7 +56,7 @@ export default function RegisterClient() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role, contactNumber }),
+        body: JSON.stringify({ name, email, password, role, contactNumber, policyAccepted: true }),
       });
 
       const data = await res.json();
@@ -109,7 +109,7 @@ export default function RegisterClient() {
             alt="EpitomeTRC Logo"
             width={499}
             height={390}
-            className="h-10 w-auto object-contain"
+            className="h-18 w-auto object-contain"
             priority
           />
           <span className="font-display text-xl font-bold tracking-tight text-white">
@@ -155,7 +155,7 @@ export default function RegisterClient() {
                 alt="EpitomeTRC Logo"
                 width={499}
                 height={390}
-                className="h-10 w-auto object-contain"
+                className="h-16 w-auto object-contain"
                 priority
               />
               <span className="font-display text-xl font-bold tracking-tight text-[#0b172a]">
@@ -271,9 +271,9 @@ export default function RegisterClient() {
                 className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-4 w-4 mt-0.5 accent-orange-500"
               />
               <span className="text-xs text-slate-500 font-medium font-sans leading-relaxed">
-                I agree to the{" "}
+                I have read and agree to the{" "}
                 <Link href="/terms" className="text-orange-500 hover:underline">
-                  Terms of Service
+                  Terms &amp; Conditions
                 </Link>{" "}
                 and{" "}
                 <Link href="/privacy" className="text-orange-500 hover:underline">
@@ -285,7 +285,7 @@ export default function RegisterClient() {
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || !agree}
               className="w-full h-11 rounded-xl font-bold shadow-md shadow-orange-500/15"
             >
               {loading ? "Creating Account..." : "Create Account"}
