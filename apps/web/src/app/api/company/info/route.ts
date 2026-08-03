@@ -15,7 +15,7 @@ const DEFAULT_COMPANY_INFO = {
   stats: {
     projects: 160,
     clients: 340,
-    trainingsInternships: 5000,
+    trainingsInternships: 7000,
     collegeTieUps: 200,
   },
   contact: {
@@ -41,13 +41,13 @@ const DEFAULT_COMPANY_INFO = {
       author: "N. R., HR Operations Associate",
       role: "Virtual Internship Track",
       stars: 5,
-    }
+    },
   ],
   collaborations: [
-    { name: "Public Cohorts", count: "5000+ Placed" },
+    { name: "Public Cohorts", count: "7000+ Placed" },
     { name: "Academic Partners", count: "200+ Colleges" },
     { name: "Enterprise Clients", count: "340+ Global" },
-  ]
+  ],
 };
 
 export async function GET(req: NextRequest) {

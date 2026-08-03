@@ -5,6 +5,39 @@ import { motion } from "framer-motion";
 import { Award, ShieldCheck, Briefcase, GraduationCap, Building2, Layers } from "lucide-react";
 import Container from "@/components/common/Container";
 
+function AnimatedCounter({ value, duration = 1200 }: { value: string | number; duration?: number }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const numStr = String(value).replace(/[^0-9]/g, "");
+    const target = parseInt(numStr, 10);
+    if (isNaN(target)) return;
+
+    let start = 0;
+    const end = target;
+    if (start === end) return;
+
+    let startTime: number | null = null;
+    let animId: number;
+
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const easedProgress = progress * (2 - progress); // easeOutQuad
+      setCount(Math.floor(easedProgress * (end - start) + start));
+      if (progress < 1) {
+        animId = requestAnimationFrame(step);
+      }
+    };
+
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, [value, duration]);
+
+  const suffix = String(value).replace(/[0-9]/g, "");
+  return <>{count.toLocaleString()}{suffix}</>;
+}
+
 export default function TrustedBy() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -93,7 +126,7 @@ export default function TrustedBy() {
                       <div className="h-8 w-24 bg-slate-100 animate-pulse rounded-lg mb-1" />
                     ) : (
                       <h3 className="font-display text-3xl font-extrabold text-[#0b172a] tracking-tight leading-none">
-                        {item.value || "—"}
+                        {item.value ? <AnimatedCounter value={item.value} /> : "—"}
                       </h3>
                     )}
                     <p className="text-sm font-bold text-slate-700 mt-2">

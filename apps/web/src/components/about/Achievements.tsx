@@ -21,7 +21,7 @@ export default function Achievements() {
   }, []);
 
   const statsItems = [
-    { label: "Trainings & Internships", value: stats?.trainingsInternships ? `${stats.trainingsInternships}+` : "5000+" },
+    { label: "Trainings & Internships", value: stats?.trainingsInternships ? `${stats.trainingsInternships}+` : "7000+" },
     { label: "Corporate Clients", value: stats?.clients ? `${stats.clients}+` : "340+" },
     { label: "Projects Completed", value: stats?.projects ? `${stats.projects}+` : "160+" },
     { label: "College Partners", value: stats?.collegeTieUps ? `${stats.collegeTieUps}+` : "200+" },
