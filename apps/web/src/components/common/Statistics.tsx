@@ -1,5 +1,4 @@
-"use client";
-
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,6 +14,39 @@ type StatisticsProps = {
   variant?: "light" | "dark" | "bar";
   className?: string;
 };
+
+function AnimatedCounter({ value, duration = 1200 }: { value: string | number; duration?: number }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const numStr = String(value).replace(/[^0-9]/g, "");
+    const target = parseInt(numStr, 10);
+    if (isNaN(target)) return;
+
+    let start = 0;
+    const end = target;
+    if (start === end) return;
+
+    let startTime: number | null = null;
+    let animId: number;
+
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const easedProgress = progress * (2 - progress); // easeOutQuad
+      setCount(Math.floor(easedProgress * (end - start) + start));
+      if (progress < 1) {
+        animId = requestAnimationFrame(step);
+      }
+    };
+
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, [value, duration]);
+
+  const suffix = String(value).replace(/[0-9]/g, "");
+  return <>{count.toLocaleString()}{suffix}</>;
+}
 
 export default function Statistics({
   stats,
@@ -53,7 +85,7 @@ export default function Statistics({
                 variant === "dark" ? "text-white" : "text-[#0b172a]",
               )}
             >
-              {stat.value}
+              <AnimatedCounter value={stat.value} />
             </p>
             <p
               className={cn(
