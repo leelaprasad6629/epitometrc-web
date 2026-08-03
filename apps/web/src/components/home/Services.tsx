@@ -116,28 +116,28 @@ export default function Services({ persona }: ServicesProps) {
               </div>
             </motion.div>
 
-            {/* Strategic Recruitment (1/3 width, Light Accent) */}
+            {/* Strategic Recruitment (1/3 width, Warm Amber Accent) */}
             <motion.div
               whileHover={{ y: -6 }}
-              className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
+              className="bg-[#fff9f4] rounded-2xl p-8 shadow-sm hover:shadow-xl border border-[#fbe5d0] transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
             >
               <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-orange-500/5 rounded-full blur-xl" />
               <div>
-                <div className="p-3 bg-orange-50 rounded-xl text-orange-500 inline-block mb-6 shadow-sm">
+                <div className="p-3 bg-orange-100/60 rounded-xl text-orange-600 inline-block mb-6 shadow-sm">
                   <UserCheck className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-display font-bold text-[#0b172a] mb-3">
                   Strategic Recruitment
                 </h3>
-                <p className="text-slate-600 text-sm font-sans leading-relaxed">
+                <p className="text-slate-700 text-sm font-sans leading-relaxed">
                   Connecting visionary companies with world-class tech leaders, senior engineers, and elite consultants. We accelerate team construction through smart talent mapping.
                 </p>
               </div>
-              <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest font-sans">
+              <div className="mt-8 pt-6 border-t border-[#fbe5d0] flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-sans">
                   Executive Search
                 </span>
-                <span className="p-1.5 bg-slate-50 rounded-lg text-slate-400 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
+                <span className="p-1.5 bg-orange-100/40 rounded-lg text-orange-650 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
                   <ArrowRight className="h-4 w-4" />
                 </span>
               </div>
