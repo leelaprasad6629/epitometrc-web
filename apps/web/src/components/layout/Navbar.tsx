@@ -16,7 +16,6 @@ type DesktopNavItem = {
 };
 
 const desktopNavItems: DesktopNavItem[] = [
-  { name: "Home", href: "/" },
   {
     name: "Services",
     href: "/services",
@@ -27,8 +26,6 @@ const desktopNavItems: DesktopNavItem[] = [
       { name: "Technology Solutions", href: "/it-services" },
     ],
   },
-  { name: "Training", href: "/training" },
-  { name: "Consulting", href: "/consulting" },
   {
     name: "Courses",
     href: "/courses",
