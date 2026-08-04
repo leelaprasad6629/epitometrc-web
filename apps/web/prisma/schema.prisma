@@ -23,6 +23,7 @@ model User {
   enrollments   Enrollment[]
   applications  Application[]
   profile       UserProfile?
+  membership    UserMembership?
 }
 
 model UserProfile {
@@ -295,3 +296,17 @@ model AuditLog {
   ipAddress String?
   createdAt DateTime @default(now())
 }
+
+model UserMembership {
+  id                    String    @id @default(uuid())
+  userId                String    @unique
+  planName              String    @default("Free Plan")
+  status                String    @default("Active") // Active, Expired, Suspended
+  validUntil            DateTime?
+  mockInterviewsUsed    Int       @default(0)
+  resumesOptimizedUsed  Int       @default(0)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
