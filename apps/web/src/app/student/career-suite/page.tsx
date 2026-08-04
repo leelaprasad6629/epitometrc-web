@@ -564,7 +564,8 @@ export default function AICareerSuitePage() {
           body: JSON.stringify({
             fileName: file.name,
             fileMimeType: file.type || "application/pdf",
-            fileBase64: base64Data
+            fileBase64: base64Data,
+            purpose: "optimization"
           })
         });
 
