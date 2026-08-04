@@ -137,50 +137,52 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { fileName, fileBase64, fileMimeType } = await req.json();
+    const { fileName, fileBase64, fileMimeType, purpose } = await req.json();
 
-    // Enforce membership limits for resume optimizer
-    const token = req.cookies.get("token")?.value;
-    if (token) {
-      const payload = verifyToken(token) as { id: string } | null;
-      if (payload) {
-        let planName = "Free Plan";
-        let resumesOptimizedUsed = 0;
-        let isOffline = false;
+    // Enforce membership limits only for resume optimizer / tailorer
+    if (purpose === "optimization") {
+      const token = req.cookies.get("token")?.value;
+      if (token) {
+        const payload = verifyToken(token) as { id: string } | null;
+        if (payload) {
+          let planName = "Free Plan";
+          let resumesOptimizedUsed = 0;
+          let isOffline = false;
 
-        try {
-          let membership = await prisma.userMembership.findUnique({
-            where: { userId: payload.id }
-          });
-          if (!membership) {
-            membership = await prisma.userMembership.create({
-              data: { userId: payload.id, planName: "Free Plan" }
-            });
-          }
-          planName = membership.planName;
-          resumesOptimizedUsed = membership.resumesOptimizedUsed;
-        } catch (dbError) {
-          isOffline = true;
-          planName = req.cookies.get("mock_membership_plan")?.value || "Free Plan";
-          resumesOptimizedUsed = planName === "Free Plan" ? 1 : 0;
-        }
-
-        if (planName === "Free Plan" && resumesOptimizedUsed >= 1) {
-          return NextResponse.json(
-            { success: false, error: "LimitExceeded", limitType: "resume" },
-            { status: 403 }
-          );
-        }
-
-        // Increment usage
-        if (!isOffline) {
           try {
-            await prisma.userMembership.update({
-              where: { userId: payload.id },
-              data: { resumesOptimizedUsed: { increment: 1 } }
+            let membership = await prisma.userMembership.findUnique({
+              where: { userId: payload.id }
             });
+            if (!membership) {
+              membership = await prisma.userMembership.create({
+                data: { userId: payload.id, planName: "Free Plan" }
+              });
+            }
+            planName = membership.planName;
+            resumesOptimizedUsed = membership.resumesOptimizedUsed;
           } catch (dbError) {
-            console.warn("Could not increment count due to offline database:", dbError);
+            isOffline = true;
+            planName = req.cookies.get("mock_membership_plan")?.value || "Free Plan";
+            resumesOptimizedUsed = planName === "Free Plan" ? 1 : 0;
+          }
+
+          if (planName === "Free Plan" && resumesOptimizedUsed >= 1) {
+            return NextResponse.json(
+              { success: false, error: "LimitExceeded", limitType: "resume" },
+              { status: 403 }
+            );
+          }
+
+          // Increment usage
+          if (!isOffline) {
+            try {
+              await prisma.userMembership.update({
+                where: { userId: payload.id },
+                data: { resumesOptimizedUsed: { increment: 1 } }
+              });
+            } catch (dbError) {
+              console.warn("Could not increment count due to offline database:", dbError);
+            }
           }
         }
       }
