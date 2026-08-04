@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAICompletion } from "@/lib/ai/services/aiService";
+import { verifyToken } from "@/lib/jwt";
+import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60; // 60s Vercel serverless function timeout extension
 
@@ -19,6 +21,58 @@ export async function POST(req: NextRequest) {
       codeLanguage,
       responseTime 
     } = await req.json();
+
+    // Enforce membership limits
+    const token = req.cookies.get("token")?.value;
+    if (token) {
+      const payload = verifyToken(token) as { id: string } | null;
+      if (payload) {
+        let planName = "Free Plan";
+        let mockInterviewsUsed = 0;
+        let isOffline = false;
+
+        try {
+          let membership = await prisma.userMembership.findUnique({
+            where: { userId: payload.id }
+          });
+          if (!membership) {
+            membership = await prisma.userMembership.create({
+              data: { userId: payload.id, planName: "Free Plan" }
+            });
+          }
+          planName = membership.planName;
+          mockInterviewsUsed = membership.mockInterviewsUsed;
+        } catch (dbError) {
+          isOffline = true;
+          planName = req.cookies.get("mock_membership_plan")?.value || "Free Plan";
+          // Simulate: if Free, assume they already used 1 interview
+          mockInterviewsUsed = planName === "Free Plan" ? 1 : 0;
+        }
+
+        // Under Free Plan, they only get 1 mock interview
+        if (planName === "Free Plan" && mockInterviewsUsed >= 1) {
+          return NextResponse.json(
+            { success: false, error: "LimitExceeded", limitType: "mock-interview" },
+            { status: 403 }
+          );
+        }
+
+        // Increment count when a new interview session starts
+        const isNewSession = !history || history.length === 0;
+        if (isNewSession) {
+          if (!isOffline) {
+            try {
+              await prisma.userMembership.update({
+                where: { userId: payload.id },
+                data: { mockInterviewsUsed: { increment: 1 } }
+              });
+            } catch (dbError) {
+              console.warn("Could not increment count due to offline database:", dbError);
+            }
+          }
+        }
+      }
+    }
 
     const isFinalQuestion = history && history.length >= 8; // 5 question session (10 entries in history)
 

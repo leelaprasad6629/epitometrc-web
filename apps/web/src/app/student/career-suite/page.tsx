@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import ResumeMediaManager from "@/components/ResumeMediaManager";
 import AIAvatarInterviewer from "@/components/ai/AIAvatarInterviewer";
 import InterviewLayout from "@/components/AvatarInterviewer/InterviewLayout";
+import UpgradeModal from "@/components/membership/UpgradeModal";
 
 type TabId = "dashboard" | "resume" | "learning" | "interview" | "career" | "jobs";
 
@@ -51,6 +52,25 @@ export default function AICareerSuitePage() {
 
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
   const [setupStep, setSetupStep] = useState<"upload" | "goal">("upload");
+
+  // Membership tracking states
+  const [membership, setMembership] = useState<any>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeLimitType, setUpgradeLimitType] = useState<"mock-interview" | "resume" | "general">("general");
+
+  const fetchMembership = async () => {
+    try {
+      const res = await fetch("/api/student/membership");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setMembership(data.membership);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not sync membership:", e);
+    }
+  };
 
   // Local state for setup inputs
   const [targetTitle, setTargetTitle] = useState("");
@@ -272,6 +292,15 @@ export default function AICareerSuitePage() {
   };
 
   const startLiveMockSession = () => {
+    // Intercept mock interview membership limit check
+    const mockInterviewsUsed = membership?.mockInterviewsUsed ?? 0;
+    const planName = membership?.planName ?? "Free Plan";
+    if (planName === "Free Plan" && mockInterviewsUsed >= 1) {
+      setUpgradeLimitType("mock-interview");
+      setUpgradeOpen(true);
+      return;
+    }
+
     if (!parsedResumeDetails) {
       alert("Please upload and optimize your resume in the 'Resume Optimizer' tab first to provide personalized profile context for the interview.");
       return;
@@ -466,6 +495,7 @@ export default function AICareerSuitePage() {
 
   // Fetch jobs on mount
   useEffect(() => {
+    fetchMembership();
     loadProfileFromServer();
     setJobsLoading(true);
     setJobsError("");
@@ -511,6 +541,15 @@ export default function AICareerSuitePage() {
   }, [parsedResumeDetails?.careerGoal]);
 
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Intercept resume optimizer membership limit check
+    const resumesOptimizedUsed = membership?.resumesOptimizedUsed ?? 0;
+    const planName = membership?.planName ?? "Free Plan";
+    if (planName === "Free Plan" && resumesOptimizedUsed >= 1) {
+      setUpgradeLimitType("resume");
+      setUpgradeOpen(true);
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -2160,6 +2199,13 @@ export default function AICareerSuitePage() {
         </div>
       )}
 
+      {/* Membership Upgrade Dialog */}
+      <UpgradeModal
+        isOpen={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        limitType={upgradeLimitType}
+        onUpgradeSuccess={fetchMembership}
+      />
     </div>
   );
 }

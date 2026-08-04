@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   User, Mail, Phone, MapPin, Globe, Edit3, Save, X, Camera, Plus, Trash, Check, 
@@ -19,6 +20,7 @@ import {
 import AIResumeMatchWidget from "@/components/ai/AIResumeMatchWidget";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import ResumeMediaManager from "@/components/ResumeMediaManager";
+import Button from "@/components/common/Button";
 
 const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBmaWxsPSIjRTJFOEYwIiBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCA0YzEuOTMgMCAzLjUgMS41NyAzLjUgMy41UzEzLjkzIDEzIDEyIDEzcy0zLjUtMS41Ny0zLjUtMy41UzEwLjA3IDYgMTIgNnptMCAxNGMtMi4wMyAwLTQuNDMtMS01LjQ2LTIuNThDNy41NiAxNS44NCAxMC4wOSAxNSAxMiAxNXM0LjQ0Ljg0IDUuNDYgMi40MkMxNi40MyAxOSAxNC4wMyAyMCAxMiAyMHoiLz48L3N2Zz4=";
 
@@ -135,10 +137,18 @@ export default function StudentProfilePage() {
 
   const hasFetchedRef = useRef(false);
 
+  const [membership, setMembership] = useState<any>(null);
+
   useEffect(() => {
     if (!hasFetchedRef.current) {
       hasFetchedRef.current = true;
       loadProfileFromServer();
+      fetch("/api/student/membership")
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) setMembership(data.membership);
+        })
+        .catch(err => console.warn("Failed to load membership profile:", err));
     }
   }, [loadProfileFromServer]);
 
@@ -793,6 +803,62 @@ export default function StudentProfilePage() {
                 </svg>
                 <span className="absolute text-[10px] font-black text-slate-950 font-mono">{overallCompleteness}%</span>
               </div>
+            </DashboardCard>
+
+            {/* Membership Summary Card */}
+            <DashboardCard glowColor="orange" className="text-left w-full space-y-4">
+              <div className="flex items-start justify-between font-sans">
+                <div className="flex gap-2.5">
+                  <div className="p-2 bg-orange-500/10 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-[10.5px] font-black text-slate-400 uppercase tracking-wider">
+                      Membership Status
+                    </h3>
+                    <span className="text-lg font-bold text-slate-900 block mt-1">
+                      {membership?.planName || "Free Plan"}
+                    </span>
+                    <p className="text-[9.5px] text-slate-450 mt-0.5 leading-normal">
+                      {membership?.planName === "Free Plan" 
+                        ? "1 Mock Interview & 1 Resume Optimization trial left." 
+                        : "Premium features active. All access limits expanded."}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <Link href="/student/membership">
+                    <Button variant="secondary" className="px-3.5 py-2 text-[10.5px] font-bold border border-slate-200">
+                      Manage Plan
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Progress meters for Free Plan */}
+              {(!membership || membership?.planName === "Free Plan") && (
+                <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 font-sans text-xs">
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
+                      <span>Mock Interview (Free)</span>
+                      <span>{membership?.mockInterviewsUsed || 0}/1 used</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-orange-500 rounded-full animate-pulse" style={{ width: `${Math.min(((membership?.mockInterviewsUsed || 0) / 1) * 100, 100)}%` }} />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
+                      <span>Resume Optimizations (Free)</span>
+                      <span>{membership?.resumesOptimizedUsed || 0}/1 used</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 rounded-full animate-pulse" style={{ width: `${Math.min(((membership?.resumesOptimizedUsed || 0) / 1) * 100, 100)}%` }} />
+                    </div>
+                  </div>
+                </div>
+              )}
             </DashboardCard>
 
             {/* Career Profile Summary Card */}

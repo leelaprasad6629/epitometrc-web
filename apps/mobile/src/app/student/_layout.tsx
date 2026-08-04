@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { BookOpen, User, Sparkles, LogOut } from 'lucide-react-native';
+import { BookOpen, User, Sparkles, LogOut, Award } from 'lucide-react-native';
 import { TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { api } from '@/services/api';
@@ -86,6 +86,14 @@ export default function StudentLayout() {
           title: 'AI Copilot',
           headerTitle: 'AI Resume & Mock Screen',
           tabBarIcon: ({ color }) => <Sparkles size={20} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="membership"
+        options={{
+          title: 'Membership',
+          headerTitle: 'My Membership Plan',
+          tabBarIcon: ({ color }) => <Award size={20} color={color} />,
         }}
       />
     </Tabs>
