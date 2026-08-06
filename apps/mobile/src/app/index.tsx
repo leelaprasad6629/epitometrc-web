@@ -181,7 +181,6 @@ export default function WelcomeScreen() {
             source={require('@/assets/images/logo.png')}
             style={styles.logoEnlarged}
             resizeMode="contain"
-            defaultSource={require('@/assets/images/icon.png')}
           />
           <Text style={styles.logoTextEnlarged}>
             Epitome<Text style={styles.orangeText}>TRC</Text>
@@ -364,12 +363,13 @@ const styles = StyleSheet.create({
   // Common Styles
   logoContainer: {
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: 28,
+    marginBottom: 20,
   },
   logo: {
-    height: 80,
-    width: 80,
-    marginBottom: 12,
+    width: 140,
+    aspectRatio: 499 / 390,
+    opacity: 1,
   },
   logoText: {
     fontSize: 26,
