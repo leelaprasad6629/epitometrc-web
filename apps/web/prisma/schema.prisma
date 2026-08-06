@@ -24,6 +24,12 @@ model User {
   applications  Application[]
   profile       UserProfile?
   membership    UserMembership?
+  assignmentSubmissions AssignmentSubmission[]
+  quizAttempts          QuizAttempt[]
+  discussionThreads     DiscussionThread[]
+  discussionReplies     DiscussionReply[]
+  courseCertificates    CourseCertificate[]
+  lessonProgresses      LessonProgress[]
 }
 
 model UserProfile {
@@ -38,16 +44,38 @@ model UserProfile {
 }
 
 model Course {
-  id          String           @id @default(uuid())
-  title       String
-  category    String
-  description String
-  duration    String
-  modules     Int
-  image       String
-  enrollments Enrollment[]
-  schedules   CohortSchedule[]
-  materials   CohortMaterial[]
+  id                 String           @id @default(uuid())
+  title              String
+  subtitle           String?
+  slug               String?          @unique
+  category           String
+  description        String
+  duration           String
+  modules            Int
+  image              String
+  level              String           @default("Intermediate")
+  language           String           @default("English")
+  price              String           @default("Free")
+  rating             Float            @default(4.8)
+  reviewsCount       Int              @default(0)
+  enrolledCount      Int              @default(0)
+  learningObjectives Json?
+  skillsCovered      Json?
+  learningOutcomes   Json?
+  prerequisites      Json?
+  faqs               Json?
+  instructorName     String?
+  instructorRole     String?
+  instructorAvatar   String?
+  instructorBio      String?
+  instructorLinkedIn String?
+  enrollments        Enrollment[]
+  schedules          CohortSchedule[]
+  materials          CohortMaterial[]
+  courseModules      CourseModule[]
+  courseResources    CourseResource[]
+  discussionThreads  DiscussionThread[]
+  certificates       CourseCertificate[]
 }
 
 model Enrollment {
@@ -308,5 +336,156 @@ model UserMembership {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CourseModule {
+  id          String   @id @default(uuid())
+  courseId    String
+  title       String
+  description String?
+  orderIndex  Int
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id                String             @id @default(uuid())
+  moduleId          String
+  title             String
+  description       String?
+  duration          String
+  orderIndex        Int
+  type              String             @default("video") // video, notes, quiz, assignment
+  videoUrl          String?
+  notesContent      String?
+  isFreePreview     Boolean            @default(false)
+  module            CourseModule       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  assignments       Assignment[]
+  quizzes           Quiz[]
+  resources         CourseResource[]
+  progresses        LessonProgress[]
+  discussionThreads DiscussionThread[]
+}
+
+model Assignment {
+  id           String                 @id @default(uuid())
+  lessonId     String
+  title        String
+  instructions String
+  deadline     String?
+  maxMarks     Int                    @default(100)
+  lesson       Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions  AssignmentSubmission[]
+}
+
+model AssignmentSubmission {
+  id           String     @id @default(uuid())
+  assignmentId String
+  userId       String
+  fileUrl      String?
+  textResponse String?
+  marks        Int?
+  status       String     @default("Submitted") // Submitted, Graded, Resubmit
+  feedback     String?
+  submittedAt  DateTime   @default(now())
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Quiz {
+  id               String         @id @default(uuid())
+  lessonId         String
+  title            String
+  passingScore     Int            @default(70)
+  timeLimitMinutes Int            @default(15)
+  lesson           Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions        QuizQuestion[]
+  attempts         QuizAttempt[]
+}
+
+model QuizQuestion {
+  id            String   @id @default(uuid())
+  quizId        String
+  questionText  String
+  questionType  String   @default("mcq") // mcq, tf, short
+  options       Json
+  correctAnswer String
+  explanation   String?
+  points        Int      @default(10)
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model QuizAttempt {
+  id          String   @id @default(uuid())
+  quizId      String
+  userId      String
+  score       Float
+  passed      Boolean
+  answers     Json
+  attemptedAt DateTime @default(now())
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CourseResource {
+  id       String  @id @default(uuid())
+  courseId String
+  lessonId String?
+  title    String
+  fileType String // PDF, ZIP, PPT, Code
+  fileUrl  String
+  fileSize String?
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model DiscussionThread {
+  id        String            @id @default(uuid())
+  courseId  String
+  lessonId  String?
+  authorId  String
+  title     String
+  content   String
+  isSolved  Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  course    Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson    Lesson?           @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies   DiscussionReply[]
+}
+
+model DiscussionReply {
+  id                String           @id @default(uuid())
+  threadId          String
+  authorId          String
+  content           String
+  isInstructorReply Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  thread            DiscussionThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author            User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model CourseCertificate {
+  id                String   @id @default(uuid())
+  certificateId     String   @unique
+  courseId          String
+  userId            String
+  issuedAt          DateTime @default(now())
+  qrVerificationUrl String?
+  course            Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LessonProgress {
+  id                  String    @id @default(uuid())
+  userId              String
+  lessonId            String
+  watchTimeSeconds    Int       @default(0)
+  isCompleted         Boolean   @default(false)
+  lastPositionSeconds Int       @default(0)
+  completedAt         DateTime?
+  updatedAt           DateTime  @updatedAt
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson              Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 }
 
