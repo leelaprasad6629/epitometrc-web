@@ -11,16 +11,28 @@ export default function ForgotPasswordClient() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate sending email verification link
-    setTimeout(() => {
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send reset link.");
+      }
       setSuccess(true);
+    } catch (err: any) {
+      setErrorMsg(err.message || "An unexpected error occurred.");
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -66,6 +78,12 @@ export default function ForgotPasswordClient() {
                   />
                 </div>
               </div>
+
+              {errorMsg && (
+                <div className="text-red-500 text-[11px] font-bold bg-red-50 border border-red-200 rounded-xl p-3 text-center">
+                  {errorMsg}
+                </div>
+              )}
 
               <Button
                 type="submit"

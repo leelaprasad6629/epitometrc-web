@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { MapPin, Clock } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -7,11 +8,34 @@ import Button from "@/components/common/Button";
 import Container from "@/components/common/Container";
 
 export default function JobsClient() {
-  const jobs = [
-    { id: 1, title: "Senior Full Stack Developer", loc: "Indore, India", type: "Full Time", desc: "Lead the development of high-performance enterprise applications using React, Node.js, and AWS." },
-    { id: 2, title: "Strategy Consultant", loc: "Indore, India", type: "Full Time", desc: "Advise Fortune 500 executives on digital transformation and market entry strategies." },
-    { id: 3, title: "Technical Recruiter", loc: "Indore, India", type: "Full Time", desc: "Shape our engineering teams by identifying, attracting, and onboarding top talent." },
-  ];
+  const [jobs, setJobs] = useState<any[]>([
+    { id: "1", title: "Senior Full Stack Developer", loc: "Indore, India", type: "Full Time", desc: "Lead the development of high-performance enterprise applications using React, Node.js, and AWS." },
+    { id: "2", title: "Strategy Consultant", loc: "Indore, India", type: "Full Time", desc: "Advise Fortune 500 executives on digital transformation and market entry strategies." },
+    { id: "3", title: "Technical Recruiter", loc: "Indore, India", type: "Full Time", desc: "Shape our engineering teams by identifying, attracting, and onboarding top talent." },
+  ]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/jobs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.jobs && data.jobs.length > 0) {
+          const mapped = data.jobs.map((j: any) => ({
+            id: j.id,
+            title: j.title,
+            loc: j.location,
+            type: j.type,
+            desc: j.description,
+          }));
+          setJobs(mapped);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch jobs dynamically:", err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <>

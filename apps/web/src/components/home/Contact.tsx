@@ -13,17 +13,40 @@ export default function Contact() {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!formState.name || !formState.email || !formState.message) return;
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/enquiries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formState.name,
+          email: formState.email,
+          subject: formState.company 
+            ? `Homepage Inquiry - ${formState.company}` 
+            : "Homepage Inquiry (General)",
+          message: formState.message,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit message.");
+      }
       setIsSubmitted(true);
       setFormState({ name: "", email: "", company: "", message: "" });
-    }, 1200);
+    } catch (err: any) {
+      setErrorMsg(err.message || "An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,7 +77,14 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">HQ Office</h4>
-                  <p className="text-slate-500 text-sm mt-1">208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, Madhya Pradesh, India</p>
+                  <a 
+                    href="https://maps.google.com/?q=208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block transition-colors font-sans"
+                  >
+                    208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, Madhya Pradesh, India
+                  </a>
                 </div>
               </div>
 
@@ -152,6 +182,12 @@ export default function Contact() {
                         className="w-full px-4 py-3 bg-white border border-slate-200/80 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/50 transition-all text-sm font-sans shadow-sm"
                       />
                     </div>
+
+                    {errorMsg && (
+                      <div className="text-red-500 text-xs font-bold bg-red-50 border border-red-200 rounded-xl p-3 text-center">
+                        {errorMsg}
+                      </div>
+                    )}
 
                     <button
                       type="submit"

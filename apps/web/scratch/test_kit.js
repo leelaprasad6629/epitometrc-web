@@ -60,6 +60,7 @@ async function runTests() {
       password: "Password123",
       role: "Employee",
       contactNumber: "1234567890",
+      policyAccepted: true,
     }),
   });
   assert(

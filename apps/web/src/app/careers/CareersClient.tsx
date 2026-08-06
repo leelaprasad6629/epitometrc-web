@@ -15,19 +15,7 @@ export default function CareersClient() {
   const [location, setLocation] = useState("All");
   const [jobType, setJobType] = useState("All");
   const [stats, setStats] = useState<any>(null);
-
-  useEffect(() => {
-    fetch("/api/company/info")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.stats) {
-          setStats(data.stats);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const jobs = [
+  const [jobs, setJobs] = useState<any[]>([
     {
       id: 1,
       category: "Engineering",
@@ -52,7 +40,40 @@ export default function CareersClient() {
       type: "Full Time",
       desc: "Shape our engineering teams by identifying, attracting, and onboarding top talent for our clients in the technology sector.",
     },
-  ];
+  ]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/company/info")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.stats) {
+          setStats(data.stats);
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/jobs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.jobs && data.jobs.length > 0) {
+          const mapped = data.jobs.map((j: any) => ({
+            id: j.id,
+            category: j.category,
+            title: j.title,
+            loc: j.location,
+            type: j.type,
+            desc: j.description,
+          }));
+          setJobs(mapped);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch jobs in Careers:", err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <>
@@ -105,48 +126,95 @@ export default function CareersClient() {
                 />
               </div>
               <div className="flex gap-2 w-full md:w-auto shrink-0 font-semibold text-xs">
-                <select className="h-10 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-orange-500 flex-1 md:flex-none">
-                  <option>Department</option>
-                  <option>Engineering</option>
-                  <option>Consulting</option>
+                <select 
+                  value={department} 
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-orange-500 flex-1 md:flex-none"
+                >
+                  <option value="All">Department</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Consulting">Consulting</option>
+                  <option value="Staffing">Staffing</option>
                 </select>
-                <select className="h-10 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-orange-500 flex-1 md:flex-none">
-                  <option>Location</option>
-                  <option>Indore, India</option>
-                  <option>Remote</option>
+                <select 
+                  value={location} 
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-orange-500 flex-1 md:flex-none"
+                >
+                  <option value="All">Location</option>
+                  <option value="Indore, India">Indore, India</option>
+                  <option value="Remote">Remote</option>
                 </select>
-                <select className="h-10 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-orange-500 flex-1 md:flex-none">
-                  <option>Job Type</option>
-                  <option>Full Time</option>
-                  <option>Part Time</option>
+                <select 
+                  value={jobType} 
+                  onChange={(e) => setJobType(e.target.value)}
+                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-orange-500 flex-1 md:flex-none"
+                >
+                  <option value="All">Job Type</option>
+                  <option value="Full Time">Full Time</option>
+                  <option value="Part Time">Part Time</option>
                 </select>
               </div>
             </div>
-
+ 
             {/* Jobs list grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              {jobs.map((job) => (
-                <div key={job.id} className="group rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-6">
-                  <div className="space-y-3">
-                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold text-orange-600 bg-orange-50 border border-orange-100 uppercase tracking-wider">
-                      {job.category}
-                    </span>
-                    <h3 className="font-display text-base font-bold text-[#0b172a] leading-snug group-hover:text-orange-500 transition-colors">
-                      {job.title}
-                    </h3>
-                    <div className="flex gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">
-                      <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{job.loc}</span>
-                      <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{job.type}</span>
+              {(() => {
+                const filteredJobs = jobs.filter((job) => {
+                  const matchesSearch = 
+                    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    job.desc.toLowerCase().includes(searchTerm.toLowerCase());
+                  
+                  const matchesDept = 
+                    department === "All" || 
+                    department === "Department" || 
+                    job.category === department;
+
+                  const matchesLoc = 
+                    location === "All" || 
+                    location === "Location" || 
+                    job.loc === location ||
+                    (location === "Remote" && job.loc.toLowerCase().includes("remote"));
+
+                  const matchesType = 
+                    jobType === "All" || 
+                    jobType === "Job Type" || 
+                    job.type === jobType;
+
+                  return matchesSearch && matchesDept && matchesLoc && matchesType;
+                });
+
+                if (filteredJobs.length === 0) {
+                  return (
+                    <div className="col-span-full py-12 text-center text-slate-400 font-medium">
+                      No open positions match your selection filters.
                     </div>
-                    <p className="text-slate-500 text-xs font-sans leading-relaxed pt-1">
-                      {job.desc}
-                    </p>
+                  );
+                }
+
+                return filteredJobs.map((job) => (
+                  <div key={job.id} className="group rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-6">
+                    <div className="space-y-3">
+                      <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold text-orange-600 bg-orange-50 border border-orange-100 uppercase tracking-wider">
+                        {job.category}
+                      </span>
+                      <h3 className="font-display text-base font-bold text-[#0b172a] leading-snug group-hover:text-orange-500 transition-colors">
+                        {job.title}
+                      </h3>
+                      <div className="flex gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">
+                        <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{job.loc}</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{job.type}</span>
+                      </div>
+                      <p className="text-slate-500 text-xs font-sans leading-relaxed pt-1">
+                        {job.desc}
+                      </p>
+                    </div>
+                    <Button href="/register" variant="outline" size="sm" className="w-full h-9 rounded-xl text-xs font-bold">
+                      Apply Now
+                    </Button>
                   </div>
-                  <Button href="/register" variant="outline" size="sm" className="w-full h-9 rounded-xl text-xs font-bold">
-                    Apply Now
-                  </Button>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </Container>
         </section>

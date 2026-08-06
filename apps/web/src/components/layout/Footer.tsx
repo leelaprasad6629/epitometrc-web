@@ -165,11 +165,16 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start space-x-3 text-sm text-slate-400">
                 <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
-                <span className="font-sans leading-relaxed">
+                <a 
+                  href="https://maps.google.com/?q=208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="font-sans leading-relaxed hover:text-white transition-colors"
+                >
                   208, Swadesh Bhawan, Behind Press Complex,
                   <br />
                   LIG Colony, Indore - 452001, MP, India
-                </span>
+                </a>
               </li>
               <li className="flex items-center space-x-3 text-sm text-slate-400">
                 <Mail className="h-5 w-5 shrink-0 text-orange-500" />

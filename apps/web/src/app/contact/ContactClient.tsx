@@ -40,14 +40,30 @@ export default function ContactClient() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
-    setTimeout(() => {
-      setSending(false);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/enquiries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, subject, message }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit inquiry.");
+      }
       setSent(true);
-    }, 1200);
+    } catch (err: any) {
+      setErrorMsg(err.message || "An unexpected error occurred.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,7 +146,14 @@ export default function ContactClient() {
                       </span>
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Office Address</p>
-                        <p className="text-slate-800 text-[11.5px] font-bold">208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, MP, India</p>
+                        <a 
+                          href="https://maps.google.com/?q=208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-slate-800 hover:text-orange-500 text-[11.5px] font-bold block transition-colors font-sans"
+                        >
+                          208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, MP, India
+                        </a>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -304,6 +327,12 @@ export default function ContactClient() {
                         />
                       </label>
                     </div>
+
+                    {errorMsg && (
+                      <div className="text-red-500 text-[11px] font-bold bg-red-50 border border-red-200 rounded-xl p-3 text-center">
+                        {errorMsg}
+                      </div>
+                    )}
 
                     <Button 
                       type="submit" 
