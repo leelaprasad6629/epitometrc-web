@@ -8,17 +8,17 @@ interface RecommendationCardProps {
   onStart: (recommendation: Recommendation) => void;
 }
 
-const getRecommendationIcon = (type: string) => {
+const renderRecommendationIcon = (type: string) => {
   switch (type) {
     case 'Video':
-      return Video;
+      return <Video className="w-5 h-5" />;
     case 'PDF':
-      return FileText;
+      return <FileText className="w-5 h-5" />;
     case 'Quiz':
-      return HelpCircle;
+      return <HelpCircle className="w-5 h-5" />;
     case 'Notes':
     default:
-      return BookOpen;
+      return <BookOpen className="w-5 h-5" />;
   }
 };
 
@@ -26,8 +26,6 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
   recommendation,
   onStart,
 }) => {
-  const Icon = getRecommendationIcon(recommendation.type);
-
   return (
     <motion.div
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
@@ -45,7 +43,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
         {/* Title */}
         <div className="flex items-start gap-3 mb-3">
           <div className="p-2.5 rounded-xl bg-slate-100 text-slate-700 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors shrink-0">
-            <Icon className="w-5 h-5" />
+            {renderRecommendationIcon(recommendation.type)}
           </div>
           <h4 className="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-2 font-display">
             {recommendation.title}

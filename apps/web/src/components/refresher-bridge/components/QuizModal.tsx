@@ -14,12 +14,12 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   onClose,
   onSubmitScore,
 }) => {
-  if (!assessment) return null;
-
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
-  const [isSubmitted, setIsSubmitted] = useState(assessment.status === 'Passed' || assessment.status === 'Failed');
-  const [finalScore, setFinalScore] = useState<number | null>(assessment.lastScore ?? null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [finalScore, setFinalScore] = useState<number | null>(null);
+
+  if (!assessment) return null;
 
   const questions = assessment.questions || [];
   const currentQ = questions[currentQuestionIndex];

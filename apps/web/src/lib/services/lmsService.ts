@@ -1,4 +1,4 @@
-import { LMSCourse, LMSModule, LMSFilterState } from '@/types/lms';
+import { LMSCourse, LMSModule, LMSFilterState, LMSDiscussionThread, LMSCertificate } from '@/types/lms';
 
 class LMSService {
   public async fetchCourses(filters?: Partial<LMSFilterState>): Promise<LMSCourse[]> {
@@ -48,8 +48,9 @@ class LMSService {
         return { success: true };
       }
       return { success: false, message: data.error || 'Enrollment failed' };
-    } catch (e: any) {
-      return { success: false, message: e?.message || 'Network error' };
+    } catch (e: unknown) {
+      const errMessage = e instanceof Error ? e.message : 'Network error';
+      return { success: false, message: errMessage };
     }
   }
 
@@ -115,7 +116,7 @@ class LMSService {
     }
   }
 
-  public async fetchDiscussions(courseId: string): Promise<any[]> {
+  public async fetchDiscussions(courseId: string): Promise<LMSDiscussionThread[]> {
     try {
       const res = await fetch(`/api/courses/${courseId}/discussion`, { cache: 'no-store' });
       if (res.ok) {
@@ -142,7 +143,7 @@ class LMSService {
     }
   }
 
-  public async getCertificate(courseId: string): Promise<any | null> {
+  public async getCertificate(courseId: string): Promise<LMSCertificate | null> {
     try {
       const res = await fetch(`/api/courses/${courseId}/certificate`, { cache: 'no-store' });
       if (res.ok) {
