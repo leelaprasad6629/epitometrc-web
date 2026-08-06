@@ -18,7 +18,8 @@ import {
   ChevronRight,
   ClipboardList,
   Sparkles,
-  Compass
+  Compass,
+  Layers
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -55,6 +56,7 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
         title: "My Academics",
         items: [
           { name: "My Courses", href: "/student/courses", icon: BookOpen },
+          { name: "Refresher / Bridge Session", href: "/student/refresher-bridge", icon: Layers },
           { name: "My Applications", href: "/student/applications", icon: ClipboardList },
           { name: "Certificates", href: "/student/certificates", icon: Award },
         ],
