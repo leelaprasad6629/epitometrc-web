@@ -64,7 +64,9 @@ export default function CoursesClient() {
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
+    const timer = setTimeout(() => {
+      setLoading(true);
+    }, 0);
     lmsService.fetchCourses(filters).then((data) => {
       if (isMounted) {
         setCourses(data);
@@ -73,6 +75,7 @@ export default function CoursesClient() {
     });
     return () => {
       isMounted = false;
+      clearTimeout(timer);
     };
   }, [filters]);
 
@@ -230,7 +233,7 @@ export default function CoursesClient() {
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Sort By</label>
                   <select
                     value={filters.sortBy}
-                    onChange={(e: any) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters((prev) => ({ ...prev, sortBy: e.target.value as LMSFilterState['sortBy'] }))}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                   >
                     <option value="popular">Most Popular</option>

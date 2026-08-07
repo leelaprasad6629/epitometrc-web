@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
 import CourseDetailsClient from "./CourseDetailsClient";
 import { prisma } from "@/lib/prisma";
+import { LMSCourse, LessonType, DifficultyLevel } from "@/types/lms";
 
 export default async function CourseDetailsPage({
   params,
@@ -9,7 +9,7 @@ export default async function CourseDetailsPage({
 }) {
   const { id } = await params;
 
-  let course = await prisma.course.findFirst({
+  const course = await prisma.course.findFirst({
     where: { OR: [{ id }, { slug: id }] },
     include: {
       courseModules: {
@@ -25,7 +25,7 @@ export default async function CourseDetailsPage({
 
   if (!course) {
     // Return mock fallback for demo course IDs if DB not populated yet
-    const mockCourse: any = {
+    const mockCourse: LMSCourse = {
       id,
       title: "Strategic Business Analyst & Enterprise Architecture",
       subtitle: "Learn modern enterprise analysis models, UML diagrams, state patterns, and fintech strategy formulation.",
@@ -71,7 +71,7 @@ export default async function CourseDetailsPage({
           orderIndex: 1,
           lessons: [
             { id: "les-1", moduleId: "mod-1", title: "1.1 Overview & Learning Objectives", duration: "12 mins", orderIndex: 1, type: "video", isFreePreview: true },
-            { id: "les-2", moduleId: "mod-1", title: "1.2 Clean Code & SOLID Architecture Overview", duration: "25 mins", orderIndex: 2, type: "video", isFreePreview: true },
+            { id: "les-2", moduleId: "mod-1", title: "1.2 Clean Code & SOLID Architecture Overview", duration: "25 mins", orderIndex: 2, type: "video", isFreePreview: false },
             { id: "les-3", moduleId: "mod-1", title: "1.3 Environment Setup & Reference Notes", duration: "15 mins", orderIndex: 3, type: "notes", isFreePreview: false },
             { id: "les-4", moduleId: "mod-1", title: "1.4 Module 1 Assessment Quiz", duration: "15 mins", orderIndex: 4, type: "quiz", isFreePreview: false },
           ],
@@ -95,7 +95,7 @@ export default async function CourseDetailsPage({
     return <CourseDetailsClient course={mockCourse} />;
   }
 
-  const formattedCourse: any = {
+  const formattedCourse: LMSCourse = {
     id: course.id,
     title: course.title,
     subtitle: course.subtitle || "Master essential industry competencies through hands-on learning.",
@@ -105,7 +105,7 @@ export default async function CourseDetailsPage({
     duration: course.duration,
     modules: course.modules,
     image: course.image,
-    level: course.level || "Intermediate",
+    level: (course.level || "Intermediate") as DifficultyLevel,
     language: course.language || "English",
     price: course.price || "Free",
     rating: course.rating || 4.8,
@@ -115,7 +115,7 @@ export default async function CourseDetailsPage({
     skillsCovered: (course.skillsCovered as string[]) || ["System Design", "Clean Architecture", "TypeScript"],
     learningOutcomes: (course.learningOutcomes as string[]) || ["Build a verified portfolio", "Receive completion certificate"],
     prerequisites: (course.prerequisites as string[]) || ["Basic programming concepts"],
-    faqs: (course.faqs as any[]) || [{ question: "Is this course self-paced?", answer: "Yes, lifetime access is included." }],
+    faqs: (course.faqs as { question: string; answer: string }[]) || [{ question: "Is this course self-paced?", answer: "Yes, lifetime access is included." }],
     instructorName: course.instructorName || "Dr. Rajesh Verma",
     instructorRole: course.instructorRole || "Principal Architect",
     instructorAvatar: course.instructorAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
@@ -133,7 +133,7 @@ export default async function CourseDetailsPage({
         description: l.description || "",
         duration: l.duration,
         orderIndex: l.orderIndex,
-        type: l.type as any,
+        type: l.type as LessonType,
         isFreePreview: l.isFreePreview,
       })),
     })),

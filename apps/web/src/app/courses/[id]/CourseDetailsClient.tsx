@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
+import SubscriptionModal from "@/components/courses/SubscriptionModal";
 import {
-  BookOpen,
   Clock,
   Star,
   Users,
@@ -20,15 +19,13 @@ import {
   FileText,
   Video,
   PlayCircle,
-  X,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/common/Container";
-import { LMSCourse } from "@/types/lms";
+import { LMSCourse, LMSLesson } from "@/types/lms";
 import { cn } from "@/lib/utils";
 
 interface CourseDetailsClientProps {
@@ -40,8 +37,35 @@ export default function CourseDetailsClient({ course }: CourseDetailsClientProps
   const [activeTab, setActiveTab] = useState<"about" | "syllabus" | "instructor" | "reviews" | "faqs">("about");
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(course.courseModules?.[0]?.id || "mod-1");
   const [showLockedModal, setShowLockedModal] = useState(false);
-  const [lockedItemName, setLockedItemName] = useState<string>("");
   const [enrolling, setEnrolling] = useState(false);
+
+  // Free Preview States
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [activeLesson, setActiveLesson] = useState<Partial<LMSLesson> | null>(null);
+  const [lessons, setLessons] = useState<LMSLesson[]>([]);
+
+  const fetchLessons = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/courses/${course.id}/lessons`);
+      const data = await res.json();
+      if (data.success) {
+        setLessons(data.lessons);
+        const firstPreview = data.lessons.find((l: LMSLesson) => l.isFreePreview);
+        if (firstPreview) {
+          setActiveLesson(firstPreview);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch lessons:", e);
+    }
+  }, [course.id]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchLessons();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchLessons]);
 
   const handleEnrollClick = async () => {
     setEnrolling(true);
@@ -53,7 +77,6 @@ export default function CourseDetailsClient({ course }: CourseDetailsClientProps
       const data = await res.json();
       if (res.status === 401) {
         setShowLockedModal(true);
-        setLockedItemName("Enroll in Course");
         return;
       }
       if (data.success) {
@@ -66,17 +89,22 @@ export default function CourseDetailsClient({ course }: CourseDetailsClientProps
     }
   };
 
-  const handleLessonClick = (lessonTitle: string, isFreePreview: boolean) => {
+  const handleLessonClick = (lessonTitle: string, isFreePreview: boolean, videoUrl?: string, lessonId?: string) => {
     if (course.enrolled) {
       router.push(`/student/courses/${course.id}/learn`);
       return;
     }
 
     if (!isFreePreview) {
-      setLockedItemName(lessonTitle);
       setShowLockedModal(true);
     } else {
-      router.push(`/student/courses/${course.id}/learn`);
+      setIsPlaying(true);
+      setActiveLesson({
+        id: lessonId || "les-1",
+        title: lessonTitle,
+        videoUrl: videoUrl || "https://www.youtube.com/embed/6ynwj_h-DJ8",
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -150,22 +178,66 @@ export default function CourseDetailsClient({ course }: CourseDetailsClientProps
             <div className="lg:col-span-4">
               <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl text-slate-900 space-y-5">
                 <div className="relative h-44 rounded-2xl overflow-hidden bg-slate-900">
-                  <Image
-                    src={course.image}
-                    alt={course.title}
-                    fill
-                    className="object-cover"
-                    sizes="350px"
-                  />
-                  <div className="absolute inset-0 bg-slate-900/30 flex items-center justify-center">
+                  {isPlaying && activeLesson?.videoUrl ? (
+                    <iframe
+                      src={activeLesson.videoUrl}
+                      title={activeLesson.title}
+                      className="w-full h-full border-0 absolute inset-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <>
+                      <Image
+                        src={course.image}
+                        alt={course.title}
+                        fill
+                        className="object-cover"
+                        sizes="350px"
+                      />
+                      <div className="absolute inset-0 bg-slate-900/30 flex items-center justify-center">
+                        <button
+                          onClick={() => {
+                            const firstPreview = course.courseModules
+                              ?.flatMap((m) => m.lessons)
+                              .find((l) => l.isFreePreview);
+                            if (firstPreview) {
+                              handleLessonClick(firstPreview.title, true, firstPreview.videoUrl, firstPreview.id);
+                            } else {
+                              handleLessonClick("Overview Preview Video", true, "https://www.youtube.com/embed/6ynwj_h-DJ8", "les-intro");
+                            }
+                          }}
+                          className="p-3 bg-orange-500 text-white rounded-full shadow-lg hover:scale-110 transition-transform"
+                        >
+                          <PlayCircle className="w-8 h-8 fill-current" />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {isPlaying && activeLesson && (
+                  <div className="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 text-white space-y-1.5 text-left">
+                    <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest font-sans">Now Playing Free Preview</p>
+                    <h4 className="text-xs font-bold truncate font-sans">{activeLesson.title}</h4>
                     <button
-                      onClick={() => handleLessonClick("Course Intro Video", true)}
-                      className="p-3 bg-orange-500 text-white rounded-full shadow-lg hover:scale-110 transition-transform"
+                      onClick={() => {
+                        const allLessons = course.courseModules?.flatMap((m) => m.lessons) || [];
+                        const currentIndex = allLessons.findIndex((l) => l.title === activeLesson.title);
+                        if (currentIndex !== -1 && currentIndex < allLessons.length - 1) {
+                          const next = allLessons[currentIndex + 1];
+                          handleLessonClick(next.title, next.isFreePreview, next.videoUrl, next.id);
+                        } else {
+                          setShowLockedModal(true);
+                        }
+                      }}
+                      className="w-full mt-1 h-8 bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-bold flex items-center justify-center gap-1 transition-all rounded-xl"
                     >
-                      <PlayCircle className="w-8 h-8 fill-current" />
+                      Next Lesson
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </div>
+                )}
 
                 <div className="space-y-3">
                   <div className="flex items-baseline justify-between">
@@ -221,7 +293,7 @@ export default function CourseDetailsClient({ course }: CourseDetailsClientProps
                 ].map((tab) => (
                   <button
                     key={tab.key}
-                    onClick={() => setActiveTab(tab.key as any)}
+                    onClick={() => setActiveTab(tab.key as "about" | "syllabus" | "instructor" | "reviews" | "faqs")}
                     className={cn(
                       "px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
                       activeTab === tab.key
@@ -328,34 +400,38 @@ export default function CourseDetailsClient({ course }: CourseDetailsClientProps
 
                           {isExpanded && (
                             <div className="p-4 bg-white divide-y divide-slate-100 space-y-2">
-                              {mod.lessons.map((les) => (
-                                <div
-                                  key={les.id}
-                                  onClick={() => handleLessonClick(les.title, les.isFreePreview)}
-                                  className="pt-2 flex items-center justify-between text-xs cursor-pointer hover:text-orange-600 transition-colors"
-                                >
-                                  <div className="flex items-center gap-2.5">
-                                    {les.type === "video" ? (
-                                      <Video className="w-4 h-4 text-blue-500 shrink-0" />
-                                    ) : les.type === "quiz" ? (
-                                      <HelpCircle className="w-4 h-4 text-purple-500 shrink-0" />
-                                    ) : (
-                                      <FileText className="w-4 h-4 text-orange-500 shrink-0" />
-                                    )}
-                                    <span className="font-semibold text-slate-800">{les.title}</span>
+                              {mod.lessons.map((les) => {
+                                const matchingLesson = lessons.find((l) => l.id === les.id);
+                                const videoUrl = matchingLesson ? matchingLesson.videoUrl : undefined;
+                                return (
+                                  <div
+                                    key={les.id}
+                                    onClick={() => handleLessonClick(les.title, les.isFreePreview, videoUrl, les.id)}
+                                    className="pt-2 flex items-center justify-between text-xs cursor-pointer hover:text-orange-600 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-2.5">
+                                      {les.type === "video" ? (
+                                        <Video className="w-4 h-4 text-blue-500 shrink-0" />
+                                      ) : les.type === "quiz" ? (
+                                        <HelpCircle className="w-4 h-4 text-purple-500 shrink-0" />
+                                      ) : (
+                                        <FileText className="w-4 h-4 text-orange-500 shrink-0" />
+                                      )}
+                                      <span className="font-semibold text-slate-800">{les.title}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 shrink-0">
+                                      <span className="text-slate-400">{les.duration}</span>
+                                      {les.isFreePreview ? (
+                                        <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                                          Free Preview
+                                        </span>
+                                      ) : (
+                                        <Lock className="w-3.5 h-3.5 text-slate-400" />
+                                      )}
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-3 shrink-0">
-                                    <span className="text-slate-400">{les.duration}</span>
-                                    {les.isFreePreview ? (
-                                      <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                                        Free Preview
-                                      </span>
-                                    ) : (
-                                      <Lock className="w-3.5 h-3.5 text-slate-400" />
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           )}
                         </div>
@@ -431,43 +507,18 @@ export default function CourseDetailsClient({ course }: CourseDetailsClientProps
         </section>
 
         {/* Guest Content Locked Modal */}
-        <AnimatePresence>
-          {showLockedModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-              <div className="bg-white rounded-3xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl border border-slate-100">
-                <div className="p-4 rounded-2xl bg-orange-50 text-orange-600 w-16 h-16 mx-auto flex items-center justify-center">
-                  <Lock className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 font-display">
-                  🔒 Login to Access Content
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed font-sans">
-                  Accessing full video lectures, notes, interactive quizzes, assignments, and certificates for <span className="font-bold text-slate-900">&quot;{lockedItemName}&quot;</span> requires a student account.
-                </p>
-                <div className="flex items-center gap-3 pt-2">
-                  <Link
-                    href="/login"
-                    className="flex-1 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all text-center"
-                  >
-                    Login to Account
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="flex-1 py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all text-center"
-                  >
-                    Create Account
-                  </Link>
-                </div>
-                <button
-                  onClick={() => setShowLockedModal(false)}
-                  className="text-xs text-slate-400 hover:text-slate-600 pt-1"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          )}
-        </AnimatePresence>
+        <SubscriptionModal
+          isOpen={showLockedModal}
+          onClose={() => setShowLockedModal(false)}
+          onSubscribe={() => {
+            setShowLockedModal(false);
+            router.push(`/register?redirect=/courses/${course.id}&action=enroll`);
+          }}
+          onSignIn={() => {
+            setShowLockedModal(false);
+            router.push(`/login?redirect=/courses/${course.id}`);
+          }}
+        />
       </main>
       <Footer />
     </>
