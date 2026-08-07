@@ -4,6 +4,8 @@ import ConsultingHero from "@/components/consulting/ConsultingHero";
 import ConsultingExpertise from "@/components/consulting/ConsultingExpertise";
 import ConsultingBenefits from "@/components/consulting/ConsultingBenefits";
 import ConsultingProcess from "@/components/consulting/ConsultingProcess";
+import CaseStudies from "@/components/common/CaseStudies";
+import TrustMetricsBanner from "@/components/common/TrustMetricsBanner";
 import CTA from "@/components/common/CTA";
 import AIConsultantWidget from "@/components/ai/AIConsultantWidget";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
@@ -51,9 +53,17 @@ export default function ConsultingPage() {
       <main id="main-content" className="pt-20">
         <Breadcrumbs items={[{ label: "Services", href: "/services" }, { label: "Consulting" }]} />
         <ConsultingHero />
+        <TrustMetricsBanner variant="light" />
         <ConsultingExpertise />
         <ConsultingBenefits />
         <ConsultingProcess />
+        <CaseStudies
+          title="Enterprise Consulting Transformations"
+          eyebrow="Proven Advisory Track Record"
+          description="Examine how enterprise clients partner with EpitomeTRC to optimize legacy systems and scale organizational efficiency."
+          limit={2}
+          showFilters={false}
+        />
         <AIConsultantWidget />
         <CTA
           title="Ready to Accelerate Your Growth?"

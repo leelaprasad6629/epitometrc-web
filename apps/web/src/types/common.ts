@@ -47,4 +47,5 @@ export type Testimonial = {
   role: string;
   quote: string;
   avatar?: string;
+  company?: string;
 };

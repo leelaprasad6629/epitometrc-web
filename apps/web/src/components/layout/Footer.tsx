@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Mail, Phone, MapPin, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, ArrowRight, ShieldCheck, Lock, GraduationCap } from "lucide-react";
 import { FaFacebook, FaInstagram, FaLinkedin } from "react-icons/fa";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -82,12 +82,17 @@ export default function Footer() {
             <p className="max-w-sm font-sans text-sm leading-relaxed text-slate-400">
               Precision in Strategy, Excellence in Execution. We design robust digital transformations and enterprise software systems to connect technology with clear outcomes.
             </p>
-            {stats && (
-              <div className="inline-flex items-center self-start gap-2 rounded-xl bg-orange-500/10 border border-orange-500/20 px-3.5 py-1.5 text-xs font-bold text-orange-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />
-                <span>{stats.trainingsInternships}+ Trainings &amp; Internships Facilitated</span>
+            <div className="flex flex-col space-y-2 self-start">
+              <div className="inline-flex items-center gap-2 rounded-xl bg-orange-500/10 border border-orange-500/20 px-3.5 py-1.5 text-xs font-bold text-orange-400">
+                <GraduationCap className="h-4 w-4 text-orange-500 shrink-0" />
+                <span>🚀 {stats?.trainingsInternships ? `${stats.trainingsInternships}+` : "7000+"} Internships Facilitated</span>
               </div>
-            )}
+              <div className="flex items-center gap-3 text-[10px] font-semibold text-slate-400">
+                <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> ISO 9001:2015</span>
+                <span>•</span>
+                <span className="flex items-center gap-1"><Lock className="h-3.5 w-3.5 text-blue-400" /> 256-Bit SSL</span>
+              </div>
+            </div>
             <div className="flex space-x-3">
               {[
                 { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn" },

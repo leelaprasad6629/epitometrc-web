@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ShieldCheck, Star, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface HeroProps {
@@ -341,8 +341,26 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[215px] w-[460px] h-[460px] border border-slate-200/10 rounded-full pointer-events-none z-0" />
 
       {/* Main Centered Content */}
-      <div className="flex-1 flex flex-col justify-center items-center text-center px-4 relative z-10 space-y-6 pt-24 md:pt-16">
+      <div className="flex-1 flex flex-col justify-center items-center text-center px-4 relative z-10 space-y-5 pt-20 md:pt-12">
         
+        {/* Top Trust Ribbon */}
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-1.5 rounded-full bg-white/90 border border-slate-200/80 shadow-sm backdrop-blur-sm text-[10px] sm:text-xs font-bold text-slate-700">
+          <span className="flex items-center gap-1 text-orange-600 font-extrabold">
+            <GraduationCap className="h-3.5 w-3.5" />
+            🚀 7000+ Internships Facilitated
+          </span>
+          <span className="hidden sm:inline text-slate-300">•</span>
+          <span className="flex items-center gap-1 text-amber-600 font-extrabold">
+            <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+            4.9/5 Student &amp; Corporate Score
+          </span>
+          <span className="hidden sm:inline text-slate-300">•</span>
+          <span className="flex items-center gap-1 text-emerald-600 font-extrabold">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            ISO 9001:2015 Certified
+          </span>
+        </div>
+
         {/* Persona Switcher Toggle Buttons */}
         <div className="flex bg-white/80 p-1.5 rounded-2xl border border-slate-200/50 shadow-sm z-10 w-fit backdrop-blur-sm">
           <button

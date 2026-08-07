@@ -312,6 +312,21 @@ export default function ContactClient() {
                     >
                       {sending ? "Sending Message..." : "Send Message"} <Send className="ml-2 h-4 w-4" />
                     </Button>
+
+                    {/* Micro Trust Reassurance Bar */}
+                    <div className="pt-3 flex flex-wrap items-center justify-center gap-4 text-[10.5px] font-semibold text-slate-500 border-t border-slate-100">
+                      <span className="flex items-center gap-1 text-emerald-600">
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> ISO 9001 Quality
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1 text-blue-600">
+                        <Clock className="h-3.5 w-3.5 text-blue-500" /> 24h SLA Response
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1 text-slate-600">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-orange-500" /> Zero Spam Guarantee
+                      </span>
+                    </div>
                   </form>
                 )}
               </div>

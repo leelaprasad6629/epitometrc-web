@@ -7,6 +7,7 @@ import WalkthroughDemo from "@/components/home/WalkthroughDemo";
 import About from "@/components/home/About";
 import Services from "@/components/home/Services";
 import Courses from "@/components/home/Courses";
+import CaseStudies from "@/components/common/CaseStudies";
 import TrustedBy from "@/components/home/TrustedBy";
 import Testimonials from "@/components/home/Testimonials";
 import Footer from "@/components/layout/Footer";
@@ -23,6 +24,7 @@ export default function HomeClient() {
       <About persona={persona} />
       <Services persona={persona} />
       <Courses persona={persona} />
+      <CaseStudies />
       <Testimonials />
       <Footer />
     </>

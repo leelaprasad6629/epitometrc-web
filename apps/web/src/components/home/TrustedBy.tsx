@@ -56,12 +56,12 @@ export default function TrustedBy() {
 
   const statsItems = [
     {
-      label: "Trainings & Internships",
-      value: stats?.trainingsInternships ? `${stats.trainingsInternships}+` : null,
+      label: "Internships Facilitated",
+      value: stats?.trainingsInternships ? `${stats.trainingsInternships}+` : "7000+",
       icon: GraduationCap,
       color: "text-orange-500",
       bgColor: "bg-orange-50",
-      desc: "Careers upskilled & certified"
+      desc: "🚀 7000+ Careers upskilled & certified"
     },
     {
       label: "Corporate Clients",

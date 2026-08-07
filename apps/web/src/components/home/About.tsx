@@ -119,7 +119,7 @@ export default function About({ persona }: AboutProps) {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
-                className="rounded-2xl overflow-hidden shadow-xl max-w-sm lg:max-w-none w-full"
+                className="rounded-2xl overflow-hidden shadow-xl max-w-sm lg:max-w-none w-full relative"
               >
                 {/* Note: Store your executive portrait image at /public/images/executive_trust.jpg */}
                 <Image
@@ -130,6 +130,20 @@ export default function About({ persona }: AboutProps) {
                   className="w-full h-[450px] lg:h-[520px] object-cover hover:scale-102 transition-transform duration-500"
                   style={{ width: 'auto' }}
                 />
+
+                {/* Floating 7000+ Internships Milestone Card */}
+                <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-[#0b172a]/95 text-white p-4 rounded-2xl shadow-2xl border border-slate-700/80 backdrop-blur-md max-w-[230px] z-10 space-y-1">
+                  <div className="flex items-center gap-1.5 text-orange-400 text-[10px] font-bold uppercase tracking-wider">
+                    <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                    Trust Indicator
+                  </div>
+                  <div className="font-display text-2xl font-extrabold text-white leading-tight">
+                    🚀 7000+
+                  </div>
+                  <div className="text-[11px] font-semibold text-slate-300 leading-snug">
+                    Internships &amp; Placements Facilitated
+                  </div>
+                </div>
               </motion.div>
             </div>
 
