@@ -87,7 +87,7 @@ export default function PrivacyPage() {
             </p>
             <p>For any questions or clarification regarding this policy, please reach out to us at:</p>
             <ul className="list-none space-y-1.5 pl-0 pt-2 font-sans font-semibold">
-              <li>• Email: <a href="mailto:info@epitometrc.com" className="text-orange-500 hover:underline">info@epitometrc.com</a> / <a href="mailto:careers@epitometrc.com" className="text-orange-500 hover:underline">careers@epitometrc.com</a></li>
+              <li>• Email: <a href="https://mail.google.com/mail/?view=cm&fs=1&to=info@epitometrc.com" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline">info@epitometrc.com</a> / <a href="https://mail.google.com/mail/?view=cm&fs=1&to=careers@epitometrc.com" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline">careers@epitometrc.com</a></li>
               <li>• Phone: +91-626-596-6705</li>
               <li>• Registered Office Location: Indore, Madhya Pradesh, India</li>
             </ul>

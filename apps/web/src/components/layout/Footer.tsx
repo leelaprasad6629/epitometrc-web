@@ -168,7 +168,12 @@ export default function Footer() {
               </li>
               <li className="flex items-center space-x-3 text-sm text-slate-400">
                 <Mail className="h-5 w-5 shrink-0 text-orange-500" />
-                <a href="mailto:info@epitometrc.com" className="font-sans transition-colors hover:text-white">
+                <a
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=info@epitometrc.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-sans transition-colors hover:text-white"
+                >
                   info@epitometrc.com
                 </a>
               </li>

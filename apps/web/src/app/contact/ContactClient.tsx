@@ -139,7 +139,14 @@ export default function ContactClient() {
                       </span>
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Email Address</p>
-                        <p className="text-slate-800 text-[11.5px] font-bold">info@epitometrc.com</p>
+                        <a
+                          href="https://mail.google.com/mail/?view=cm&fs=1&to=info@epitometrc.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-800 text-[11.5px] font-bold hover:text-orange-500 transition-colors block"
+                        >
+                          info@epitometrc.com
+                        </a>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -382,7 +389,9 @@ export default function ContactClient() {
                     <p className="font-bold text-xs text-slate-900">{act.name}</p>
                     <p className="text-[10.5px] text-slate-400 font-medium leading-relaxed">{act.desc}</p>
                     <a
-                      href={`mailto:${act.email}`}
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${act.email}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-[10.5px] font-bold text-blue-600 hover:text-orange-500 transition-colors inline-block pt-1"
                     >
                       {act.email}

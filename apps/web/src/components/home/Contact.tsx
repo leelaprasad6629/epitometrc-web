@@ -64,7 +64,12 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">Direct Email</h4>
-                  <a href="mailto:info@epitometrc.com" className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block">
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=info@epitometrc.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block"
+                  >
                     info@epitometrc.com
                   </a>
                 </div>

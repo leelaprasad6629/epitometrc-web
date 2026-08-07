@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Platform, ScrollView } from 'react-native';
+import { StyleSheet, View, Platform, ScrollView, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -238,6 +238,18 @@ export default function PortalWebView({ path }: PortalWebViewProps) {
         style={styles.webview}
         sharedCookiesEnabled={true}
         thirdPartyCookiesEnabled={true}
+        onShouldStartLoadWithRequest={(request) => {
+          if (
+            request.url.startsWith('https://mail.google.com/mail/') ||
+            request.url.startsWith('mailto:')
+          ) {
+            Linking.openURL(request.url).catch((err) =>
+              console.warn('Failed to open email URL:', err)
+            );
+            return false;
+          }
+          return true;
+        }}
       />
       {!webViewLoaded && (
         <View style={styles.overlayLoader}>

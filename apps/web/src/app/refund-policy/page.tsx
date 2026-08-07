@@ -57,7 +57,7 @@ export default function RefundPolicyPage() {
                 By making any payment to EpitomeTRC or ticking the mandatory Terms and Conditions checkbox before submitting a form, you expressly acknowledge and accept this No Refund and No Return Policy. It is strongly recommended that you review the Service details, scope, and pricing carefully and clarify any doubts with our team before making payment, as no reversal will be possible thereafter.
               </p>
               <p className="text-slate-700 text-sm">
-                For any concerns regarding a payment or Service, please contact our support team at <a href="mailto:support@epitometrc.com" className="text-orange-500 hover:underline">support@epitometrc.com</a> or <a href="mailto:info@epitometrc.com" className="text-orange-500 hover:underline">info@epitometrc.com</a> before proceeding with payment.
+                For any concerns regarding a payment or Service, please contact our support team at <a href="https://mail.google.com/mail/?view=cm&fs=1&to=support@epitometrc.com" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline">support@epitometrc.com</a> or <a href="https://mail.google.com/mail/?view=cm&fs=1&to=info@epitometrc.com" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline">info@epitometrc.com</a> before proceeding with payment.
               </p>
             </div>
 
