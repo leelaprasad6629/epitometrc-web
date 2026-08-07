@@ -17,12 +17,14 @@ export default function UpgradeModal({ isOpen, onClose, limitType = "general", o
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [checkoutStep, setCheckoutStep] = useState<"plans" | "checkout" | "success">("plans");
   const [loading, setLoading] = useState(false);
+  const [acceptedRefundPolicy, setAcceptedRefundPolicy] = useState(false);
 
   if (!isOpen) return null;
 
   const handleSelectPlan = (planName: string) => {
     if (planName === "Free Plan") return; // Already on Free Plan
     setSelectedPlan(planName);
+    setAcceptedRefundPolicy(false);
     setCheckoutStep("checkout");
   };
 
@@ -229,11 +231,31 @@ export default function UpgradeModal({ isOpen, onClose, limitType = "general", o
                 <span>Simulated payment test mode. Clicking confirm will instantly upgrade your account to Premium locally.</span>
               </div>
 
+              <div className="flex items-start gap-2 pt-2 border-t border-slate-100/60">
+                <input
+                  type="checkbox"
+                  id="accept-refund-policy"
+                  checked={acceptedRefundPolicy}
+                  onChange={(e) => setAcceptedRefundPolicy(e.target.checked)}
+                  className="mt-0.5 rounded border-slate-300 text-orange-500 focus:ring-orange-500/20 h-4 w-4 cursor-pointer"
+                />
+                <label htmlFor="accept-refund-policy" className="text-[11.5px] text-slate-500 cursor-pointer select-none leading-snug font-medium font-sans text-left">
+                  I agree that <strong>all purchases are final and non-refundable</strong>, and accept the{" "}
+                  <a href="/refund-policy" target="_blank" className="text-orange-500 hover:underline font-bold">
+                    Refund Policy
+                  </a>{" "}
+                  and{" "}
+                  <a href="/terms" target="_blank" className="text-orange-500 hover:underline font-bold">
+                    Terms &amp; Conditions
+                  </a>.
+                </label>
+              </div>
+
               <Button
                 variant="primary"
                 className="w-full py-2.5 text-xs font-bold mt-2"
                 onClick={handleSimulatePayment}
-                disabled={loading}
+                disabled={loading || !acceptedRefundPolicy}
               >
                 {loading ? "Authorizing Security Keys..." : `Confirm simulated Payment`}
               </Button>

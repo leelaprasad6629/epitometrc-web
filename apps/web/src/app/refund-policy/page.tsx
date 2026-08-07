@@ -41,7 +41,7 @@ export default function RefundPolicyPage() {
 
           <div className="text-slate-600 text-sm leading-relaxed space-y-6">
             <div className="bg-red-50/50 border border-red-100 rounded-2xl p-6 md:p-8 space-y-4">
-              <h2 className="font-display text-lg font-extrabold text-red-600">6. NO REFUND &amp; NO RETURN POLICY</h2>
+              <h2 className="font-display text-lg font-extrabold text-red-600">NO REFUND &amp; NO RETURN POLICY</h2>
               <p className="text-red-700 font-extrabold text-xs tracking-wider uppercase">PLEASE READ CAREFULLY BEFORE MAKING ANY PAYMENT.</p>
               <p className="text-slate-700 text-sm">
                 All Services offered by EpitomeTRC — including but not limited to Recruitment Solutions, Training &amp; Development programs, Coaching &amp; Mentorship, Consulting Services, courses, workshops, and Internship placements — are strictly <strong>NON-REFUNDABLE</strong> and <strong>NON-RETURNABLE</strong> once payment has been made and the Service, course access, session, or engagement has commenced or been confirmed.

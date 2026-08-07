@@ -81,7 +81,17 @@ export default function PrivacyPage() {
               By registering an account with EpitomeTRC, you consent to being contacted by our operations team via voice call, text SMS, WhatsApp messaging, or email regarding your registration status, internship tracks, and candidate submissions, even if your phone number is registered on the National Do Not Call (NDNC) registry.
             </p>
 
-            <h2 className="font-display text-lg font-bold text-[#0b172a] pt-4 border-t border-slate-100">6. Governing Law &amp; Contact Information</h2>
+            <h2 className="font-display text-lg font-bold text-[#0b172a] pt-4 border-t border-slate-100">6. Data Retention Period</h2>
+            <p>
+              We retain your personal data (such as profile details, logs, resume history, and course progress) for as long as your account remains active or as needed to provide you with the Services. If your account shows no activity for three (3) consecutive years, we will securely archive or permanently anonymize your data unless we are legally required to retain it for compliance, audit, or tax obligations.
+            </p>
+
+            <h2 className="font-display text-lg font-bold text-[#0b172a] pt-4 border-t border-slate-100">7. Deletion and Access Requests</h2>
+            <p>
+              You have the right to access, update, correct, or request the permanent erasure of your personal data stored on our servers at any time. You can submit a deletion request or request a copy of your records by writing to our compliance support team at <a href="mailto:info@epitometrc.com" className="text-orange-500 hover:underline">info@epitometrc.com</a> or <a href="mailto:support@epitometrc.com" className="text-orange-500 hover:underline">support@epitometrc.com</a>. Upon verification of your identity, we will process and confirm your request within thirty (30) business days.
+            </p>
+
+            <h2 className="font-display text-lg font-bold text-[#0b172a] pt-4 border-t border-slate-100">8. Governing Law &amp; Contact Information</h2>
             <p>
               This Privacy Policy is governed by and construed in accordance with the laws of India. Any concerns or disputes regarding data protection and policy compliance shall be handled exclusively by courts in Indore, Madhya Pradesh, India.
             </p>
