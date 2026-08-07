@@ -147,7 +147,7 @@ export default function ContactClient() {
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Office Address</p>
                         <a 
-                          href="https://maps.google.com/?q=208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
+                          href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-slate-800 hover:text-orange-500 text-[11.5px] font-bold block transition-colors font-sans"
@@ -162,7 +162,7 @@ export default function ContactClient() {
                       </span>
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Email Address</p>
-                        <p className="text-slate-800 text-[11.5px] font-bold">info@epitometrc.com</p>
+                        <a href="mailto:careers@epitometrc.com" className="text-slate-800 hover:text-orange-500 text-[11.5px] font-bold transition-colors">careers@epitometrc.com</a>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -418,9 +418,9 @@ export default function ContactClient() {
               <h3 className="text-center font-display text-sm font-bold text-slate-900 uppercase tracking-wider">Quick Actions</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 font-sans">
                 {[
-                  { name: "Talk to Sales", desc: "Consult custom packages.", email: "info@epitometrc.com", color: "border-blue-100 hover:border-blue-300" },
-                  { name: "Hiring Support", desc: "Build developer teams.", email: "hr@epitometrc.com", color: "border-violet-100 hover:border-violet-300" },
-                  { name: "Training Enquiry", desc: "Enroll in bootcamps.", email: "academy@epitometrc.com", color: "border-orange-100 hover:border-orange-300" }
+                  { name: "Talk to Sales", desc: "Consult custom packages.", email: "careers@epitometrc.com", color: "border-blue-100 hover:border-blue-300" },
+                  { name: "Hiring Support", desc: "Build developer teams.", email: "careers@epitometrc.com", color: "border-violet-100 hover:border-violet-300" },
+                  { name: "Training Enquiry", desc: "Enroll in bootcamps.", email: "careers@epitometrc.com", color: "border-orange-100 hover:border-orange-300" }
                 ].map((act, idx) => (
                   <div key={idx} className={`bg-white rounded-2xl border p-5 shadow-sm space-y-2 hover-scale-card transition-all ${act.color}`}>
                     <p className="font-bold text-xs text-slate-900">{act.name}</p>

@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Sign session token
-    const token = signToken({ id: user.id, email: user.email, role: user.role });
+    const token = signToken({ id: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
 
     const state = searchParams.get("state");
     if (state === "mobile") {
@@ -134,6 +134,7 @@ export async function GET(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24, // 1 day
+      sameSite: "lax",
       path: "/",
     });
 

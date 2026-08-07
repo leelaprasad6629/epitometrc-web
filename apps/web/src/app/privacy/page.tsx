@@ -88,7 +88,7 @@ export default function PrivacyPage() {
 
             <h2 className="font-display text-lg font-bold text-[#0b172a] pt-4 border-t border-slate-100">7. Deletion and Access Requests</h2>
             <p>
-              You have the right to access, update, correct, or request the permanent erasure of your personal data stored on our servers at any time. You can submit a deletion request or request a copy of your records by writing to our compliance support team at <a href="mailto:info@epitometrc.com" className="text-orange-500 hover:underline">info@epitometrc.com</a> or <a href="mailto:support@epitometrc.com" className="text-orange-500 hover:underline">support@epitometrc.com</a>. Upon verification of your identity, we will process and confirm your request within thirty (30) business days.
+              You have the right to access, update, correct, or request the permanent erasure of your personal data stored on our servers at any time. You can submit a deletion request or request a copy of your records by writing to our compliance support team at <a href="mailto:careers@epitometrc.com" className="text-orange-500 hover:underline">careers@epitometrc.com</a>. Upon verification of your identity, we will process and confirm your request within thirty (30) business days.
             </p>
 
             <h2 className="font-display text-lg font-bold text-[#0b172a] pt-4 border-t border-slate-100">8. Governing Law &amp; Contact Information</h2>
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
             </p>
             <p>For any questions or clarification regarding this policy, please reach out to us at:</p>
             <ul className="list-none space-y-1.5 pl-0 pt-2 font-sans font-semibold">
-              <li>• Email: <a href="mailto:info@epitometrc.com" className="text-orange-500 hover:underline">info@epitometrc.com</a> / <a href="mailto:careers@epitometrc.com" className="text-orange-500 hover:underline">careers@epitometrc.com</a></li>
+              <li>• Email: <a href="mailto:careers@epitometrc.com" className="text-orange-500 hover:underline">careers@epitometrc.com</a></li>
               <li>• Phone: +91-626-596-6705</li>
               <li>• Registered Office Location: Indore, Madhya Pradesh, India</li>
             </ul>

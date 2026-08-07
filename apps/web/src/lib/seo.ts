@@ -118,7 +118,7 @@ export function generateOrganizationSchema() {
       "@type": "ContactPoint",
       telephone: "+91-626-596-6705",
       contactType: "customer service",
-      email: "info@epitometrc.com",
+      email: "careers@epitometrc.com",
     },
     sameAs: [
       "https://www.linkedin.com/company/epitometrc",

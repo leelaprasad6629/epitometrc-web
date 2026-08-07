@@ -1,23 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, CheckCircle2, ShieldAlert } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 
-export default function ResetPasswordClient() {
+function ResetPasswordClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams ? searchParams.get("token") : null;
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!token) {
+      setError("No valid password reset token was found. Please request a new password reset link from the Forgot Password screen.");
+    }
+  }, [token]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!token) {
+      setError("Cannot reset password: Token is missing.");
+      return;
+    }
 
     // Strong password validation
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -33,11 +47,25 @@ export default function ResetPasswordClient() {
 
     setLoading(true);
 
-    // Simulate reset request
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Password reset failed");
+      }
+
       setSuccess(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to reset password. Please try again.");
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -140,5 +168,22 @@ export default function ResetPasswordClient() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen bg-slate-50 font-sans items-center justify-center p-6">
+        <div className="w-full max-w-md bg-white p-8 rounded-2xl border border-slate-100 shadow-sm text-center">
+          <div className="animate-pulse space-y-4">
+            <div className="h-6 bg-slate-200 rounded w-1/2 mx-auto"></div>
+            <div className="h-4 bg-slate-200 rounded w-3/4 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ResetPasswordClient />
+    </Suspense>
   );
 }

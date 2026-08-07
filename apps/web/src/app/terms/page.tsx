@@ -111,7 +111,7 @@ export default function TermsPage() {
                 By making any payment to EpitomeTRC or ticking the mandatory Terms and Conditions checkbox before submitting a form, you expressly acknowledge and accept this No Refund and No Return Policy. It is strongly recommended that you review the Service details, scope, and pricing carefully and clarify any doubts with our team before making payment, as no reversal will be possible thereafter.
               </p>
               <p className="text-slate-700 text-sm">
-                For any concerns regarding a payment or Service, please contact our support team at <a href="mailto:support@epitometrc.com" className="text-orange-500 hover:underline">support@epitometrc.com</a> or <a href="mailto:info@epitometrc.com" className="text-orange-500 hover:underline">info@epitometrc.com</a> before proceeding with payment.
+                For any concerns regarding a payment or Service, please contact our support team at <a href="mailto:careers@epitometrc.com" className="text-orange-500 hover:underline">careers@epitometrc.com</a> before proceeding with payment.
               </p>
             </div>
 
@@ -155,7 +155,7 @@ export default function TermsPage() {
 
             <h2 className="font-display text-lg font-bold text-[#0b172a] pt-4 border-t border-slate-100">14. Termination</h2>
             <p>
-              EpitomeTRC reserves the right to suspend or terminate your account or access to any Service if you violate these Terms, without any obligation to refund fees already paid, in line with the No Refund Policy set out in Section 6 above. You may terminate your account at any time by writing to <a href="mailto:info@epitometrc.com" className="text-orange-500 hover:underline">info@epitometrc.com</a>; any fees already paid remain non-refundable in accordance with Section 6.
+              EpitomeTRC reserves the right to suspend or terminate your account or access to any Service if you violate these Terms, without any obligation to refund fees already paid, in line with the No Refund Policy set out in Section 6 above. You may terminate your account at any time by writing to <a href="mailto:careers@epitometrc.com" className="text-orange-500 hover:underline">careers@epitometrc.com</a>; any fees already paid remain non-refundable in accordance with Section 6.
             </p>
 
             <h2 className="font-display text-lg font-bold text-[#0b172a] pt-4 border-t border-slate-100">15. Governing Law &amp; Jurisdiction</h2>
@@ -168,7 +168,7 @@ export default function TermsPage() {
               For any questions regarding these Terms and Conditions, the No Refund &amp; No Return Policy, or our Services, please contact us at:
             </p>
             <ul className="list-none space-y-1.5 pl-0 pt-2 font-sans font-semibold">
-              <li>• Email: <a href="mailto:info@epitometrc.com" className="text-orange-500 hover:underline">info@epitometrc.com</a> / <a href="mailto:careers@epitometrc.com" className="text-orange-500 hover:underline">careers@epitometrc.com</a></li>
+              <li>• Email: <a href="mailto:careers@epitometrc.com" className="text-orange-500 hover:underline">careers@epitometrc.com</a></li>
               <li>• Phone: +91-626-596-6705</li>
               <li>• Location: PAN India (Registered office: Indore, Madhya Pradesh)</li>
             </ul>

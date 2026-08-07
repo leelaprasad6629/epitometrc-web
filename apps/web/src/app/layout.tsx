@@ -76,7 +76,7 @@ const jsonLd = {
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "Customer Support",
-    email: "contact@epitometrc.com",
+    email: "careers@epitometrc.com",
   },
 };
 

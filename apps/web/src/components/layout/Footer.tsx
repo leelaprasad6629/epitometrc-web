@@ -166,7 +166,7 @@ export default function Footer() {
               <li className="flex items-start space-x-3 text-sm text-slate-400">
                 <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
                 <a 
-                  href="https://maps.google.com/?q=208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
+                  href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="font-sans leading-relaxed hover:text-white transition-colors"
@@ -178,8 +178,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center space-x-3 text-sm text-slate-400">
                 <Mail className="h-5 w-5 shrink-0 text-orange-500" />
-                <a href="mailto:info@epitometrc.com" className="font-sans transition-colors hover:text-white">
-                  info@epitometrc.com
+                <a href="mailto:careers@epitometrc.com" className="font-sans transition-colors hover:text-white">
+                  careers@epitometrc.com
                 </a>
               </li>
               <li className="flex items-center space-x-3 text-sm text-slate-400">

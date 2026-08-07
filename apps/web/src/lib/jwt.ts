@@ -30,16 +30,21 @@ export async function getAuthorizedUser(req: NextRequest, allowedRoles?: string[
   const token = getToken(req);
   if (!token) return null;
 
-  const payload = verifyToken(token) as { id: string } | null;
+  const payload = verifyToken(token) as { id: string; tokenVersion?: number } | null;
   if (!payload?.id) return null;
 
   const { prisma } = await import("./prisma");
   const user = await prisma.user.findUnique({
     where: { id: payload.id },
-    select: { id: true, email: true, role: true, status: true, name: true }
+    select: { id: true, email: true, role: true, status: true, name: true, tokenVersion: true }
   });
 
   if (!user || user.status !== "Active") {
+    return null;
+  }
+
+  // Enforce session expiration / device logout check
+  if (payload.tokenVersion !== undefined && user.tokenVersion !== payload.tokenVersion) {
     return null;
   }
 

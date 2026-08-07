@@ -20,7 +20,7 @@ const DEFAULT_COMPANY_INFO = {
   },
   contact: {
     phone: "+91-626-596-6705",
-    email: "info@epitometrc.com",
+    email: "careers@epitometrc.com",
     address: "208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore, Madhya Pradesh",
   },
   testimonials: [

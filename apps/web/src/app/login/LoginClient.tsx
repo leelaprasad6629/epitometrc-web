@@ -47,6 +47,36 @@ function LoginForm() {
     }
   };
 
+  const [mfaStep, setMfaStep] = useState(false);
+  const [mfaToken, setMfaToken] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+
+  const handleMFASubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/verify-mfa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mfaToken, code: mfaCode }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "MFA Verification failed");
+      }
+
+      router.push("/admin/dashboard");
+    } catch (err: any) {
+      setError(err.message || "MFA Code Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -65,7 +95,12 @@ function LoginForm() {
         throw new Error(data.error || "Login failed");
       }
 
-
+      if (data.requireMFA) {
+        setMfaToken(data.mfaToken);
+        setMfaStep(true);
+        setLoading(false);
+        return;
+      }
 
       const role = data.user.role;
       if (role === "Student") {
@@ -151,90 +186,139 @@ function LoginForm() {
               </span>
             </div>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#0b172a] tracking-tight">
-              Welcome Back
+              {mfaStep ? "Security Check" : "Welcome Back"}
             </h2>
             <p className="text-slate-500 text-sm font-sans">
-              Access your strategic dashboard and enterprise resources.
+              {mfaStep ? "Please verify your session using the code sent to your email." : "Access your strategic dashboard and enterprise resources."}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-xs font-medium text-red-600 border border-red-100">
-                {error}
-              </div>
-            )}
+          {mfaStep ? (
+            <form onSubmit={handleMFASubmit} className="space-y-5">
+              {error && (
+                <div className="rounded-lg bg-red-50 p-3 text-xs font-medium text-red-600 border border-red-100">
+                  {error}
+                </div>
+              )}
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  type="email"
-                  required
-                  placeholder="name@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
+              <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
-                  Password
+                  6-Digit MFA Verification Code
                 </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-semibold text-orange-500 hover:text-orange-600 transition-colors"
-                >
-                  Forgot Password?
-                </Link>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    type="text"
+                    required
+                    maxLength={6}
+                    placeholder="123456"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
+                    className="pl-10 h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full font-bold tracking-widest text-center text-lg"
+                  />
+                </div>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 rounded-xl font-bold shadow-md shadow-orange-500/15 animate-pulse"
+              >
+                {loading ? "Verifying..." : "Verify & Login"}
+                {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMfaStep(false);
+                  setMfaCode("");
+                  setError("");
+                }}
+                className="text-xs font-bold text-orange-500 hover:text-orange-600 block text-center w-full mt-2 cursor-pointer transition-colors"
+              >
+                Back to Account Login
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="rounded-lg bg-red-50 p-3 text-xs font-medium text-red-600 border border-red-100">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    type="email"
+                    required
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center space-x-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-4 w-4 accent-orange-500"
-                />
-                <span className="text-xs text-slate-600 font-medium font-sans">Remember me</span>
-              </label>
-            </div>
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
+                    Password
+                  </label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10 h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-11 rounded-xl font-bold shadow-md shadow-orange-500/15"
-            >
-              {loading ? "Authenticating..." : "Login"}
-              {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
-            </Button>
-          </form>
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-4 w-4 accent-orange-500"
+                  />
+                  <span className="text-xs text-slate-600 font-medium font-sans">Remember me</span>
+                </label>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 rounded-xl font-bold shadow-md shadow-orange-500/15"
+              >
+                {loading ? "Authenticating..." : "Login"}
+                {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+              </Button>
+            </form>
+          )}
 
           <div className="relative py-2">
             <div className="absolute inset-0 flex items-center">

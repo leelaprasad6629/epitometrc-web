@@ -393,7 +393,7 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
 
   // Dynamic pricing check
   if (queryLower.includes("pricing") || queryLower.includes("fees") || queryLower.includes("cost") || queryLower.includes("pay")) {
-    return `Regarding your question about "${userQuery}", Epitome TRC structures custom project fees and consulting scopes based on your specific requirements. Please reach out to our sales team at info@epitometrc.com to request a detailed business quote proposal.`;
+    return `Regarding your question about "${userQuery}", Epitome TRC structures custom project fees and consulting scopes based on your specific requirements. Please reach out to our sales team at careers@epitometrc.com to request a detailed business quote proposal.`;
   }
 
   // Dynamic tech stack check
@@ -418,7 +418,7 @@ function getLocalFallbackText(prompt: string, options?: ProviderOptions): string
 
   // Dynamic location check
   if (queryLower.includes("where") || queryLower.includes("location") || queryLower.includes("office") || queryLower.includes("headquarter") || queryLower.includes("indore") || queryLower.includes("address")) {
-    return `Epitome TRC is headquartered in Indore, India, at 208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, Madhya Pradesh, India. We operate corporate consulting and recruitment hubs PAN India. You can reach us via email at info@epitometrc.com or +91-626-596-6705.`;
+    return `Epitome TRC is headquartered in Indore, India, at 208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, Madhya Pradesh, India. We operate corporate consulting and recruitment hubs PAN India. You can reach us via email at careers@epitometrc.com or +91-626-596-6705.`;
   }
 
   // Smart Dynamic Catch-all

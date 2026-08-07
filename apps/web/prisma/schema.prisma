@@ -20,6 +20,7 @@ model User {
   policyAccepted   Boolean   @default(false)
   policyAcceptedAt DateTime?
   policyVersion    String?   @default("v1.0")
+  tokenVersion  Int           @default(0)
   enrollments   Enrollment[]
   applications  Application[]
   profile       UserProfile?

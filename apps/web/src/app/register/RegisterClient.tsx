@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Mail, Lock, User, Check, ShieldAlert, Phone } from "lucide-react";
+import { ArrowRight, Mail, Lock, User, Check, ShieldAlert, Phone, CheckCircle2 } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 import DnaCanvas from "@/components/common/DnaCanvas";
@@ -19,6 +19,7 @@ export default function RegisterClient() {
   const [agree, setAgree] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +66,13 @@ export default function RegisterClient() {
         throw new Error(data.error || "Registration failed");
       }
 
-      // Auto login after successful registration
+      if (data.requiresVerification) {
+        setSuccessMsg(data.message || "Registration successful! A verification link has been sent to your email. Please verify your account before logging in.");
+        setLoading(false);
+        return;
+      }
+
+      // Auto login fallback (if verification is bypassed)
       const loginRes = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,11 +85,7 @@ export default function RegisterClient() {
         throw new Error(loginData.error || "Auto-login failed");
       }
 
-      if (role === "Student") {
-        router.push("/student/dashboard");
-      } else {
-        router.push("/employee/dashboard");
-      }
+      router.push("/student/dashboard");
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -170,13 +173,29 @@ export default function RegisterClient() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-xs font-medium text-red-600 border border-red-100 flex items-start gap-2">
-                <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>{error}</span>
+          {successMsg ? (
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 text-center space-y-4">
+              <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <CheckCircle2 className="h-6 w-6" />
               </div>
-            )}
+              <h3 className="font-display text-lg font-bold text-slate-900">Verify Your Email</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                {successMsg}
+              </p>
+              <div className="pt-2">
+                <Link href="/login" className="inline-flex items-center justify-center h-11 px-6 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-medium text-sm transition-colors w-full shadow-sm">
+                  Return to Login
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="rounded-lg bg-red-50 p-3 text-xs font-medium text-red-600 border border-red-100 flex items-start gap-2">
+                  <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
              <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
                 Register As
@@ -187,8 +206,6 @@ export default function RegisterClient() {
                 className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/10 font-bold text-slate-700"
               >
                 <option value="Student">Student (Public)</option>
-                <option value="Employee">Employee (Official)</option>
-                <option value="Intern">Intern (Official)</option>
               </select>
             </div>
 
@@ -201,10 +218,10 @@ export default function RegisterClient() {
                 <Input
                   type="text"
                   required
-                  placeholder="Enter your full name"
+                  placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="pl-10 h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full"
+                  className="pl-10 h-11 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500/10 w-full font-medium"
                 />
               </div>
             </div>
@@ -292,6 +309,7 @@ export default function RegisterClient() {
               {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </form>
+        )}
 
           <div className="text-center text-sm font-medium font-sans border-t border-slate-100 pt-6">
             <span className="text-slate-500">Already have an account? </span>

@@ -78,7 +78,7 @@ export default function Contact() {
                 <div>
                   <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">HQ Office</h4>
                   <a 
-                    href="https://maps.google.com/?q=208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
+                    href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block transition-colors font-sans"
@@ -94,8 +94,8 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">Direct Email</h4>
-                  <a href="mailto:info@epitometrc.com" className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block">
-                    info@epitometrc.com
+                  <a href="mailto:careers@epitometrc.com" className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block">
+                    careers@epitometrc.com
                   </a>
                 </div>
               </div>
