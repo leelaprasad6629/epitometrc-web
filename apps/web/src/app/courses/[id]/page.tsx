@@ -9,19 +9,24 @@ export default async function CourseDetailsPage({
 }) {
   const { id } = await params;
 
-  const course = await prisma.course.findFirst({
-    where: { OR: [{ id }, { slug: id }] },
-    include: {
-      courseModules: {
-        orderBy: { orderIndex: "asc" },
-        include: {
-          lessons: {
-            orderBy: { orderIndex: "asc" },
+  let course = null;
+  try {
+    course = await prisma.course.findFirst({
+      where: { OR: [{ id }, { slug: id }] },
+      include: {
+        courseModules: {
+          orderBy: { orderIndex: "asc" },
+          include: {
+            lessons: {
+              orderBy: { orderIndex: "asc" },
+            },
           },
         },
       },
-    },
-  });
+    });
+  } catch (e) {
+    console.error("Database connection error, falling back to mock:", e);
+  }
 
   if (!course) {
     // Return mock fallback for demo course IDs if DB not populated yet
