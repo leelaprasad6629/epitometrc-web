@@ -325,7 +325,7 @@ export default function Hero({ persona, setPersona }: HeroProps) {
   ];
 
   return (
-    <section className="relative h-[85vh] md:h-screen w-full bg-[#f8fafd] flex flex-col justify-between overflow-hidden font-sans border-b border-slate-100">
+    <section className="relative min-h-[90vh] lg:min-h-screen w-full bg-[#f8fafd] flex flex-col justify-between overflow-hidden font-sans border-b border-slate-100">
       {/* 3D Double Geometry Canvas HUD */}
       <canvas
         ref={canvasRef}
@@ -341,28 +341,28 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[215px] w-[460px] h-[460px] border border-slate-200/10 rounded-full pointer-events-none z-0" />
 
       {/* Main Centered Content */}
-      <div className="flex-1 flex flex-col justify-center items-center text-center px-4 relative z-10 space-y-5 pt-20 md:pt-12">
+      <div className="flex-1 flex flex-col justify-start md:justify-center items-center text-center px-4 relative z-10 space-y-4 pt-28 md:pt-32 pb-8">
         
         {/* Top Trust Ribbon */}
-        <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-1.5 rounded-full bg-white/90 border border-slate-200/80 shadow-sm backdrop-blur-sm text-[10px] sm:text-xs font-bold text-slate-700">
-          <span className="flex items-center gap-1 text-orange-600 font-extrabold">
-            <GraduationCap className="h-3.5 w-3.5" />
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-2 rounded-full bg-white border border-orange-200/80 shadow-md backdrop-blur-md text-[10.5px] sm:text-xs font-bold text-slate-800 z-20">
+          <span className="flex items-center gap-1.5 text-orange-600 font-extrabold">
+            <GraduationCap className="h-4 w-4 text-orange-500" />
             🚀 7000+ Internships Facilitated
           </span>
           <span className="hidden sm:inline text-slate-300">•</span>
-          <span className="flex items-center gap-1 text-amber-600 font-extrabold">
-            <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+          <span className="flex items-center gap-1.5 text-amber-600 font-extrabold">
+            <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
             4.9/5 Student &amp; Corporate Score
           </span>
           <span className="hidden sm:inline text-slate-300">•</span>
-          <span className="flex items-center gap-1 text-emerald-600 font-extrabold">
-            <ShieldCheck className="h-3.5 w-3.5" />
+          <span className="flex items-center gap-1.5 text-emerald-600 font-extrabold">
+            <ShieldCheck className="h-4 w-4 text-emerald-500" />
             ISO 9001:2015 Certified
           </span>
         </div>
 
         {/* Persona Switcher Toggle Buttons */}
-        <div className="flex bg-white/80 p-1.5 rounded-2xl border border-slate-200/50 shadow-sm z-10 w-fit backdrop-blur-sm">
+        <div className="flex bg-white/90 p-1.5 rounded-2xl border border-slate-200/80 shadow-sm z-10 w-fit backdrop-blur-sm">
           <button
             onClick={() => setPersona("student")}
             className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all duration-300 ${
