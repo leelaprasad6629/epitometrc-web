@@ -19,7 +19,8 @@ import {
   ClipboardList,
   Sparkles,
   Compass,
-  Layers
+  Layers,
+  Lightbulb
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -62,10 +63,11 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
         ],
       },
       {
-        title: "Career Tools",
+        title: "Career Tools & Innovation",
         items: [
           { name: "AI Career Suite", href: "/student/career-suite", icon: Compass },
           { name: "AI Resume Builder", href: "/student/resume-builder", icon: Sparkles },
+          { name: "Ideas & Suggestions", href: "/student/suggestions", icon: Lightbulb },
           { name: "Profile", href: "/student/profile", icon: User },
           { name: "Membership", href: "/student/membership", icon: Award },
         ],
@@ -121,11 +123,12 @@ export default function DashboardSidebar({ role, collapsed, setCollapsed }: Dash
         ],
       },
       {
-        title: "Platform Data",
+        title: "Platform Data & Innovation",
         items: [
           { name: "Manage Courses", href: "/admin/courses", icon: BookOpen },
           { name: "Manage Blogs", href: "/admin/blog", icon: FileText },
           { name: "Manage Jobs", href: "/admin/jobs", icon: ClipboardList },
+          { name: "Ideas & Suggestions", href: "/admin/suggestions", icon: Lightbulb },
           { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
           { name: "Settings", href: "/admin/settings", icon: Settings },
         ],

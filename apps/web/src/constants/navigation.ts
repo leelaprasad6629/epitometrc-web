@@ -63,6 +63,7 @@ export const footerCompanyLinks: NavLink[] = [
   { name: "Careers", href: "/careers" },
   { name: "Blog", href: "/blog" },
   { name: "Contact", href: "/contact" },
+  { name: "Ideas & Suggestions", href: "/suggestions" },
   { name: "Privacy Policy", href: "/contact#privacy" },
 ];
 
