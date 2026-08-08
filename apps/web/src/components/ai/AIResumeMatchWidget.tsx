@@ -21,6 +21,7 @@ export default function AIResumeMatchWidget() {
     verified,
     confidenceScores,
     atsScore,
+    atsScoreExplanation,
     matchScore,
     skillMatchPercentage,
     matchedSkills,
@@ -122,12 +123,13 @@ export default function AIResumeMatchWidget() {
         const r = data.result;
         updateAnalysis({
           atsScore: r.overallAtsScore || 0,
+          atsScoreExplanation: r.atsScoreExplanation || "Evaluation completed successfully.",
           matchScore: r.jobMatchPercentage || 0,
           skillMatchPercentage: r.skillMatchPercentage || 0,
           keywordMatchPercentage: r.keywordMatchPercentage || 0,
           experienceMatchPercentage: r.experienceMatchPercentage || 0,
           matchedSkills: r.matchedSkills || [],
-          missingSkills: r.missingSkills || [],
+          missingSkills: (r.missingSkills || []).map((s: any) => typeof s === "object" ? s.name : s),
           missingKeywords: r.missingKeywords || [],
           strengths: r.strengths || [],
           improvements: r.weaknesses || [],
@@ -914,6 +916,11 @@ export default function AIResumeMatchWidget() {
                     <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
                       This scorecard displays metrics evaluated by the AI Matching Engine comparing your resume data against the specific target Job Description.
                     </p>
+                    {atsScoreExplanation && (
+                      <div className="text-[10px] text-slate-600 font-medium leading-relaxed mt-2.5 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                        <strong>AI Score Explanation:</strong> {atsScoreExplanation}
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={handleResetAnalysis}

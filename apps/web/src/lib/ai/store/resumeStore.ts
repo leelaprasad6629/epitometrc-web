@@ -218,6 +218,7 @@ export interface ResumeStore {
 
   // Scoring parameters
   atsScore: number;
+  atsScoreExplanation: string;
   matchScore: number;
   skillMatchPercentage: number;
   keywordMatchPercentage: number;
@@ -247,6 +248,7 @@ export interface ResumeStore {
   setVerified: (verified: boolean) => void;
   updateAnalysis: (analysis: Partial<{
     atsScore: number;
+    atsScoreExplanation: string;
     matchScore: number;
     skillMatchPercentage: number;
     keywordMatchPercentage: number;
@@ -431,6 +433,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   confidenceScores: {},
 
   atsScore: 0,
+  atsScoreExplanation: "",
   matchScore: 0,
   skillMatchPercentage: 0,
   keywordMatchPercentage: 0,
@@ -593,6 +596,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       verified: false,
       uploadTimestamp: null,
       atsScore: 0,
+      atsScoreExplanation: "",
       matchScore: 0,
       skillMatchPercentage: 0,
       keywordMatchPercentage: 0,

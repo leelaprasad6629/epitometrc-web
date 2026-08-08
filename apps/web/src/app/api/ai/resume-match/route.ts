@@ -42,6 +42,7 @@ Return strictly a JSON object matching this exact structure:
 {
   "overallAtsScore": 85,
   "jobMatchPercentage": 80,
+  "atsScoreExplanation": "Detailed explainability text of why the overallAtsScore and jobMatchPercentage were assigned, referencing formatting, experience levels, and skill overlap density.",
   "keywordMatchPercentage": 75,
   "skillMatchPercentage": 85,
   "experienceMatchPercentage": 80,

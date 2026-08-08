@@ -1963,6 +1963,14 @@ export default function AICareerSuitePage() {
                             )) || <span className="text-xs text-slate-500 italic">None suggested</span>}
                           </div>
                         </div>
+                        {(mockReport?.recruiterScorecard?.interviewSummary || mockReport?.recruiterScorecard?.overallImpression) && (
+                          <div className="space-y-1 mt-2 border-t border-slate-100 pt-2">
+                            <span className="text-[9px] font-black text-slate-400 uppercase block">AI Score Explanation & Summary</span>
+                            <p className="text-[9.5px] text-slate-600 font-medium leading-relaxed bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
+                              {mockReport.recruiterScorecard.interviewSummary || mockReport.recruiterScorecard.overallImpression}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       {/* Strengths & Weaknesses */}
