@@ -179,15 +179,15 @@ export default function Hero({ persona, setPersona }: HeroProps) {
           <div className="absolute w-[138%] h-[138%] border border-pink-300/5 rounded-full pointer-events-none border-dashed" />
 
           {/* Large circular background gradient matching reference colors exactly */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle,#FFB56B_20%,#FF8A8A_45%,#FF6EC7_70%,#B56EFF_95%,transparent)] rounded-full opacity-[0.95] pointer-events-none aspect-square" />
+          <div className="absolute w-[90%] h-[90%] bg-gradient-to-tr from-[#FFB56B] via-[#FF8A8A] via-[#FF6EC7] to-[#B56EFF] rounded-full opacity-[0.95] pointer-events-none aspect-square" />
           
-          {/* The Girl image inside the circular mask with blend mode to remove background card effect */}
-          <div className="relative w-[96%] h-[96%] rounded-full overflow-hidden z-10 aspect-square">
+          {/* The Girl image overlayed on top of the gradient with mix-blend-multiply */}
+          <div className="relative w-full h-full z-10 mix-blend-multiply">
             <Image
               src="/images/professional_woman_laptop.jpg"
               alt="Young professional working on a laptop"
               fill
-              className="object-cover object-center scale-[1.02] -translate-y-1 mix-blend-multiply"
+              className="object-contain object-center"
               sizes="(max-w-1024px) 100vw, 450px"
               priority
             />

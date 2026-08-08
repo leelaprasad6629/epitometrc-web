@@ -11,6 +11,7 @@ async function capture() {
 
   try {
     const page = await browser.newPage();
+    await page.setCacheEnabled(false);
     await page.setViewport({ width: 1280, height: 800 });
     
     console.log('Navigating to http://localhost:3000 ...');
