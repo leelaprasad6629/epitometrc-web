@@ -47,31 +47,64 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --color-orange-50: #f0fdfa;
+  --color-orange-100: #ccfbf1;
+  --color-orange-200: #99f6e4;
+  --color-orange-300: #5eead4;
+  --color-orange-400: #2dd4bf;
+  --color-orange-500: #0d9488;
+  --color-orange-600: #0f766e;
+  --color-orange-700: #115e59;
+  --color-orange-800: #134e4a;
+  --color-orange-900: #115e59;
+
+  --color-blue-50: #f8fafc;
+  --color-blue-100: #f1f5f9;
+  --color-blue-200: #e2e8f0;
+  --color-blue-300: #cbd5e1;
+  --color-blue-400: #94a3b8;
+  --color-blue-500: #1e293b;
+  --color-blue-600: #0f172a;
+  --color-blue-700: #0d1220;
+  --color-blue-800: #0a0e1a;
+  --color-blue-900: #05070d;
+
+  --color-indigo-50: #f4f4f5;
+  --color-indigo-100: #e4e4e7;
+  --color-indigo-200: #d4d4d8;
+  --color-indigo-300: #a1a1aa;
+  --color-indigo-400: #71717a;
+  --color-indigo-500: #52525b;
+  --color-indigo-600: #3f3f46;
+  --color-indigo-700: #27272a;
+  --color-indigo-800: #18181b;
+  --color-indigo-900: #09090b;
 }
 
 :root {
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-heading: 'Plus Jakarta Sans', var(--font-sans);
   
-  --background: #F4F8FD;
-  --background-gradient: linear-gradient(135deg, #F8FAFC 0%, #F4F8FD 50%, #EEF6FF 100%);
-  --foreground: oklch(0.13 0.02 250);
+  --background: #FAF9F6;
+  --background-gradient: linear-gradient(135deg, #FAFAFA 0%, #F5F5F4 50%, #EFEFE9 100%);
+  --foreground: #1A1A1A;
   --card: #ffffff;
-  --card-foreground: oklch(0.13 0.02 250);
+  --card-foreground: #1A1A1A;
   --popover: #ffffff;
-  --popover-foreground: oklch(0.13 0.02 250);
-  --primary: oklch(0.13 0.02 250);
+  --popover-foreground: #1A1A1A;
+  --primary: #0F172A;
   --primary-foreground: #ffffff;
-  --secondary: oklch(0.96 0.01 250);
-  --secondary-foreground: oklch(0.13 0.02 250);
-  --muted: oklch(0.97 0.01 250);
-  --muted-foreground: oklch(0.45 0.02 250);
-  --accent: oklch(0.96 0.01 250);
-  --accent-foreground: oklch(0.13 0.02 250);
-  --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.92 0.01 250);
-  --input: oklch(0.92 0.01 250);
-  --ring: oklch(0.55 0.1 250 / 20%);
+  --secondary: #F4F4F5;
+  --secondary-foreground: #18181B;
+  --muted: #F4F4F5;
+  --muted-foreground: #71717A;
+  --accent: #0D9488;
+  --accent-foreground: #ffffff;
+  --destructive: #EF4444;
+  --border: #E4E4E7;
+  --input: #E4E4E7;
+  --ring: rgba(13, 148, 136, 0.15);
   --radius: 0.75rem;
 }
 
