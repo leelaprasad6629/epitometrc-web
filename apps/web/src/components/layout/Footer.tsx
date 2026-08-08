@@ -88,14 +88,6 @@ export default function Footer() {
                   Epitome<span className="text-orange-500">TRC</span>
                 </span>
               </Link>
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-slate-300 uppercase tracking-wider font-sans">
-                  Epitome Training & Recruitment Consultants
-                </p>
-                <p className="text-[11px] text-orange-400 font-bold font-sans">
-                  Headquartered in Indore, Madhya Pradesh | Serving PAN India
-                </p>
-              </div>
             </div>
             <p className="max-w-sm font-sans text-sm leading-relaxed text-slate-400">
               Precision in Strategy, Excellence in Execution. We design robust digital transformations and enterprise software systems to connect technology with clear outcomes.
@@ -110,29 +102,6 @@ export default function Footer() {
                 <span>•</span>
                 <span className="flex items-center gap-1"><Lock className="h-3.5 w-3.5 text-blue-400" /> 256-Bit SSL</span>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn" },
-                { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook" },
-                { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram" },
-                { Icon: FaTelegram, href: "https://t.me/epitometrc", label: "Telegram" },
-                { Icon: FaYoutube, href: "https://youtube.com/@epitometrc", label: "YouTube" },
-                { Icon: FaWhatsapp, href: "https://wa.me/916265966705", label: "WhatsApp" },
-                { Icon: FaThreads, href: "https://threads.net/@epitometrc007", label: "Threads" },
-                { Icon: FaXTwitter, href: "https://x.com/epitometrc", label: "X" }
-              ].map(({ Icon, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 transition-all hover:border-orange-500 hover:bg-orange-500 hover:text-white hover:scale-105"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
             </div>
           </div>
 
@@ -214,19 +183,48 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-slate-900 bg-[#030a15] py-6">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 font-sans text-xs text-slate-500 sm:flex-row sm:px-6 lg:px-8">
-          <p>&copy; {currentYear} EpitomeTRC. All rights reserved.</p>
-          <div className="flex space-x-6">
-            <Link href="/privacy" className="transition-colors hover:text-slate-400">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="transition-colors hover:text-slate-400">
-              Terms of Service
-            </Link>
-            <Link href="/contact" className="transition-colors hover:text-slate-400">
-              Site Map
-            </Link>
+      <div className="border-t border-slate-900 bg-[#030a15] py-8 text-center">
+        <div className="mx-auto max-w-7xl px-4 space-y-5 font-sans text-xs text-slate-500">
+          <div className="space-y-1">
+            <h4 className="font-display font-bold text-slate-200 text-sm tracking-wide">
+              Epitome Training & Recruitment Consultants
+            </h4>
+            <p className="text-[11px] text-slate-400">
+              Headquartered in Indore, Madhya Pradesh | Serving PAN India
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap justify-center items-center gap-x-2.5 gap-y-1 text-slate-400 font-semibold text-[11px]">
+            <a href="https://www.linkedin.com/in/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">LinkedIn</a>
+            <span>|</span>
+            <a href="https://www.facebook.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Facebook</a>
+            <span>|</span>
+            <a href="https://www.instagram.com/epitometrc007/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Instagram</a>
+            <span>|</span>
+            <a href="https://t.me/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Telegram</a>
+            <span>|</span>
+            <a href="https://youtube.com/@epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">YouTube</a>
+            <span>|</span>
+            <a href="https://wa.me/916265966705" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">WhatsApp</a>
+            <span>|</span>
+            <a href="https://threads.net/@epitometrc007" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Threads</a>
+            <span>|</span>
+            <a href="https://x.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">X</a>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-center pt-5 border-t border-slate-900/60 gap-4">
+            <p>&copy; {currentYear} EpitomeTRC. All rights reserved.</p>
+            <div className="flex space-x-6 text-[11px]">
+              <Link href="/privacy" className="transition-colors hover:text-slate-400">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="transition-colors hover:text-slate-400">
+                Terms of Service
+              </Link>
+              <Link href="/contact" className="transition-colors hover:text-slate-400">
+                Site Map
+              </Link>
+            </div>
           </div>
         </div>
       </div>
