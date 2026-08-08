@@ -205,3 +205,189 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* --- alternating light and dark section background visual system --- */
+
+/* 1. WalkthroughDemo (Dark) */
+#demo-walkthrough {
+  background-color: #0F172A !important;
+  border-top: 1px solid rgba(51, 65, 85, 0.4) !important;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.4) !important;
+}
+#demo-walkthrough h2, #demo-walkthrough h3 {
+  color: #FFFFFF !important;
+}
+#demo-walkthrough p, #demo-walkthrough li {
+  color: #94A3B8 !important;
+}
+#demo-walkthrough .bg-white {
+  background-color: rgba(30, 41, 59, 0.4) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
+}
+#demo-walkthrough .border-slate-100, #demo-walkthrough .border-slate-50 {
+  border-color: rgba(51, 65, 85, 0.3) !important;
+}
+#demo-walkthrough .border-r {
+  border-color: rgba(51, 65, 85, 0.3) !important;
+}
+#demo-walkthrough .bg-slate-100\/80 {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
+}
+#demo-walkthrough button.text-slate-500 {
+  color: #94A3B8 !important;
+}
+#demo-walkthrough button.text-slate-500:hover {
+  color: #FFFFFF !important;
+}
+#demo-walkthrough button.bg-\[\#0b172a\] {
+  background-color: #EA580C !important;
+  color: #FFFFFF !important;
+}
+
+/* 2. TrustedBy (Light) */
+#trusted-by {
+  background-color: #FAF9F6 !important;
+  background-image: none !important;
+  border-top: 1px solid #E4E4E7 !important;
+  border-bottom: 1px solid #E4E4E7 !important;
+}
+#trusted-by h2 {
+  color: #0F172A !important;
+}
+#trusted-by p {
+  color: #71717A !important;
+}
+#trusted-by .bg-white {
+  background-color: #FFFFFF !important;
+  border-color: #E4E4E7 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 3. About (Dark) */
+#about-parent-wrapper section#about {
+  background-color: #0F172A !important;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.4) !important;
+}
+#about-parent-wrapper section#about h2, #about-parent-wrapper section#about h3 {
+  color: #FFFFFF !important;
+}
+#about-parent-wrapper section#about p {
+  color: #94A3B8 !important;
+}
+#about-parent-wrapper section#about .bg-white\/70 {
+  background-color: rgba(30, 41, 59, 0.4) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
+}
+#about-parent-wrapper section#about .text-slate-655 {
+  color: #CBD5E1 !important;
+}
+
+/* 4. Services (Statistics Bar - Light, Bento Grid - Dark) */
+#services-parent-container section.bg-\[\#050e1e\] {
+  background-color: #FAF9F6 !important;
+  border-top: 1px solid #E4E4E7 !important;
+  border-bottom: 1px solid #E4E4E7 !important;
+  color: #1A1A1A !important;
+}
+#services-parent-container section.bg-\[\#050e1e\] h3 {
+  color: #0F172A !important;
+}
+#services-parent-container section.bg-\[\#050e1e\] p {
+  color: #71717A !important;
+}
+#services-parent-container section.bg-\[\#050e1e\] .bg-slate-900 {
+  background-color: #FFF7ED !important;
+  border-color: #FED7AA !important;
+  color: #EA580C !important;
+}
+
+#services-parent-container section#services {
+  background-color: #0F172A !important;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.4) !important;
+}
+#services-parent-container section#services h2, #services-parent-container section#services h3 {
+  color: #FFFFFF !important;
+}
+#services-parent-container section#services p {
+  color: #94A3B8 !important;
+}
+#services-parent-container section#services .bg-white {
+  background-color: rgba(30, 41, 59, 0.4) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
+}
+#services-parent-container section#services .bg-\[\#fff9f4\] {
+  background-color: rgba(30, 41, 59, 0.4) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
+}
+#services-parent-container section#services .text-\[\#0b172a\] {
+  color: #FFFFFF !important;
+}
+#services-parent-container section#services .text-slate-600 {
+  color: #94A3B8 !important;
+}
+#services-parent-container section#services .border-slate-100, #services-parent-container section#services .border-\[\#fbe5d0\] {
+  border-color: rgba(51, 65, 85, 0.3) !important;
+}
+
+/* 5. Courses (Roadmap - Light, Insights - Dark) */
+#courses-parent-wrapper section#solutions {
+  background-color: #FAF9F6 !important;
+  border-bottom: 1px solid #E4E4E7 !important;
+}
+#courses-parent-wrapper section#solutions h2 {
+  color: #0F172A !important;
+}
+#courses-parent-wrapper section#solutions p {
+  color: #71717A !important;
+}
+#courses-parent-wrapper section#solutions .bg-slate-100 {
+  background-color: #FFF7ED !important;
+  border-color: #FED7AA !important;
+  color: #EA580C !important;
+}
+#courses-parent-wrapper section#solutions .bg-white {
+  background-color: #FFFFFF !important;
+  border-color: #E4E4E7 !important;
+}
+
+#courses-parent-wrapper section#blog {
+  background-color: #0F172A !important;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.4) !important;
+}
+#courses-parent-wrapper section#blog h2, #courses-parent-wrapper section#blog h3 {
+  color: #FFFFFF !important;
+}
+#courses-parent-wrapper section#blog p {
+  color: #94A3B8 !important;
+}
+#courses-parent-wrapper section#blog article {
+  background-color: rgba(30, 41, 59, 0.4) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
+}
+#courses-parent-wrapper section#blog article:hover {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+}
+#courses-parent-wrapper section#blog .text-slate-600 {
+  color: #CBD5E1 !important;
+}
+#courses-parent-wrapper section#blog .text-slate-500 {
+  color: #94A3B8 !important;
+}
+
+/* 6. Testimonials (Light) */
+#testimonials {
+  background-color: #FAF9F6 !important;
+  border-top: 1px solid #E4E4E7 !important;
+  border-bottom: 1px solid #E4E4E7 !important;
+}
+#testimonials h2, #testimonials h4 {
+  color: #0F172A !important;
+}
+#testimonials p {
+  color: #71717A !important;
+}
+#testimonials .bg-white {
+  background-color: #FFFFFF !important;
+  border-color: #E4E4E7 !important;
+}

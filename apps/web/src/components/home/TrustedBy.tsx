@@ -90,7 +90,7 @@ export default function TrustedBy() {
   ];
 
   return (
-    <section className="bg-gradient-to-b from-white to-slate-50/50 py-16 md:py-24 border-y border-slate-100">
+    <section id="trusted-by" className="bg-gradient-to-b from-white to-slate-50/50 py-16 md:py-24 border-y border-slate-100">
       <Container className="space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <span className="rounded bg-orange-50 border border-orange-100 px-3 py-1 text-xs font-bold text-orange-500 uppercase tracking-wider">
