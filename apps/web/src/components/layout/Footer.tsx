@@ -194,22 +194,38 @@ export default function Footer() {
             </p>
           </div>
           
-          <div className="flex flex-wrap justify-center items-center gap-x-2.5 gap-y-1 text-slate-400 font-semibold text-[11px]">
-            <a href="https://www.linkedin.com/in/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">LinkedIn</a>
+          <div className="flex flex-wrap justify-center items-center gap-x-3.5 gap-y-2 text-slate-400 font-semibold text-[11px]">
+            <a href="https://www.linkedin.com/in/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
+              <FaLinkedin className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> LinkedIn
+            </a>
             <span>|</span>
-            <a href="https://www.facebook.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Facebook</a>
+            <a href="https://www.facebook.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
+              <FaFacebook className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> Facebook
+            </a>
             <span>|</span>
-            <a href="https://www.instagram.com/epitometrc007/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Instagram</a>
+            <a href="https://www.instagram.com/epitometrc007/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
+              <FaInstagram className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> Instagram
+            </a>
             <span>|</span>
-            <a href="https://t.me/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Telegram</a>
+            <a href="https://t.me/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
+              <FaTelegram className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> Telegram
+            </a>
             <span>|</span>
-            <a href="https://youtube.com/@epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">YouTube</a>
+            <a href="https://youtube.com/@epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
+              <FaYoutube className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> YouTube
+            </a>
             <span>|</span>
-            <a href="https://wa.me/916265966705" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">WhatsApp</a>
+            <a href="https://wa.me/916265966705" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
+              <FaWhatsapp className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> WhatsApp
+            </a>
             <span>|</span>
-            <a href="https://threads.net/@epitometrc007" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Threads</a>
+            <a href="https://threads.net/@epitometrc007" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
+              <FaThreads className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> Threads
+            </a>
             <span>|</span>
-            <a href="https://x.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">X</a>
+            <a href="https://x.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
+              <FaXTwitter className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> X
+            </a>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-center pt-5 border-t border-slate-900/60 gap-4">

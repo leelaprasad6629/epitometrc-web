@@ -77,23 +77,6 @@ export default function Contact() {
             {/* Info List */}
             <div className="mt-10 lg:mt-0 space-y-6">
               <div className="flex items-start space-x-4">
-                <div className="p-3 bg-orange-50 rounded-xl text-orange-500 shadow-sm flex-shrink-0">
-                  <MapPin className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">HQ Office</h4>
-                  <a 
-                    href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+Indore" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block transition-colors font-sans"
-                  >
-                    Headquartered in Indore, Madhya Pradesh | Serving PAN India
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
                 <div className="p-3 bg-blue-50 rounded-xl text-blue-500 shadow-sm flex-shrink-0">
                   <Mail className="h-5 w-5" />
                 </div>
@@ -114,33 +97,6 @@ export default function Contact() {
                   <a href="tel:+916265966705" className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block">
                     +91-626-596-6705
                   </a>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-slate-100 space-y-3">
-                <h4 className="font-display font-bold text-slate-800 text-xs tracking-wider uppercase">Connect With Us</h4>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn" },
-                    { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook" },
-                    { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram" },
-                    { Icon: FaTelegram, href: "https://t.me/epitometrc", label: "Telegram" },
-                    { Icon: FaYoutube, href: "https://youtube.com/@epitometrc", label: "YouTube" },
-                    { Icon: FaWhatsapp, href: "https://wa.me/916265966705", label: "WhatsApp" },
-                    { Icon: FaThreads, href: "https://threads.net/@epitometrc007", label: "Threads" },
-                    { Icon: FaXTwitter, href: "https://x.com/epitometrc", label: "X" }
-                  ].map(({ Icon, href, label }) => (
-                    <a
-                      key={label}
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={label}
-                      className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-all hover:border-orange-500 hover:bg-orange-500 hover:text-white hover:scale-105"
-                    >
-                      <Icon className="h-4 w-4" />
-                    </a>
-                  ))}
                 </div>
               </div>
             </div>

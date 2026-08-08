@@ -142,22 +142,6 @@ export default function ContactClient() {
                 <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-md space-y-5 text-xs font-semibold text-slate-600">
                   <h4 className="font-display text-sm font-bold text-slate-900 border-b border-slate-50 pb-2">Office Information</h4>
                   <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <span className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 shrink-0">
-                        <MapPin className="h-4.5 w-4.5" />
-                      </span>
-                      <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Office Address</p>
-                        <a 
-                          href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+Indore" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-slate-800 hover:text-orange-500 text-[11.5px] font-bold block transition-colors font-sans"
-                        >
-                          Headquartered in Indore, Madhya Pradesh | Serving PAN India
-                        </a>
-                      </div>
-                    </div>
                     <div className="flex items-center gap-3">
                       <span className="p-2.5 rounded-xl bg-violet-50 text-violet-600 border border-violet-100 shrink-0">
                         <Mail className="h-4.5 w-4.5" />
@@ -183,32 +167,6 @@ export default function ContactClient() {
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Response Speed</p>
                         <p className="text-slate-800 text-[11.5px] font-bold">Average response within 24 hours</p>
-                      </div>
-                    </div>
-                    <div className="pt-4 border-t border-slate-100 space-y-2">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Connect With Us</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {[
-                          { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn" },
-                          { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook" },
-                          { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram" },
-                          { Icon: FaTelegram, href: "https://t.me/epitometrc", label: "Telegram" },
-                          { Icon: FaYoutube, href: "https://youtube.com/@epitometrc", label: "YouTube" },
-                          { Icon: FaWhatsapp, href: "https://wa.me/916265966705", label: "WhatsApp" },
-                          { Icon: FaThreads, href: "https://threads.net/@epitometrc007", label: "Threads" },
-                          { Icon: FaXTwitter, href: "https://x.com/epitometrc", label: "X" }
-                        ].map(({ Icon, href, label }) => (
-                          <a
-                            key={label}
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={label}
-                            className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-all hover:border-orange-500 hover:bg-orange-500 hover:text-white hover:scale-105"
-                          >
-                            <Icon className="h-3.5 w-3.5" />
-                          </a>
-                        ))}
                       </div>
                     </div>
                   </div>
