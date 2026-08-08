@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Mail, Lock, Eye, EyeOff, Key, ShieldCheck, Briefcase, GraduationCap, UserCheck } from "lucide-react";
 import Button from "@/components/common/Button";
 import { Input } from "@/components/ui/input";
 import DnaCanvas from "@/components/common/DnaCanvas";
@@ -95,6 +95,7 @@ function LoginForm() {
         throw new Error(data.error || "Login failed");
       }
 
+<<<<<<< HEAD
       if (data.requireMFA) {
         setMfaToken(data.mfaToken);
         setMfaStep(true);
@@ -102,6 +103,8 @@ function LoginForm() {
         return;
       }
 
+=======
+>>>>>>> 40397b2 (feat(auth): standardize demo credentials across website and mobile app (Admin, Employee, Intern, Student))
       const role = data.user.role;
       if (role === "Student") {
         router.push("/student/dashboard");
@@ -169,16 +172,16 @@ function LoginForm() {
       </div>
 
       {/* Right side form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 md:p-20 bg-white">
-        <div className="w-full max-w-md space-y-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-10 md:p-16 bg-white overflow-y-auto">
+        <div className="w-full max-w-md space-y-6 my-auto">
           <div className="text-center lg:text-left space-y-2">
-            <div className="flex items-center justify-center lg:justify-start space-x-2 lg:hidden mb-6">
+            <div className="flex items-center justify-center lg:justify-start space-x-2 lg:hidden mb-4">
               <Image
                 src="/images/Epitome_logo_black.png"
                 alt="EpitomeTRC Logo"
                 width={499}
                 height={390}
-                className="h-16 w-auto object-contain"
+                className="h-14 w-auto object-contain"
                 priority
               />
               <span className="font-display text-xl font-bold tracking-tight text-[#0b172a]">
@@ -188,10 +191,84 @@ function LoginForm() {
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#0b172a] tracking-tight">
               {mfaStep ? "Security Check" : "Welcome Back"}
             </h2>
-            <p className="text-slate-500 text-sm font-sans">
+            <p className="text-slate-500 text-xs font-sans">
               {mfaStep ? "Please verify your session using the code sent to your email." : "Access your strategic dashboard and enterprise resources."}
             </p>
           </div>
+
+          {!mfaStep && (
+            /* Standardized Demo Access Card */
+            <div className="rounded-2xl bg-slate-50 border border-slate-200/80 p-3.5 space-y-3 font-sans text-xs shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-bold text-slate-800 text-[10.5px] uppercase tracking-wider">
+                  <Key className="h-3.5 w-3.5 text-orange-500" />
+                  <span>Demo Access Credentials</span>
+                </div>
+                <span className="text-[9.5px] text-slate-400 font-semibold">Click Card to Quick-Fill</span>
+              </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {/* Admin Card */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("admin@epitometrc.com");
+                  setPassword("AdminPass123!");
+                }}
+                className="p-2 rounded-xl border border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 text-left transition-all group"
+              >
+                <div className="flex items-center gap-1 text-[10px] font-bold text-orange-600">
+                  <ShieldCheck className="h-3 w-3 shrink-0" /> Admin
+                </div>
+                <p className="text-[10.5px] font-bold text-slate-800 mt-1 truncate">admin@epitometrc.com</p>
+                <p className="text-[9px] text-slate-400 font-mono mt-0.5">AdminPass123!</p>
+                <span className="text-[8.5px] text-slate-400 block mt-1 font-semibold">Full System Access</span>
+              </button>
+
+              {/* Employee Card */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("employee@epitometrc.com");
+                  setPassword("EmployeeTemp123!");
+                }}
+                className="p-2 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50 text-left transition-all group"
+              >
+                <div className="flex items-center gap-1 text-[10px] font-bold text-blue-600">
+                  <Briefcase className="h-3 w-3 shrink-0" /> Employee
+                </div>
+                <p className="text-[10.5px] font-bold text-slate-800 mt-1 truncate">employee@epitometrc.com</p>
+                <p className="text-[9px] text-slate-400 font-mono mt-0.5">EmployeeTemp123!</p>
+                <span className="text-[8.5px] text-slate-400 block mt-1 font-semibold">Employee Dashboard</span>
+              </button>
+
+              {/* Intern Card */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("intern@epitometrc.com");
+                  setPassword("InternTemp123!");
+                }}
+                className="p-2 rounded-xl border border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/50 text-left transition-all group"
+              >
+                <div className="flex items-center gap-1 text-[10px] font-bold text-purple-600">
+                  <GraduationCap className="h-3 w-3 shrink-0" /> Intern
+                </div>
+                <p className="text-[10.5px] font-bold text-slate-800 mt-1 truncate">intern@epitometrc.com</p>
+                <p className="text-[9px] text-slate-400 font-mono mt-0.5">InternTemp123!</p>
+                <span className="text-[8.5px] text-slate-400 block mt-1 font-semibold">Intern Dashboard</span>
+              </button>
+            </div>
+
+            {/* Student Notice */}
+            <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/70 text-[10.5px] text-amber-900 font-medium flex items-center justify-between">
+              <span><strong>Student Access:</strong> Register new account or Sign in with Google.</span>
+              <button type="button" onClick={() => router.push("/register")} className="text-[10px] font-bold text-amber-700 hover:underline shrink-0 ml-2">
+                Register →
+              </button>
+            </div>
+          </div>
+          )}
 
           {mfaStep ? (
             <form onSubmit={handleMFASubmit} className="space-y-5">

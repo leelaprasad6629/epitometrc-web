@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
+try { require("dotenv").config(); } catch (e) {}
 
 const prisma = new PrismaClient();
 
@@ -12,38 +13,50 @@ async function main() {
   await prisma.course.deleteMany();
   await prisma.user.deleteMany();
 
-  // Create hashed password
-  const passwordHash = await bcrypt.hash("Password123", 10);
+  // Create hashed passwords for standardized demo access
+  const adminPasswordHash = await bcrypt.hash("AdminPass123!", 10);
+  const employeePasswordHash = await bcrypt.hash("EmployeeTemp123!", 10);
+  const internPasswordHash = await bcrypt.hash("InternTemp123!", 10);
+  const studentPasswordHash = await bcrypt.hash("StudentTemp123!", 10);
 
-  // Seed Users
-  const student = await prisma.user.create({
+  // Seed Standardized Users
+  const admin = await prisma.user.create({
     data: {
-      name: "Alex Thompson",
-      email: "alex.t@epitometrc.com",
-      passwordHash,
-      role: "Student",
+      name: "Epitome Admin",
+      email: "admin@epitometrc.com",
+      passwordHash: adminPasswordHash,
+      role: "Admin",
     },
   });
 
   const employee = await prisma.user.create({
     data: {
-      name: "Marcus Thorne",
-      email: "m.thorne@epitometrc.com",
-      passwordHash,
+      name: "Epitome Staff",
+      email: "employee@epitometrc.com",
+      passwordHash: employeePasswordHash,
       role: "Employee",
     },
   });
 
-  const admin = await prisma.user.create({
+  const intern = await prisma.user.create({
     data: {
-      name: "Sarah Jennings",
-      email: "s.jennings@epitometrc.com",
-      passwordHash,
-      role: "Admin",
+      name: "Epitome Intern",
+      email: "intern@epitometrc.com",
+      passwordHash: internPasswordHash,
+      role: "Intern",
     },
   });
 
-  console.log("Users seeded successfully.");
+  const student = await prisma.user.create({
+    data: {
+      name: "Alex Thompson (Demo Student)",
+      email: "alex.student@gmail.com",
+      passwordHash: studentPasswordHash,
+      role: "Student",
+    },
+  });
+
+  console.log("Standardized demo users seeded successfully.");
 
   // Seed Courses
   const c1 = await prisma.course.create({

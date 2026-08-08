@@ -132,7 +132,7 @@ async function runTests() {
     const t4 = await apiRequest("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({
-        email: "alex.t@epitometrc.com",
+        email: "admin@epitometrc.com",
         password: "WrongPassword123",
       }),
     });

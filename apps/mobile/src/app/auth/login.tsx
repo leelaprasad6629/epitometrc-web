@@ -151,6 +151,45 @@ export default function LoginScreen() {
           <Text style={styles.subtitle}>Enter credentials to access your placement dashboard</Text>
         </View>
 
+        {/* Demo Credentials Quick-Fill Bar */}
+        <View style={styles.demoCard}>
+          <Text style={styles.demoTitle}>DEMO ACCESS CREDENTIALS (TAP TO FILL)</Text>
+          <View style={styles.demoButtonsRow}>
+            <TouchableOpacity
+              style={styles.demoBadgeAdmin}
+              onPress={() => {
+                setEmail('admin@epitometrc.com');
+                setPassword('AdminPass123!');
+              }}
+            >
+              <Text style={styles.demoBadgeTextAdmin}>🛡️ Admin</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.demoBadgeEmp}
+              onPress={() => {
+                setEmail('employee@epitometrc.com');
+                setPassword('EmployeeTemp123!');
+              }}
+            >
+              <Text style={styles.demoBadgeTextEmp}>💼 Employee</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.demoBadgeIntern}
+              onPress={() => {
+                setEmail('intern@epitometrc.com');
+                setPassword('InternTemp123!');
+              }}
+            >
+              <Text style={styles.demoBadgeTextIntern}>🎓 Intern</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.demoStudentNotice}>
+            Student: Register new account or Sign in with Google below.
+          </Text>
+        </View>
+
         {/* Error Alert */}
         {errorMsg && (
           <View style={styles.errorAlert}>
@@ -437,5 +476,73 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#F97316',
     fontWeight: '700',
+  },
+  demoCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  demoTitle: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#64748B',
+    letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  demoButtonsRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  demoBadgeAdmin: {
+    flex: 1,
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1,
+    borderColor: '#FFEDD5',
+    borderRadius: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  demoBadgeTextAdmin: {
+    color: '#EA580C',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  demoBadgeEmp: {
+    flex: 1,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    borderRadius: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  demoBadgeTextEmp: {
+    color: '#2563EB',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  demoBadgeIntern: {
+    flex: 1,
+    backgroundColor: '#FAF5FF',
+    borderWidth: 1,
+    borderColor: '#F3E8FF',
+    borderRadius: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  demoBadgeTextIntern: {
+    color: '#9333EA',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  demoStudentNotice: {
+    fontSize: 10,
+    color: '#64748B',
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
