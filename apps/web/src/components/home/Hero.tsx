@@ -293,34 +293,34 @@ export default function Hero({ persona, setPersona }: HeroProps) {
     { 
       name: "PEOPLE AND ORGANISATION CONSULTING", 
       href: "/consulting",
-      color: "bg-blue-500",
-      hoverBg: "hover:bg-blue-50/40",
-      accentColor: "group-hover:text-blue-500",
-      arrowColor: "group-hover:text-blue-500"
+      color: "bg-[#3b82f6]",
+      hoverBg: "hover:bg-[#ebf5ff]",
+      accentColor: "group-hover:text-[#3b82f6]",
+      arrowColor: "group-hover:text-[#3b82f6]"
     },
     { 
       name: "LEADERSHIP ACADEMY", 
       href: "/training",
-      color: "bg-orange-500",
-      hoverBg: "hover:bg-orange-50/40",
-      accentColor: "group-hover:text-orange-500",
-      arrowColor: "group-hover:text-orange-500"
+      color: "bg-[#ea580c]",
+      hoverBg: "hover:bg-[#fff7ed]",
+      accentColor: "group-hover:text-[#ea580c]",
+      arrowColor: "group-hover:text-[#ea580c]"
     },
     { 
       name: "GREAT MANAGER AWARDS", 
       href: "/careers",
-      color: "bg-emerald-500",
-      hoverBg: "hover:bg-emerald-50/40",
-      accentColor: "group-hover:text-emerald-500",
-      arrowColor: "group-hover:text-emerald-500"
+      color: "bg-[#10b981]",
+      hoverBg: "hover:bg-[#f0fdf4]",
+      accentColor: "group-hover:text-[#10b981]",
+      arrowColor: "group-hover:text-[#10b981]"
     },
     { 
       name: "GREAT MANAGER ACADEMY", 
       href: "/courses",
-      color: "bg-indigo-500",
-      hoverBg: "hover:bg-indigo-50/40",
-      accentColor: "group-hover:text-indigo-500",
-      arrowColor: "group-hover:text-indigo-500"
+      color: "bg-[#6366f1]",
+      hoverBg: "hover:bg-[#eef2ff]",
+      accentColor: "group-hover:text-[#6366f1]",
+      arrowColor: "group-hover:text-[#6366f1]"
     },
   ];
 
