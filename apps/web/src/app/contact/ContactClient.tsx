@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTelegram, FaYoutube, FaWhatsapp } from "react-icons/fa";
+import { FaThreads, FaXTwitter } from "react-icons/fa6";
 import {
   Mail,
   Phone,
@@ -147,12 +149,12 @@ export default function ContactClient() {
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Office Address</p>
                         <a 
-                          href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
+                          href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+Indore" 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-slate-800 hover:text-orange-500 text-[11.5px] font-bold block transition-colors font-sans"
                         >
-                          208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, MP, India
+                          Headquartered in Indore, Madhya Pradesh | Serving PAN India
                         </a>
                       </div>
                     </div>
@@ -181,6 +183,32 @@ export default function ContactClient() {
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Response Speed</p>
                         <p className="text-slate-800 text-[11.5px] font-bold">Average response within 24 hours</p>
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t border-slate-100 space-y-2">
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Connect With Us</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn" },
+                          { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook" },
+                          { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram" },
+                          { Icon: FaTelegram, href: "https://t.me/epitometrc", label: "Telegram" },
+                          { Icon: FaYoutube, href: "https://youtube.com/@epitometrc", label: "YouTube" },
+                          { Icon: FaWhatsapp, href: "https://wa.me/916265966705", label: "WhatsApp" },
+                          { Icon: FaThreads, href: "https://threads.net/@epitometrc007", label: "Threads" },
+                          { Icon: FaXTwitter, href: "https://x.com/epitometrc", label: "X" }
+                        ].map(({ Icon, href, label }) => (
+                          <a
+                            key={label}
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={label}
+                            className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-all hover:border-orange-500 hover:bg-orange-500 hover:text-white hover:scale-105"
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                          </a>
+                        ))}
                       </div>
                     </div>
                   </div>

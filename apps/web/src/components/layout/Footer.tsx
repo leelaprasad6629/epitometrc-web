@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Mail, Phone, MapPin, ArrowRight, ShieldCheck, Lock, GraduationCap } from "lucide-react";
-import { FaFacebook, FaInstagram, FaLinkedin } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTelegram, FaYoutube, FaWhatsapp } from "react-icons/fa";
+import { FaThreads, FaXTwitter } from "react-icons/fa6";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
@@ -31,7 +32,7 @@ export default function Footer() {
   const contact = companyInfo?.contact || {
     phone: "+91-626-596-6705",
     email: "careers@epitometrc.com",
-    address: "208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore, Madhya Pradesh",
+    address: "Headquartered in Indore, Madhya Pradesh | Serving PAN India",
   };
 
   return (
@@ -74,18 +75,28 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl border-t border-slate-800/80 px-4 py-12 sm:px-6 md:py-16 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12">
           <div className="flex flex-col space-y-6 md:col-span-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <Image
-                src="/images/Epitome_logo_white.png"
-                alt="EpitomeTRC Logo"
-                width={499}
-                height={390}
-                className="h-18 w-auto object-contain"
-              />
-              <span className="font-display text-2xl font-bold tracking-tight text-white">
-                Epitome<span className="text-orange-500">TRC</span>
-              </span>
-            </Link>
+            <div className="space-y-2.5">
+              <Link href="/" className="flex items-center space-x-2">
+                <Image
+                  src="/images/Epitome_logo_white.png"
+                  alt="EpitomeTRC Logo"
+                  width={499}
+                  height={390}
+                  className="h-18 w-auto object-contain"
+                />
+                <span className="font-display text-2xl font-bold tracking-tight text-white">
+                  Epitome<span className="text-orange-500">TRC</span>
+                </span>
+              </Link>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-slate-300 uppercase tracking-wider font-sans">
+                  Epitome Training & Recruitment Consultants
+                </p>
+                <p className="text-[11px] text-orange-400 font-bold font-sans">
+                  Headquartered in Indore, Madhya Pradesh | Serving PAN India
+                </p>
+              </div>
+            </div>
             <p className="max-w-sm font-sans text-sm leading-relaxed text-slate-400">
               Precision in Strategy, Excellence in Execution. We design robust digital transformations and enterprise software systems to connect technology with clear outcomes.
             </p>
@@ -100,11 +111,16 @@ export default function Footer() {
                 <span className="flex items-center gap-1"><Lock className="h-3.5 w-3.5 text-blue-400" /> 256-Bit SSL</span>
               </div>
             </div>
-            <div className="flex space-x-3">
+            <div className="flex flex-wrap gap-2">
               {[
                 { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn" },
                 { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook" },
-                { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram" }
+                { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram" },
+                { Icon: FaTelegram, href: "https://t.me/epitometrc", label: "Telegram" },
+                { Icon: FaYoutube, href: "https://youtube.com/@epitometrc", label: "YouTube" },
+                { Icon: FaWhatsapp, href: "https://wa.me/916265966705", label: "WhatsApp" },
+                { Icon: FaThreads, href: "https://threads.net/@epitometrc007", label: "Threads" },
+                { Icon: FaXTwitter, href: "https://x.com/epitometrc", label: "X" }
               ].map(({ Icon, href, label }) => (
                 <a
                   key={label}
@@ -112,7 +128,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white"
+                  className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 transition-all hover:border-orange-500 hover:bg-orange-500 hover:text-white hover:scale-105"
                 >
                   <Icon className="h-4 w-4" />
                 </a>

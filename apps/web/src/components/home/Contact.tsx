@@ -1,5 +1,7 @@
 "use client";
 
+import { FaFacebook, FaInstagram, FaLinkedin, FaTelegram, FaYoutube, FaWhatsapp } from "react-icons/fa";
+import { FaThreads, FaXTwitter } from "react-icons/fa6";
 import { useState, FormEvent } from "react";
 import { Mail, Send, CheckCircle2, Phone, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,9 +26,7 @@ export default function Contact() {
     try {
       const res = await fetch("/api/enquiries", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formState.name,
           email: formState.email,
@@ -36,26 +36,31 @@ export default function Contact() {
           message: formState.message,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to submit message.");
+      if (res.ok) {
+        setIsSubmitted(true);
+        setFormState({ name: "", email: "", company: "", message: "" });
+      } else {
+        const d = await res.json();
+        setErrorMsg(d.error || "Failed to submit enquiry.");
       }
-      setIsSubmitted(true);
-      setFormState({ name: "", email: "", company: "", message: "" });
-    } catch (err: any) {
-      setErrorMsg(err.message || "An unexpected error occurred.");
+    } catch {
+      setErrorMsg("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <section id="contact" className="py-20 md:py-28 bg-[#F8FAFC] relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+    <section id="contact" className="py-20 md:py-28 bg-white relative overflow-hidden font-sans">
+      {/* Background blobs */}
+      <div className="absolute top-1/3 -right-20 w-96 h-96 bg-orange-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/3 -left-20 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           
-          {/* Contact Info (Takes 5 cols) */}
-          <div className="lg:col-span-5 flex flex-col justify-between">
+          {/* Info Side (Takes 5 cols) */}
+          <div className="lg:col-span-5 space-y-8">
             <div>
               <span className="text-orange-500 font-semibold text-xs uppercase tracking-wider block mb-2 font-sans">
                 GET IN TOUCH
@@ -78,12 +83,12 @@ export default function Contact() {
                 <div>
                   <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">HQ Office</h4>
                   <a 
-                    href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
+                    href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+Indore" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block transition-colors font-sans"
                   >
-                    208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore - 452001, Madhya Pradesh, India
+                    Headquartered in Indore, Madhya Pradesh | Serving PAN India
                   </a>
                 </div>
               </div>
@@ -109,6 +114,33 @@ export default function Contact() {
                   <a href="tel:+916265966705" className="text-slate-500 hover:text-[#0b172a] text-sm mt-1 block">
                     +91-626-596-6705
                   </a>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100 space-y-3">
+                <h4 className="font-display font-bold text-slate-800 text-xs tracking-wider uppercase">Connect With Us</h4>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn" },
+                    { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook" },
+                    { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram" },
+                    { Icon: FaTelegram, href: "https://t.me/epitometrc", label: "Telegram" },
+                    { Icon: FaYoutube, href: "https://youtube.com/@epitometrc", label: "YouTube" },
+                    { Icon: FaWhatsapp, href: "https://wa.me/916265966705", label: "WhatsApp" },
+                    { Icon: FaThreads, href: "https://threads.net/@epitometrc007", label: "Threads" },
+                    { Icon: FaXTwitter, href: "https://x.com/epitometrc", label: "X" }
+                  ].map(({ Icon, href, label }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-all hover:border-orange-500 hover:bg-orange-500 hover:text-white hover:scale-105"
+                    >
+                      <Icon className="h-4 w-4" />
+                    </a>
+                  ))}
                 </div>
               </div>
             </div>

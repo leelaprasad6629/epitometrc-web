@@ -129,8 +129,8 @@ async function main() {
     data: {
       phone: "+91-626-596-6705",
       email: "careers@epitometrc.com",
-      address: "208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore, Madhya Pradesh",
-      mapQuery: "Epitome Training & Recruitment Consultants"
+      address: "Headquartered in Indore, Madhya Pradesh | Serving PAN India",
+      mapQuery: "Epitome Training & Recruitment Consultants, Indore"
     }
   });
 
