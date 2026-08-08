@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   TrendingUp,
@@ -137,8 +137,27 @@ export default function CaseStudies({
 }: CaseStudiesProps) {
   const [activeTab, setActiveTab] = useState<CaseStudyCategory>("all");
   const [selectedStudy, setSelectedStudy] = useState<CaseStudyItem | null>(null);
+  const [studiesList, setStudiesList] = useState<CaseStudyItem[]>([]);
 
-  const filteredStudies = CASE_STUDIES.filter((study) => {
+  useEffect(() => {
+    async function loadStories() {
+      try {
+        const res = await fetch("/api/company/info");
+        const json = await res.json();
+        if (json.success && json.successStories && json.successStories.length > 0) {
+          setStudiesList(json.successStories);
+        } else {
+          setStudiesList(CASE_STUDIES);
+        }
+      } catch (err) {
+        console.warn("Failed to load dynamic case studies:", err);
+        setStudiesList(CASE_STUDIES);
+      }
+    }
+    loadStories();
+  }, []);
+
+  const filteredStudies = (studiesList.length > 0 ? studiesList : CASE_STUDIES).filter((study) => {
     if (activeTab === "all") return true;
     return study.category === activeTab;
   }).slice(0, limit);

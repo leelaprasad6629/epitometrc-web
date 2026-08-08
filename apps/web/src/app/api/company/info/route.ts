@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,70 @@ const DEFAULT_COMPANY_INFO = {
 };
 
 export async function GET(req: NextRequest) {
+  // Query database-driven content configuration first
+  try {
+    const dbInfo = await prisma.companyInfo.findFirst();
+    const dbStatsList = await prisma.companyStat.findMany({ where: { status: "Active" }, orderBy: { order: "asc" } });
+    const dbServices = await prisma.companyService.findMany({ where: { status: "Active" } });
+    const dbTestimonials = await prisma.companyTestimonial.findMany({ where: { status: "Active" } });
+    const dbSuccessStories = await prisma.successStory.findMany({ where: { status: "Active" } });
+
+    if (dbInfo && dbStatsList.length > 0) {
+      // Re-map stats array to object keys
+      const statsObj: Record<string, number> = {};
+      dbStatsList.forEach(s => {
+        // Strip non-numeric suffixes (like "+") to get base number
+        const valNum = parseInt(s.value.replace(/[^0-9]/g, ""), 10);
+        statsObj[s.key] = isNaN(valNum) ? 0 : valNum;
+      });
+
+      return NextResponse.json({
+        success: true,
+        stats: statsObj,
+        contact: {
+          phone: dbInfo.phone,
+          email: dbInfo.email,
+          address: dbInfo.address,
+        },
+        testimonials: dbTestimonials.map(t => ({
+          quote: t.quote,
+          author: t.author,
+          role: t.role,
+          stars: t.stars
+        })),
+        collaborations: dbStatsList.map(s => ({
+          name: s.label,
+          count: s.value
+        })),
+        services: dbServices.map(s => ({
+          title: s.title,
+          subtitle: s.subtitle,
+          slug: s.slug,
+          description: s.description,
+          iconName: s.iconName,
+          category: s.category,
+          features: JSON.parse(s.features),
+          persona: s.persona
+        })),
+        successStories: dbSuccessStories.map(s => ({
+          title: s.title,
+          clientType: s.clientType,
+          industry: s.industry,
+          challenge: s.challenge,
+          solution: s.solution,
+          results: JSON.parse(s.results),
+          primaryMetric: { value: s.primaryMetricVal, label: s.primaryMetricLabel },
+          secondaryMetric: { value: s.secondaryMetricVal, label: s.secondaryMetricLabel },
+          trustBadge: s.trustBadge,
+          category: s.category
+        })),
+        isDatabaseDriven: true
+      });
+    }
+  } catch (dbErr) {
+    console.warn("[Company Info API] Database query failed, falling back to scraped official defaults:", dbErr);
+  }
+
   const now = Date.now();
   if (cache && (now - cache.timestamp < CACHE_DURATION_MS)) {
     return NextResponse.json({ success: true, ...cache.data });

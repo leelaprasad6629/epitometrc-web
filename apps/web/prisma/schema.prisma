@@ -547,4 +547,94 @@ model UserSession {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model CompanyInfo {
+  id        String   @id @default(uuid())
+  phone     String
+  email     String
+  address   String
+  mapQuery  String
+  createdAt DateTime @default(now())
+}
+
+model CompanyStat {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  label     String
+  value     String
+  desc      String
+  iconName  String
+  persona   String   @default("all")
+  order     Int      @default(0)
+  status    String   @default("Active")
+}
+
+model CompanyService {
+  id          String   @id @default(uuid())
+  title       String
+  subtitle    String
+  slug        String   @unique
+  description String
+  iconName    String
+  category    String
+  features    String   // JSON String array of features
+  status      String   @default("Active")
+  persona     String   @default("all")
+}
+
+model CompanyTestimonial {
+  id           String   @id @default(uuid())
+  quote        String
+  author       String
+  role         String
+  organization String?
+  stars        Int      @default(5)
+  category     String   @default("student")
+  status       String   @default("Active")
+}
+
+model SuccessStory {
+  id                   String   @id @default(uuid())
+  title                String
+  clientType           String
+  industry             String
+  challenge            String
+  solution             String
+  results              String   // JSON String array of results
+  primaryMetricVal     String
+  primaryMetricLabel   String
+  secondaryMetricVal   String
+  secondaryMetricLabel String
+  trustBadge           String
+  category             String
+  status               String   @default("Active")
+}
+
+model RefresherSession {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  duration    String
+  skills      String   // JSON String array of skills
+  status      String   @default("Active")
+}
+
+model MembershipPlan {
+  id                      String   @id @default(uuid())
+  name                    String   @unique
+  price                   String
+  interval                String   @default("month")
+  features                String   // JSON String array of features
+  maxInterviews           Int
+  maxResumes              Int
+  status                  String   @default("Active")
+}
+
+model AIFeatureConfig {
+  id           String   @id @default(uuid())
+  featureName  String   @unique
+  description  String
+  capabilities String   // JSON String array of capabilities
+  isEnabled    Boolean  @default(true)
+}
+
 

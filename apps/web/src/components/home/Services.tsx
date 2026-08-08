@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -15,24 +16,84 @@ import {
   ExternalLink
 } from "lucide-react";
 
+const iconMap: Record<string, any> = {
+  Globe,
+  Award,
+  Users,
+  Code2,
+  UserCheck,
+  TrendingUp,
+  GraduationCap,
+  Cloud
+};
+
 interface ServicesProps {
   persona: "student" | "corporate";
 }
 
+interface DynamicService {
+  title: string;
+  subtitle: string;
+  slug: string;
+  description: string;
+  iconName: string;
+  category: string;
+  features: string[];
+}
+
 export default function Services({ persona }: ServicesProps) {
-  const studentStats = [
-    { value: "12k+", label: "Resumes Audited", icon: Globe },
-    { value: "94.8%", label: "First-Attempt Pass Rate", icon: Award },
-    { value: "450+", label: "Active Tech Partners", icon: Users },
-  ];
+  const [statsData, setStatsData] = useState<Array<{ value: string; label: string; icon: any }>>([]);
+  const [servicesList, setServicesList] = useState<DynamicService[]>([]);
 
-  const corporateStats = [
-    { value: "25+", label: "Global Client Countries", icon: Globe },
-    { value: "1,200+", label: "Projects Completed", icon: Award },
-    { value: "150+", label: "Lead Consultants", icon: Users },
-  ];
-
-  const stats = persona === "student" ? studentStats : corporateStats;
+  useEffect(() => {
+    async function loadCompanyDetails() {
+      try {
+        const res = await fetch("/api/company/info");
+        const json = await res.json();
+        if (json.success && json.isDatabaseDriven) {
+          const statsArray = json.collaborations.map((col: any) => {
+            let matchedIcon = Globe;
+            if (col.name.toLowerCase().includes("client") || col.name.toLowerCase().includes("partner")) matchedIcon = Users;
+            if (col.name.toLowerCase().includes("project")) matchedIcon = Award;
+            return {
+              value: col.count,
+              label: col.name,
+              icon: matchedIcon
+            };
+          });
+          setStatsData(statsArray);
+          const personaServices = json.services.filter((s: any) => 
+            s.persona === "all" || s.persona === persona
+          );
+          setServicesList(personaServices);
+        } else {
+          const studentStats = [
+            { value: "12k+", label: "Resumes Audited", icon: Globe },
+            { value: "94.8%", label: "First-Attempt Pass Rate", icon: Award },
+            { value: "450+", label: "Active Tech Partners", icon: Users },
+          ];
+          const corporateStats = [
+            { value: "25+", label: "Global Client Countries", icon: Globe },
+            { value: "1,200+", label: "Projects Completed", icon: Award },
+            { value: "150+", label: "Lead Consultants", icon: Users },
+          ];
+          setStatsData(persona === "student" ? studentStats : corporateStats);
+        }
+      } catch (err) {
+        console.warn("Failed to load dynamic stats/services:", err);
+        setStatsData(persona === "student" ? [
+          { value: "12k+", label: "Resumes Audited", icon: Globe },
+          { value: "94.8%", label: "First-Attempt Pass Rate", icon: Award },
+          { value: "450+", label: "Active Tech Partners", icon: Users },
+        ] : [
+          { value: "25+", label: "Global Client Countries", icon: Globe },
+          { value: "1,200+", label: "Projects Completed", icon: Award },
+          { value: "150+", label: "Lead Consultants", icon: Users },
+        ]);
+      }
+    }
+    loadCompanyDetails();
+  }, [persona]);
 
   return (
     <div id="services-parent-container">
@@ -40,7 +101,7 @@ export default function Services({ persona }: ServicesProps) {
       <section className="bg-[#050e1e] py-12 md:py-16 text-white relative z-20 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-800">
-            {stats.map((stat, idx) => {
+            {statsData.map((stat, idx) => {
               const Icon = stat.icon;
               return (
                 <div
@@ -88,137 +149,122 @@ export default function Services({ persona }: ServicesProps) {
 
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            
-            {/* IT Development (Featured 2/3 width on large) */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="md:col-span-2 bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-300 flex flex-col justify-between group overflow-hidden relative"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100/10 rounded-full translate-x-8 -translate-y-8" />
-              <div>
-                <div className="p-3 bg-orange-50 rounded-xl text-orange-500 inline-block mb-6 shadow-sm">
-                  <Code2 className="h-6 w-6" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-display font-bold text-[#0b172a] mb-3">
-                  IT Development
-                </h3>
-                <p className="text-slate-600 max-w-lg font-sans leading-relaxed">
-                  Professional React, TypeScript, and Node.js cloud solutions designed to maximize scalability. We architect and implement high-performance web applications, robust APIs, and custom integrations tailored precisely to your operational workflow.
-                </p>
-              </div>
-              <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest font-sans">
-                  Cloud Native • Full Stack
-                </span>
-                <span className="p-1.5 bg-slate-50 rounded-lg text-slate-400 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              </div>
-            </motion.div>
+            {servicesList.length > 0 ? (
+              servicesList.map((service, idx) => {
+                const Icon = iconMap[service.iconName] || Code2;
+                const isFeatured = idx === 0;
+                return (
+                  <motion.div
+                    key={service.slug}
+                    whileHover={{ y: -6 }}
+                    className={`${
+                      isFeatured ? "md:col-span-2 bg-white" : "bg-white"
+                    } rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-300 flex flex-col justify-between group overflow-hidden relative`}
+                  >
+                    <div>
+                      <div className="p-3 bg-orange-50 rounded-xl text-orange-500 inline-block mb-6 shadow-sm">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-xl sm:text-2xl font-display font-bold text-[#0b172a] mb-3">
+                        {service.title}
+                      </h3>
+                      <p className="text-slate-600 max-w-lg font-sans leading-relaxed text-sm">
+                        {service.description}
+                      </p>
+                    </div>
+                    <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest font-sans">
+                        {service.category}
+                      </span>
+                      <Link href={`/${service.slug}`} className="p-1.5 bg-slate-50 rounded-lg text-slate-400 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </motion.div>
+                );
+              })
+            ) : (
+              <>
+                {/* IT Development */}
+                <motion.div
+                  whileHover={{ y: -6 }}
+                  className="md:col-span-2 bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-300 flex flex-col justify-between group overflow-hidden relative"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100/10 rounded-full translate-x-8 -translate-y-8" />
+                  <div>
+                    <div className="p-3 bg-orange-50 rounded-xl text-orange-500 inline-block mb-6 shadow-sm">
+                      <Code2 className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-display font-bold text-[#0b172a] mb-3">
+                      IT Development
+                    </h3>
+                    <p className="text-slate-600 max-w-lg font-sans leading-relaxed">
+                      Professional React, TypeScript, and Node.js cloud solutions designed to maximize scalability. We architect and implement high-performance web applications, robust APIs, and custom integrations.
+                    </p>
+                  </div>
+                  <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest font-sans">
+                      Cloud Native • Full Stack
+                    </span>
+                    <Link href="/it-development" className="p-1.5 bg-slate-50 rounded-lg text-slate-400 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </motion.div>
 
-            {/* Strategic Recruitment (1/3 width, Warm Amber Accent) */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-[#fff9f4] rounded-2xl p-8 shadow-sm hover:shadow-xl border border-[#fbe5d0] transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
-            >
-              <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-orange-500/5 rounded-full blur-xl" />
-              <div>
-                <div className="p-3 bg-orange-100/60 rounded-xl text-orange-600 inline-block mb-6 shadow-sm">
-                  <UserCheck className="h-6 w-6" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-display font-bold text-[#0b172a] mb-3">
-                  Strategic Recruitment
-                </h3>
-                <p className="text-slate-700 text-sm font-sans leading-relaxed">
-                  Connecting visionary companies with world-class tech leaders, senior engineers, and elite consultants. We accelerate team construction through smart talent mapping.
-                </p>
-              </div>
-              <div className="mt-8 pt-6 border-t border-[#fbe5d0] flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-sans">
-                  Executive Search
-                </span>
-                <span className="p-1.5 bg-orange-100/40 rounded-lg text-orange-650 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              </div>
-            </motion.div>
+                {/* Strategic Recruitment */}
+                <motion.div
+                  whileHover={{ y: -6 }}
+                  className="bg-[#fff9f4] rounded-2xl p-8 shadow-sm hover:shadow-xl border border-[#fbe5d0] transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
+                >
+                  <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-orange-500/5 rounded-full blur-xl" />
+                  <div>
+                    <div className="p-3 bg-orange-100/60 rounded-xl text-orange-600 inline-block mb-6 shadow-sm">
+                      <UserCheck className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-display font-bold text-[#0b172a] mb-3">
+                      Strategic Recruitment
+                    </h3>
+                    <p className="text-slate-700 text-sm font-sans leading-relaxed">
+                      Connecting visionary companies with world-class tech leaders, senior engineers, and elite consultants.
+                    </p>
+                  </div>
+                  <div className="mt-8 pt-6 border-t border-[#fbe5d0] flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-sans">
+                      Executive Search
+                    </span>
+                    <Link href="/recruitment" className="p-1.5 bg-orange-100/40 rounded-lg text-orange-650 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </motion.div>
 
-            {/* Business Consulting */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-300 flex flex-col justify-between group"
-            >
-              <div>
-                <div className="p-3 bg-orange-50 rounded-xl text-orange-500 inline-block mb-6">
-                  <TrendingUp className="h-6 w-6" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-display font-bold text-[#0b172a] mb-3">
-                  Business Consulting
-                </h3>
-                <p className="text-slate-600 text-sm font-sans leading-relaxed">
-                  Operational streamlining and digital transformation planning. We build strategy maps that drive margin improvements and long-term business resilience.
-                </p>
-              </div>
-              <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between">
-                <Link href="/consulting" className="text-xs font-bold text-[#0b172a] hover:text-orange-500 flex items-center tracking-wider uppercase font-sans">
-                  More
-                  <ArrowRight className="ml-1 h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* Academic Synergy */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-300 flex flex-col justify-between group"
-            >
-              <div>
-                <div className="p-3 bg-orange-50 rounded-xl text-orange-500 inline-block mb-6">
-                  <GraduationCap className="h-6 w-6" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-display font-bold text-[#0b172a] mb-3">
-                  Academic Synergy
-                </h3>
-                <p className="text-slate-600 text-sm font-sans leading-relaxed">
-                  Uniting university research labs and private tech R&D teams. Creating deep technology partnerships to translate theoretical excellence into real products.
-                </p>
-              </div>
-              <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between">
-                <Link href="/college-collaboration" className="text-xs font-bold text-[#0b172a] hover:text-orange-500 flex items-center tracking-wider uppercase font-sans">
-                  Explore
-                  <ArrowRight className="ml-1 h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* Cloud Management (High Contrast Orange Accent) */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-orange-500 text-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group"
-            >
-              <div>
-                <div className="p-3 bg-white/20 rounded-xl text-white inline-block mb-6">
-                  <Cloud className="h-6 w-6" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-display font-bold text-white mb-3">
-                  Cloud Management
-                </h3>
-                <p className="text-orange-55 text-sm font-sans leading-relaxed">
-                  Safe, modern virtualization and secure, automated cloud operations. We design resilient databases, low-latency API proxy routes, and autoscaling infrastructure.
-                </p>
-              </div>
-              <div className="mt-8 pt-4 border-t border-white/20 flex items-center justify-between">
-                <span className="text-xs font-semibold text-orange-100 uppercase tracking-widest font-sans">
-                  Virtualization
-                </span>
-                <span className="p-1.5 bg-white/20 rounded-lg text-white group-hover:bg-white group-hover:text-orange-500 transition-colors duration-300">
-                  <ExternalLink className="h-4 w-4" />
-                </span>
-              </div>
-            </motion.div>
-
+                {/* Business Consulting */}
+                <motion.div
+                  whileHover={{ y: -6 }}
+                  className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-300 flex flex-col justify-between group"
+                >
+                  <div>
+                    <div className="p-3 bg-orange-50 rounded-xl text-orange-500 inline-block mb-6">
+                      <TrendingUp className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-display font-bold text-[#0b172a] mb-3">
+                      Business Consulting
+                    </h3>
+                    <p className="text-slate-600 text-sm font-sans leading-relaxed">
+                      Operational streamlining and digital transformation planning to drive margin improvements.
+                    </p>
+                  </div>
+                  <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <Link href="/consulting" className="text-xs font-bold text-[#0b172a] hover:text-orange-500 flex items-center tracking-wider uppercase font-sans">
+                      More
+                      <ArrowRight className="ml-1 h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </div>
+                </motion.div>
+              </>
+            )}
           </div>
-
         </div>
       </section>
     </div>
