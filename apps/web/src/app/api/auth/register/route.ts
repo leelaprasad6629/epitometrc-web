@@ -22,6 +22,13 @@ export async function POST(req: NextRequest) {
 
     const userRole = role || "Student";
 
+    // Enforce official email domain for staff roles
+    if (userRole === "Employee" || userRole === "Admin") {
+      if (!email.toLowerCase().endsWith("@epitometrc.com")) {
+        return NextResponse.json({ error: "Access Denied: Registrations for official @epitometrc.com staff accounts are restricted." }, { status: 400 });
+      }
+    }
+
     // Restriction: Employee/Admin accounts cannot be registered publicly
     if (userRole !== "Student") {
       return NextResponse.json({ error: "Access Denied: Registration for Employee, Intern, or Admin accounts must be created directly by an administrator." }, { status: 403 });
