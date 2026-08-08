@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, ShieldCheck, Star, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -340,116 +341,163 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[215px] w-[340px] h-[340px] border border-slate-200/20 rounded-full pointer-events-none z-0 border-dashed" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[215px] w-[460px] h-[460px] border border-slate-200/10 rounded-full pointer-events-none z-0" />
 
-      {/* Main Centered Content */}
-      <div className="flex-1 flex flex-col justify-start md:justify-center items-center text-center px-4 relative z-10 space-y-4 pt-28 md:pt-32 pb-8">
+      {/* Top Left Peach Soft Blurred Gradient Background Overlay */}
+      <div className="absolute top-0 left-0 w-full sm:w-[60%] h-full sm:h-[60%] bg-[radial-gradient(ellipse_at_top_left,rgba(255,176,122,0.18),rgba(255,142,91,0.15),rgba(255,168,199,0.1),rgba(255,214,231,0.06),rgba(255,242,245,0.02),transparent_70%)] pointer-events-none z-0 filter blur-xs" />
+      
+      {/* Top Right / Behind Girl Gradient Background Overlay */}
+      <div className="absolute top-0 right-0 w-full sm:w-[65%] h-full sm:h-[65%] bg-[radial-gradient(circle_at_top_right,rgba(255,154,0,0.13),rgba(255,122,122,0.13),rgba(255,110,199,0.11),rgba(181,110,255,0.09),rgba(233,213,255,0.05),transparent_70%)] pointer-events-none z-0" />
+
+      {/* Edge abstract dotted grids */}
+      <div className="absolute left-6 top-1/4 w-24 h-48 bg-[radial-gradient(#ff8e5b_1.5px,transparent_1.5px)] [background-size:14px_14px] opacity-[0.12] pointer-events-none z-0 hidden lg:block" />
+      <div className="absolute right-6 top-1/3 w-24 h-48 bg-[radial-gradient(#ff6ec7_1.5px,transparent_1.5px)] [background-size:14px_14px] opacity-[0.12] pointer-events-none z-0 hidden lg:block" />
+
+      {/* Abstract Curved Shapes */}
+      <svg className="absolute left-0 bottom-1/4 w-[30%] h-[30%] opacity-[0.08] pointer-events-none z-0 text-orange-200" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M-10,100 C30,80 40,40 10,0" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M-5,100 C35,85 45,45 15,0" fill="none" stroke="currentColor" strokeWidth="0.25" />
+      </svg>
+      <svg className="absolute right-0 top-1/4 w-[25%] h-[35%] opacity-[0.08] pointer-events-none z-0 text-indigo-200" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M110,0 C70,20 60,60 90,100" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M105,0 C65,25 55,65 85,100" fill="none" stroke="currentColor" strokeWidth="0.25" />
+      </svg>
+
+      {/* Main Content Layout Wrapper */}
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 relative z-10 pt-28 md:pt-32 lg:pt-20 pb-8">
         
-        {/* Top Trust Ribbon */}
-        <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-2 rounded-full bg-white border border-orange-200/80 shadow-md backdrop-blur-md text-[10.5px] sm:text-xs font-bold text-slate-800 z-20">
-          <span className="flex items-center gap-1.5 text-orange-600 font-extrabold">
-            <GraduationCap className="h-4 w-4 text-orange-500" />
-            🚀 7000+ Internships Facilitated
-          </span>
-          <span className="hidden sm:inline text-slate-300">•</span>
-          <span className="flex items-center gap-1.5 text-amber-600 font-extrabold">
-            <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-            4.9/5 Student &amp; Corporate Score
-          </span>
-          <span className="hidden sm:inline text-slate-300">•</span>
-          <span className="flex items-center gap-1.5 text-emerald-600 font-extrabold">
-            <ShieldCheck className="h-4 w-4 text-emerald-500" />
-            ISO 9001:2015 Certified
-          </span>
+        {/* Left Side Content Column */}
+        <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left space-y-4 max-w-2xl md:max-w-xl lg:max-w-2xl mx-auto md:mx-0">
+          
+          {/* Top Trust Ribbon */}
+          <div className="inline-flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-4 px-4 py-2 rounded-full bg-white border border-orange-200/80 shadow-md backdrop-blur-md text-[10.5px] sm:text-xs font-bold text-slate-800 z-20">
+            <span className="flex items-center gap-1.5 text-orange-600 font-extrabold">
+              <GraduationCap className="h-4 w-4 text-orange-500" />
+              🚀 7000+ Internships Facilitated
+            </span>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <span className="flex items-center gap-1.5 text-amber-600 font-extrabold">
+              <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+              4.9/5 Student &amp; Corporate Score
+            </span>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <span className="flex items-center gap-1.5 text-emerald-600 font-extrabold">
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              ISO 9001:2015 Certified
+            </span>
+          </div>
+
+          {/* Persona Switcher Toggle Buttons */}
+          <div className="flex bg-white/90 p-1.5 rounded-2xl border border-slate-200/80 shadow-sm z-10 w-fit backdrop-blur-sm">
+            <button
+              onClick={() => setPersona("student")}
+              className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all duration-300 ${
+                persona === "student"
+                  ? "bg-[#0b172a] text-white shadow-md"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              For Students
+            </button>
+            <button
+              onClick={() => setPersona("corporate")}
+              className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all duration-300 ${
+                persona === "corporate"
+                  ? "bg-[#0b172a] text-white shadow-md"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              For Corporates & Recruiters
+            </button>
+          </div>
+
+          <motion.div
+            key={`header-${persona}`}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-4"
+          >
+            <span className="rounded-full bg-orange-50 border border-orange-100 px-3.5 py-0.5 text-[9px] font-black text-orange-500 uppercase tracking-widest inline-block shadow-sm">
+              {persona === "student" ? "EpitomeTRC Career Portal" : "EpitomeTRC B2B Suite"}
+            </span>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight leading-tight select-none">
+              {persona === "student" ? (
+                <>
+                  <span className="bg-gradient-to-r from-[#0f172a] via-[#0d9488] to-[#3b82f6] bg-clip-text text-transparent">
+                    Engineer Your Future,
+                  </span> <br />
+                  <span className="bg-gradient-to-r from-[#0d9488] via-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
+                    Build Your Dream Career.
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="bg-gradient-to-r from-[#0f172a] via-[#0d9488] to-[#3b82f6] bg-clip-text text-transparent">
+                    Align People Strategy,
+                  </span> <br />
+                  <span className="bg-gradient-to-r from-[#0d9488] via-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
+                    Drive Enterprise Velocity.
+                  </span>
+                </>
+              )}
+            </h1>
+          </motion.div>
+
+          <motion.p
+            key={`desc-${persona}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="text-slate-500 text-xs sm:text-sm font-medium max-w-2xl leading-relaxed"
+          >
+            {persona === "student"
+              ? "Refine and optimize your resume with AI score insights, conduct verbal speech mock interviews, and match directly with verified top-tier tech vacancy channels."
+              : "Qualify high-value project leads automatically, generate client-facing proposals with audit logs, and configure workforce training bootcamps."}
+          </motion.p>
+
+          <motion.div
+            key={`buttons-${persona}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="pt-4 flex flex-col sm:flex-row gap-4 items-center justify-center md:justify-start w-full sm:w-auto z-10"
+          >
+            <Link
+              href={persona === "student" ? "/student/resume-builder" : "/admin/dashboard"}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-orange-500 hover:to-orange-600 hover:shadow-lg hover:shadow-orange-500/20 transition-all uppercase tracking-wider px-5 py-2.5 rounded-xl w-full sm:w-auto justify-center"
+            >
+              {persona === "student" ? "Build AI Resume" : "Access Recruiter Workspace"} <ArrowUpRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white/60 hover:bg-[#fff9f4] hover:text-orange-600 hover:border-orange-200/80 transition-all uppercase tracking-wider px-5 py-2.5 rounded-xl border border-slate-200/80 shadow-sm w-full sm:w-auto justify-center"
+            >
+              Login to Dashboard
+            </Link>
+          </motion.div>
         </div>
 
-        {/* Persona Switcher Toggle Buttons */}
-        <div className="flex bg-white/90 p-1.5 rounded-2xl border border-slate-200/80 shadow-sm z-10 w-fit backdrop-blur-sm">
-          <button
-            onClick={() => setPersona("student")}
-            className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all duration-300 ${
-              persona === "student"
-                ? "bg-[#0b172a] text-white shadow-md"
-                : "text-slate-500 hover:text-slate-900"
-            }`}
+        {/* Right Side Image Column */}
+        <div className="hidden md:block md:w-[44%] lg:w-[46%] xl:w-[48%] relative flex-shrink-0 z-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,122,122,0.1),rgba(181,110,255,0.05),transparent_65%)] pointer-events-none scale-125 z-0" />
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, x: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative z-10 w-full flex justify-center items-center"
           >
-            For Students
-          </button>
-          <button
-            onClick={() => setPersona("corporate")}
-            className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all duration-300 ${
-              persona === "corporate"
-                ? "bg-[#0b172a] text-white shadow-md"
-                : "text-slate-500 hover:text-slate-900"
-            }`}
-          >
-            For Corporates & Recruiters
-          </button>
+            <div className="relative w-full max-w-[420px] aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 bg-white/40 backdrop-blur-xs">
+              <Image
+                src="/images/professional_woman_laptop.jpg"
+                alt="Young professional working on a laptop"
+                fill
+                className="object-cover object-center"
+                sizes="(max-w-1024px) 100vw, 420px"
+                priority
+              />
+            </div>
+          </motion.div>
         </div>
-
-        <motion.div
-          key={`header-${persona}`}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="space-y-4"
-        >
-          <span className="rounded-full bg-orange-50 border border-orange-100 px-3.5 py-0.5 text-[9px] font-black text-orange-500 uppercase tracking-widest inline-block shadow-sm">
-            {persona === "student" ? "EpitomeTRC Career Portal" : "EpitomeTRC B2B Suite"}
-          </span>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight leading-tight select-none">
-            {persona === "student" ? (
-              <>
-                <span className="bg-gradient-to-r from-[#0f172a] via-[#0d9488] to-[#3b82f6] bg-clip-text text-transparent">
-                  Engineer Your Future,
-                </span> <br />
-                <span className="bg-gradient-to-r from-[#0d9488] via-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
-                  Build Your Dream Career.
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="bg-gradient-to-r from-[#0f172a] via-[#0d9488] to-[#3b82f6] bg-clip-text text-transparent">
-                  Align People Strategy,
-                </span> <br />
-                <span className="bg-gradient-to-r from-[#0d9488] via-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
-                  Drive Enterprise Velocity.
-                </span>
-              </>
-            )}
-          </h1>
-        </motion.div>
-
-        <motion.p
-          key={`desc-${persona}`}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.15 }}
-          className="text-slate-500 text-xs sm:text-sm font-medium max-w-2xl leading-relaxed"
-        >
-          {persona === "student"
-            ? "Refine and optimize your resume with AI score insights, conduct verbal speech mock interviews, and match directly with verified top-tier tech vacancy channels."
-            : "Qualify high-value project leads automatically, generate client-facing proposals with audit logs, and configure workforce training bootcamps."}
-        </motion.p>
-
-        <motion.div
-          key={`buttons-${persona}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="pt-4 flex flex-col sm:flex-row gap-4 items-center justify-center"
-        >
-          <Link
-            href={persona === "student" ? "/student/resume-builder" : "/admin/dashboard"}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-orange-500 hover:to-orange-600 hover:shadow-lg hover:shadow-orange-500/20 transition-all uppercase tracking-wider px-5 py-2.5 rounded-xl"
-          >
-            {persona === "student" ? "Build AI Resume" : "Access Recruiter Workspace"} <ArrowUpRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white/60 hover:bg-[#fff9f4] hover:text-orange-600 hover:border-orange-200/80 transition-all uppercase tracking-wider px-5 py-2.5 rounded-xl border border-slate-200/80 shadow-sm"
-          >
-            Login to Dashboard
-          </Link>
-        </motion.div>
       </div>
 
       {/* Bottom Menu Items */}
