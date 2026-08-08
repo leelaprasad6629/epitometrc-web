@@ -97,32 +97,6 @@ export default function Services({ persona }: ServicesProps) {
 
   return (
     <div id="services-parent-container">
-      {/* 1. Statistics Bar Section */}
-      <section className="bg-[#050e1e] py-12 md:py-16 text-white relative z-20 shadow-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-800">
-            {statsData.map((stat, idx) => {
-              const Icon = stat.icon;
-              return (
-                <div
-                  key={idx}
-                  className="flex flex-col items-center justify-center text-center p-4 first:pt-0 last:pb-0 md:py-4"
-                >
-                  <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-orange-500 mb-4 shadow-inner">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight leading-none">
-                    {stat.value}
-                  </h3>
-                  <p className="text-slate-400 text-sm font-semibold tracking-wider uppercase mt-2 font-sans">
-                    {stat.label}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       {/* 2. Specialized Services Bento Grid Section */}
       <section id="services" className="py-20 md:py-28 bg-[#f8fafd] relative">
