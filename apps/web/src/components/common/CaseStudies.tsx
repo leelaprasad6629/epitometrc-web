@@ -163,7 +163,7 @@ export default function CaseStudies({
   }).slice(0, limit);
 
   return (
-    <section className={`py-16 md:py-24 bg-[#0b172a] text-white relative overflow-hidden ${className || ""}`}>
+    <section id="case-studies" className={`py-16 md:py-24 bg-[#0b172a] text-white relative overflow-hidden ${className || ""}`}>
       {/* Background glow accents */}
       <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full bg-blue-500/10 blur-[130px] pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-orange-500/10 blur-[130px] pointer-events-none" />
