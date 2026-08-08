@@ -51,9 +51,9 @@ export default function DnaCanvas() {
 
     for (let c = 0; c < cols; c++) {
       for (let r = 0; r < rows; r++) {
-        let color = "rgba(249, 115, 22, 0.45)"; // Orange
-        if ((c + r) % 3 === 1) color = "rgba(234, 88, 12, 0.45)"; // Darker Orange
-        else if ((c + r) % 3 === 2) color = "rgba(161, 161, 170, 0.35)"; // Soft Slate
+        let color = "rgba(59, 130, 246, 0.45)"; // Blue
+        if ((c + r) % 3 === 1) color = "rgba(99, 102, 241, 0.45)"; // Indigo
+        else if ((c + r) % 3 === 2) color = "rgba(139, 92, 246, 0.45)"; // Purple
 
         points.push({
           gridX: c - cols / 2,
@@ -81,7 +81,7 @@ export default function DnaCanvas() {
         z3d: (Math.random() - 0.5) * 150,
         size: 1.5 + Math.random() * 2.0,
         speed: 0.2 + Math.random() * 0.4,
-        color: i % 2 === 0 ? "rgba(249, 115, 22, 0.65)" : "rgba(251, 146, 60, 0.65)", // Orange / Light Orange
+        color: i % 2 === 0 ? "rgba(249, 115, 22, 0.65)" : "rgba(236, 72, 153, 0.65)", // Orange / Pink
       });
     }
 
@@ -168,7 +168,7 @@ export default function DnaCanvas() {
             const p2 = screenGrid[rightIdx];
             if (p2) {
               const alpha = Math.min(0.25, Math.max(0.02, p1.scale * 0.12));
-              ctx.strokeStyle = `rgba(249, 115, 22, ${alpha})`;
+              ctx.strokeStyle = `rgba(99, 102, 241, ${alpha})`;
               ctx.beginPath();
               ctx.moveTo(p1.x, p1.y);
               ctx.lineTo(p2.x, p2.y);
@@ -182,7 +182,7 @@ export default function DnaCanvas() {
             const p2 = screenGrid[downIdx];
             if (p2) {
               const alpha = Math.min(0.25, Math.max(0.02, p1.scale * 0.12));
-              ctx.strokeStyle = `rgba(234, 88, 12, ${alpha})`;
+              ctx.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
               ctx.beginPath();
               ctx.moveTo(p1.x, p1.y);
               ctx.lineTo(p2.x, p2.y);
@@ -210,7 +210,7 @@ export default function DnaCanvas() {
           if (idx % 27 === 0) {
             ctx.beginPath();
             ctx.arc(screenP.x, screenP.y, size * 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(249, 115, 22, 0.15)";
+            ctx.fillStyle = "rgba(59, 130, 246, 0.15)";
             ctx.fill();
           }
         }

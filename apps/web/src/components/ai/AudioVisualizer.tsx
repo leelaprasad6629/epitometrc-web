@@ -79,9 +79,9 @@ export default function AudioVisualizer({ isListening }: AudioVisualizerProps) {
 
         // Draw multiple layered waves from time domain data
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "rgba(249, 115, 22, 0.7)"; // Orange
+        ctx.strokeStyle = "rgba(16, 185, 129, 0.7)"; // Emerald theme green
         ctx.shadowBlur = 10;
-        ctx.shadowColor = "rgba(249, 115, 22, 0.4)";
+        ctx.shadowColor = "rgba(16, 185, 129, 0.4)";
         ctx.beginPath();
 
         const sliceWidth = width / bufferLength;
@@ -107,7 +107,7 @@ export default function AudioVisualizer({ isListening }: AudioVisualizerProps) {
         const freqArray = new Uint8Array(bufferLength);
         analyser.getByteFrequencyData(freqArray);
         ctx.shadowBlur = 0;
-        ctx.fillStyle = "rgba(249, 115, 22, 0.15)"; // Soft Orange glowing bars
+        ctx.fillStyle = "rgba(59, 130, 246, 0.15)"; // Soft blue glowing bars
         
         const barWidth = (width / bufferLength) * 1.5;
         let barX = 0;
@@ -144,9 +144,9 @@ export default function AudioVisualizer({ isListening }: AudioVisualizerProps) {
         };
 
         // Draw three distinct colorful layers with matching offset speeds
-        drawSineWave(22, "rgba(249, 115, 22, 0.65)", 3, 0);       // Orange Wave
-        drawSineWave(15, "rgba(217, 119, 6, 0.5)", 4.5, Math.PI / 3); // Gold Wave
-        drawSineWave(8, "rgba(239, 68, 68, 0.45)", 6, -Math.PI / 4);  // Red-orange Wave
+        drawSineWave(22, "rgba(6, 182, 212, 0.65)", 3, 0);       // Cyan Wave
+        drawSineWave(15, "rgba(99, 102, 241, 0.5)", 4.5, Math.PI / 3); // Indigo Wave
+        drawSineWave(8, "rgba(236, 72, 153, 0.45)", 6, -Math.PI / 4);  // Pink Wave
       }
 
       animationFrameRef.current = requestAnimationFrame(render);
@@ -169,10 +169,10 @@ export default function AudioVisualizer({ isListening }: AudioVisualizerProps) {
   }, [isListening]);
 
   return (
-    <div className="relative w-full h-20 rounded-xl overflow-hidden bg-[#F5F5F4]/85 border border-slate-200/80 p-2 shadow-inner flex items-center justify-center">
+    <div className="relative w-full h-20 rounded-xl overflow-hidden bg-slate-900/90 border border-slate-800 p-2 shadow-inner flex items-center justify-center">
       <div className="absolute top-2 left-3 flex items-center gap-1.5 z-10">
-        <span className={`h-1.5 w-1.5 rounded-full ${isListening ? "bg-[#ea580c] animate-ping" : "bg-slate-400"}`} />
-        <span className="text-[8.5px] font-black text-slate-500 uppercase tracking-wider">
+        <span className={`h-1.5 w-1.5 rounded-full ${isListening ? "bg-emerald-500 animate-ping" : "bg-slate-500"}`} />
+        <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-wider">
           {isListening ? "Analyzing Speech Frequencies" : "Microphone Idle"}
         </span>
       </div>

@@ -15,17 +15,17 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
   const getHaloColor = () => {
     switch (stateName) {
       case "Speaking":
-        return "rgba(249, 115, 22, 0.4)"; // Orange
+        return "rgba(139, 92, 246, 0.4)"; // purple
       case "Listening":
-        return "rgba(217, 119, 6, 0.4)"; // Gold/Amber
+        return "rgba(249, 115, 22, 0.4)"; // orange
       case "Recording":
-        return "rgba(239, 68, 68, 0.4)"; // Red
+        return "rgba(239, 68, 68, 0.4)"; // red
       case "Evaluating":
-        return "rgba(99, 102, 241, 0.4)"; // Indigo
+        return "rgba(59, 130, 246, 0.4)"; // blue
       case "Preparing":
-        return "rgba(16, 185, 129, 0.4)"; // Emerald
+        return "rgba(16, 185, 129, 0.4)"; // emerald
       default:
-        return "rgba(148, 163, 184, 0.2)"; // Slate
+        return "rgba(99, 102, 241, 0.2)"; // indigo
     }
   };
 
@@ -41,21 +41,21 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
   };
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-[#F5F5F4] rounded-3xl overflow-hidden shadow-inner border border-slate-200">
+    <div className="relative w-full h-full flex items-center justify-center bg-slate-900 rounded-3xl overflow-hidden shadow-inner border border-slate-800">
       {/* Background Gradient */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
         <defs>
           <radialGradient id="bg-grad" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stopColor="#FAF9F6" />
-            <stop offset="60%" stopColor="#F5F4F0" />
-            <stop offset="100%" stopColor="#EFEFE9" />
+            <stop offset="0%" stopColor="#1e293b" />
+            <stop offset="60%" stopColor="#0f172a" />
+            <stop offset="100%" stopColor="#020617" />
           </radialGradient>
         </defs>
         <rect width="100" height="100" fill="url(#bg-grad)" />
       </svg>
 
       {/* Floating high-tech particle grid backdrop */}
-      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+      <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
 
       {/* Main Avatar SVG */}
       <svg
@@ -71,9 +71,9 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
           </linearGradient>
           
           <linearGradient id="suit-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#475569" />
-            <stop offset="50%" stopColor="#1e293b" />
-            <stop offset="100%" stopColor="#475569" />
+            <stop offset="0%" stopColor="#1e293b" />
+            <stop offset="50%" stopColor="#0f172a" />
+            <stop offset="100%" stopColor="#1e293b" />
           </linearGradient>
 
           <linearGradient id="hair-grad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -82,8 +82,8 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
           </linearGradient>
 
           <linearGradient id="tie-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#ea580c" />
-            <stop offset="100%" stopColor="#c2410c" />
+            <stop offset="0%" stopColor="#ef4444" />
+            <stop offset="100%" stopColor="#b91c1c" />
           </linearGradient>
 
           <filter id="soft-shadow" x="-10%" y="-10%" width="120%" height="120%">
@@ -204,7 +204,7 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
             {/* Eyelid Scale Container (Blinks by shrinking vertically) */}
             <g transform={`scale(1, ${animations.eyelidScaleY})`}>
               {/* Colored Iris */}
-              <circle cx={animations.pupilX} cy={animations.pupilY} r="1.4" fill="#ea580c" />
+              <circle cx={animations.pupilX} cy={animations.pupilY} r="1.4" fill="#3b82f6" />
               {/* Pupil */}
               <circle cx={animations.pupilX} cy={animations.pupilY} r="0.85" fill="#0f172a" />
               {/* Glare/Highlight */}
@@ -221,7 +221,7 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
             {/* Eyelid Scale Container */}
             <g transform={`scale(1, ${animations.eyelidScaleY})`}>
               {/* Colored Iris */}
-              <circle cx={animations.pupilX} cy={animations.pupilY} r="1.4" fill="#ea580c" />
+              <circle cx={animations.pupilX} cy={animations.pupilY} r="1.4" fill="#3b82f6" />
               {/* Pupil */}
               <circle cx={animations.pupilX} cy={animations.pupilY} r="0.85" fill="#0f172a" />
               {/* Glare/Highlight */}

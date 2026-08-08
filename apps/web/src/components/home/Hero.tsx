@@ -69,9 +69,9 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.random() * Math.PI * 2;
       
-      let color = "rgba(249, 115, 22, 0.45)"; // Orange
-      if (i % 3 === 1) color = "rgba(217, 119, 6, 0.45)"; // Gold
-      else if (i % 3 === 2) color = "rgba(161, 161, 170, 0.35)"; // Soft Slate
+      let color = "rgba(59, 130, 246, 0.45)"; // Electric Blue
+      if (i % 3 === 1) color = "rgba(99, 102, 241, 0.45)"; // Indigo
+      else if (i % 3 === 2) color = "rgba(139, 92, 246, 0.45)"; // Purple
 
       points.push({
         type: "torus",
@@ -226,11 +226,11 @@ export default function Hero({ persona, setPersona }: HeroProps) {
           const dy = screenP1.y - screenP2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-           if (dist < connectionDistance) {
+          if (dist < connectionDistance) {
             const alpha = (1 - dist / connectionDistance) * 0.15;
             ctx.strokeStyle = p1.type === "torus" 
-              ? `rgba(249, 115, 22, ${alpha})` // Orange
-              : `rgba(239, 68, 68, ${alpha})`; // Red-orange
+              ? `rgba(99, 102, 241, ${alpha})` // Indigo
+              : `rgba(249, 115, 22, ${alpha})`; // Orange
             ctx.beginPath();
             ctx.moveTo(screenP1.x, screenP1.y);
             ctx.lineTo(screenP2.x, screenP2.y);
@@ -398,15 +398,19 @@ export default function Hero({ persona, setPersona }: HeroProps) {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight leading-tight select-none">
             {persona === "student" ? (
               <>
-                Engineer Your Future, <br />
-                <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-orange-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#0f172a] via-[#0d9488] to-[#3b82f6] bg-clip-text text-transparent">
+                  Engineer Your Future,
+                </span> <br />
+                <span className="bg-gradient-to-r from-[#0d9488] via-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
                   Build Your Dream Career.
                 </span>
               </>
             ) : (
               <>
-                Align People Strategy, <br />
-                <span className="bg-gradient-to-r from-orange-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#0f172a] via-[#0d9488] to-[#3b82f6] bg-clip-text text-transparent">
+                  Align People Strategy,
+                </span> <br />
+                <span className="bg-gradient-to-r from-[#0d9488] via-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
                   Drive Enterprise Velocity.
                 </span>
               </>
