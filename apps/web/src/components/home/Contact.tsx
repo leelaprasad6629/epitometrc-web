@@ -100,6 +100,18 @@ export default function Contact() {
                 </div>
               </div>
 
+              <div className="flex items-start space-x-4">
+                <div className="p-3 bg-orange-50 rounded-xl text-orange-500 shadow-sm flex-shrink-0">
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-display font-bold text-slate-800 text-sm tracking-wider uppercase">Location</h4>
+                  <span className="text-orange-500 font-bold text-sm mt-1 block font-sans">
+                    PAN - INDIA
+                  </span>
+                </div>
+              </div>
+
               <div className="pt-6 border-t border-slate-100 space-y-3">
                 <h4 className="font-display font-bold text-slate-800 text-xs tracking-wider uppercase">Social Media</h4>
                 <div className="flex flex-wrap gap-2">

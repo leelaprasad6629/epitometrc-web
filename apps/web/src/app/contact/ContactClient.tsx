@@ -161,6 +161,15 @@ export default function ContactClient() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
+                      <span className="p-2.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 shrink-0">
+                        <MapPin className="h-4.5 w-4.5" />
+                      </span>
+                      <div>
+                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Office Location</p>
+                        <p className="text-orange-600 text-[11.5px] font-bold">PAN - INDIA</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
                       <span className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0">
                         <Clock className="h-4.5 w-4.5" />
                       </span>
