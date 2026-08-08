@@ -79,9 +79,9 @@ export default function AudioVisualizer({ isListening }: AudioVisualizerProps) {
 
         // Draw multiple layered waves from time domain data
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "rgba(13, 148, 136, 0.7)"; // Muted Teal
+        ctx.strokeStyle = "rgba(249, 115, 22, 0.7)"; // Orange
         ctx.shadowBlur = 10;
-        ctx.shadowColor = "rgba(13, 148, 136, 0.4)";
+        ctx.shadowColor = "rgba(249, 115, 22, 0.4)";
         ctx.beginPath();
 
         const sliceWidth = width / bufferLength;
@@ -107,7 +107,7 @@ export default function AudioVisualizer({ isListening }: AudioVisualizerProps) {
         const freqArray = new Uint8Array(bufferLength);
         analyser.getByteFrequencyData(freqArray);
         ctx.shadowBlur = 0;
-        ctx.fillStyle = "rgba(13, 148, 136, 0.15)"; // Soft Teal glowing bars
+        ctx.fillStyle = "rgba(249, 115, 22, 0.15)"; // Soft Orange glowing bars
         
         const barWidth = (width / bufferLength) * 1.5;
         let barX = 0;
@@ -144,9 +144,9 @@ export default function AudioVisualizer({ isListening }: AudioVisualizerProps) {
         };
 
         // Draw three distinct colorful layers with matching offset speeds
-        drawSineWave(22, "rgba(13, 148, 136, 0.65)", 3, 0);       // Muted Teal Wave
-        drawSineWave(15, "rgba(16, 185, 129, 0.5)", 4.5, Math.PI / 3); // Sage Green Wave
-        drawSineWave(8, "rgba(217, 119, 6, 0.45)", 6, -Math.PI / 4);  // Muted Gold Wave
+        drawSineWave(22, "rgba(249, 115, 22, 0.65)", 3, 0);       // Orange Wave
+        drawSineWave(15, "rgba(217, 119, 6, 0.5)", 4.5, Math.PI / 3); // Gold Wave
+        drawSineWave(8, "rgba(239, 68, 68, 0.45)", 6, -Math.PI / 4);  // Red-orange Wave
       }
 
       animationFrameRef.current = requestAnimationFrame(render);
@@ -171,7 +171,7 @@ export default function AudioVisualizer({ isListening }: AudioVisualizerProps) {
   return (
     <div className="relative w-full h-20 rounded-xl overflow-hidden bg-[#F5F5F4]/85 border border-slate-200/80 p-2 shadow-inner flex items-center justify-center">
       <div className="absolute top-2 left-3 flex items-center gap-1.5 z-10">
-        <span className={`h-1.5 w-1.5 rounded-full ${isListening ? "bg-[#0d9488] animate-ping" : "bg-slate-400"}`} />
+        <span className={`h-1.5 w-1.5 rounded-full ${isListening ? "bg-[#ea580c] animate-ping" : "bg-slate-400"}`} />
         <span className="text-[8.5px] font-black text-slate-500 uppercase tracking-wider">
           {isListening ? "Analyzing Speech Frequencies" : "Microphone Idle"}
         </span>

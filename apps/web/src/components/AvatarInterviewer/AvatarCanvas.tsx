@@ -15,15 +15,15 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
   const getHaloColor = () => {
     switch (stateName) {
       case "Speaking":
-        return "rgba(13, 148, 136, 0.4)"; // Muted Teal
+        return "rgba(249, 115, 22, 0.4)"; // Orange
       case "Listening":
-        return "rgba(16, 185, 129, 0.4)"; // Soft Sage
+        return "rgba(217, 119, 6, 0.4)"; // Gold/Amber
       case "Recording":
         return "rgba(239, 68, 68, 0.4)"; // Red
       case "Evaluating":
-        return "rgba(217, 119, 6, 0.4)"; // Muted Gold/Amber
+        return "rgba(99, 102, 241, 0.4)"; // Indigo
       case "Preparing":
-        return "rgba(20, 184, 166, 0.4)"; // Mint
+        return "rgba(16, 185, 129, 0.4)"; // Emerald
       default:
         return "rgba(148, 163, 184, 0.2)"; // Slate
     }
@@ -82,8 +82,8 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
           </linearGradient>
 
           <linearGradient id="tie-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#d97706" />
-            <stop offset="100%" stopColor="#b45309" />
+            <stop offset="0%" stopColor="#ea580c" />
+            <stop offset="100%" stopColor="#c2410c" />
           </linearGradient>
 
           <filter id="soft-shadow" x="-10%" y="-10%" width="120%" height="120%">
@@ -204,7 +204,7 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
             {/* Eyelid Scale Container (Blinks by shrinking vertically) */}
             <g transform={`scale(1, ${animations.eyelidScaleY})`}>
               {/* Colored Iris */}
-              <circle cx={animations.pupilX} cy={animations.pupilY} r="1.4" fill="#0d9488" />
+              <circle cx={animations.pupilX} cy={animations.pupilY} r="1.4" fill="#ea580c" />
               {/* Pupil */}
               <circle cx={animations.pupilX} cy={animations.pupilY} r="0.85" fill="#0f172a" />
               {/* Glare/Highlight */}
@@ -221,7 +221,7 @@ export default function AvatarCanvas({ isSpeaking, stateName = "Idle" }: AvatarC
             {/* Eyelid Scale Container */}
             <g transform={`scale(1, ${animations.eyelidScaleY})`}>
               {/* Colored Iris */}
-              <circle cx={animations.pupilX} cy={animations.pupilY} r="1.4" fill="#0d9488" />
+              <circle cx={animations.pupilX} cy={animations.pupilY} r="1.4" fill="#ea580c" />
               {/* Pupil */}
               <circle cx={animations.pupilX} cy={animations.pupilY} r="0.85" fill="#0f172a" />
               {/* Glare/Highlight */}

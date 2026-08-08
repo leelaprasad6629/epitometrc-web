@@ -69,8 +69,8 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.random() * Math.PI * 2;
       
-      let color = "rgba(13, 148, 136, 0.45)"; // Muted Teal
-      if (i % 3 === 1) color = "rgba(20, 184, 166, 0.45)"; // Soft Sage
+      let color = "rgba(249, 115, 22, 0.45)"; // Orange
+      if (i % 3 === 1) color = "rgba(217, 119, 6, 0.45)"; // Gold
       else if (i % 3 === 2) color = "rgba(161, 161, 170, 0.35)"; // Soft Slate
 
       points.push({
@@ -87,7 +87,7 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
       
-      const color = i % 2 === 0 ? "rgba(217, 119, 6, 0.55)" : "rgba(180, 83, 9, 0.55)"; // Muted Gold / Warm Amber
+      const color = i % 2 === 0 ? "rgba(249, 115, 22, 0.55)" : "rgba(239, 68, 68, 0.55)"; // Orange & Red-orange
 
       points.push({
         type: "sphere",
@@ -229,8 +229,8 @@ export default function Hero({ persona, setPersona }: HeroProps) {
            if (dist < connectionDistance) {
             const alpha = (1 - dist / connectionDistance) * 0.15;
             ctx.strokeStyle = p1.type === "torus" 
-              ? `rgba(13, 148, 136, ${alpha})` // Muted Teal
-              : `rgba(217, 119, 6, ${alpha})`; // Muted Gold/Amber
+              ? `rgba(249, 115, 22, ${alpha})` // Orange
+              : `rgba(239, 68, 68, ${alpha})`; // Red-orange
             ctx.beginPath();
             ctx.moveTo(screenP1.x, screenP1.y);
             ctx.lineTo(screenP2.x, screenP2.y);
@@ -240,7 +240,7 @@ export default function Hero({ persona, setPersona }: HeroProps) {
       }
 
       // Draw Traveling Data Pulses
-      ctx.fillStyle = "rgba(217, 119, 6, 0.8)";
+      ctx.fillStyle = "rgba(249, 115, 22, 0.8)";
       for (let i = 0; i < points.length; i += 28) {
         const p = points[i];
         const screenP = screenCoords[i];
