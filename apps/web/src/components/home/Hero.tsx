@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, ShieldCheck, Star, GraduationCap } from "lucide-react";
@@ -12,284 +11,6 @@ interface HeroProps {
 }
 
 export default function Hero({ persona, setPersona }: HeroProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0, active: false });
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let animationFrameId: number;
-    let width = (canvas.width = canvas.offsetWidth);
-    let height = (canvas.height = canvas.offsetHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = canvas.offsetWidth;
-      height = canvas.height = canvas.offsetHeight;
-    };
-    window.addEventListener("resize", handleResize);
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseRef.current.targetX = e.clientX - rect.left;
-      mouseRef.current.targetY = e.clientY - rect.top;
-      mouseRef.current.active = true;
-    };
-
-    const handleMouseLeave = () => {
-      mouseRef.current.active = false;
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("mouseleave", handleMouseLeave);
-
-    // Geometry parameters
-    const R_torus = 160;  // Torus Major radius
-    const r_torus = 55;   // Torus Minor radius
-    const R_sphere = 75;  // Inner sphere radius
-
-    // Create 3D points
-    const points: {
-      type: "torus" | "sphere" | "star";
-      theta: number;
-      phi: number;
-      color: string;
-      sizeOffset: number;
-      // Stars background coordinates
-      starX?: number;
-      starY?: number;
-      starZ?: number;
-    }[] = [];
-
-    // 1. Torus points (Outer Network) - 1200 points
-    for (let i = 0; i < 1200; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI * 2;
-      
-      let color = "rgba(59, 130, 246, 0.45)"; // Electric Blue
-      if (i % 3 === 1) color = "rgba(99, 102, 241, 0.45)"; // Indigo
-      else if (i % 3 === 2) color = "rgba(139, 92, 246, 0.45)"; // Purple
-
-      points.push({
-        type: "torus",
-        theta,
-        phi,
-        color,
-        sizeOffset: Math.random() * Math.PI * 2,
-      });
-    }
-
-    // 2. Inner Sphere points (AI Core) - 500 points
-    for (let i = 0; i < 500; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(Math.random() * 2 - 1);
-      
-      const color = i % 2 === 0 ? "rgba(249, 115, 22, 0.55)" : "rgba(239, 68, 68, 0.55)"; // Orange & Red-orange
-
-      points.push({
-        type: "sphere",
-        theta,
-        phi,
-        color,
-        sizeOffset: Math.random() * Math.PI * 2,
-      });
-    }
-
-    // 3. Constellation Background Stars - 200 points
-    for (let i = 0; i < 200; i++) {
-      points.push({
-        type: "star",
-        theta: 0,
-        phi: 0,
-        starX: (Math.random() - 0.5) * width * 1.5,
-        starY: (Math.random() - 0.5) * height * 1.5,
-        starZ: (Math.random() - 0.5) * 400,
-        color: "rgba(148, 163, 184, 0.2)",
-        sizeOffset: Math.random() * Math.PI * 2,
-      });
-    }
-
-    let angleX = 0;
-    let angleY = 0;
-    let time = 0;
-
-    const render = () => {
-      time += 0.015;
-      ctx.clearRect(0, 0, width, height);
-
-      const mouse = mouseRef.current;
-      mouse.x += (mouse.targetX - mouse.x) * 0.15;
-      mouse.y += (mouse.targetY - mouse.y) * 0.15;
-
-      angleX += 0.005;
-      angleY += 0.006;
-
-      const innerAngleX = -angleX * 0.7;
-      const innerAngleY = angleY * 1.2;
-
-      // Gentle breathing idle animations
-      const breathingFactor = 1 + 0.04 * Math.sin(time * 0.8);
-      const currentR_torus = R_torus * breathingFactor;
-      const currentR_sphere = R_sphere * (1 + 0.02 * Math.cos(time * 0.6));
-
-      // Draw grid
-      ctx.strokeStyle = "rgba(15, 23, 42, 0.012)";
-      ctx.lineWidth = 1;
-      const gridSize = 60;
-      for (let x = 0; x < width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-      }
-      for (let y = 0; y < height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-      }
-
-      // Store projected coordinates for drawing paths
-      const screenCoords: { x: number; y: number; scale: number }[] = [];
-
-      points.forEach((p, idx) => {
-        let rx = 0;
-        let ry = 0;
-        let rz = 0;
-
-        if (p.type === "torus") {
-          const x3d = (currentR_torus + r_torus * Math.cos(p.theta)) * Math.cos(p.phi);
-          const y3d = (currentR_torus + r_torus * Math.cos(p.theta)) * Math.sin(p.phi);
-          const z3d = r_torus * Math.sin(p.theta);
-
-          const y1 = y3d * Math.cos(angleX) - z3d * Math.sin(angleX);
-          const z1 = y3d * Math.sin(angleX) + z3d * Math.cos(angleX);
-          rx = x3d * Math.cos(angleY) - z1 * Math.sin(angleY);
-          rz = x3d * Math.sin(angleY) + z1 * Math.cos(angleY);
-          ry = y1;
-        } else if (p.type === "sphere") {
-          const x3d = currentR_sphere * Math.sin(p.phi) * Math.cos(p.theta);
-          const y3d = currentR_sphere * Math.sin(p.phi) * Math.sin(p.theta);
-          const z3d = currentR_sphere * Math.cos(p.phi);
-
-          const y1 = y3d * Math.cos(innerAngleX) - z3d * Math.sin(innerAngleX);
-          const z1 = y3d * Math.sin(innerAngleX) + z3d * Math.cos(innerAngleX);
-          rx = x3d * Math.cos(innerAngleY) - z1 * Math.sin(innerAngleY);
-          rz = x3d * Math.sin(innerAngleY) + z1 * Math.cos(innerAngleY);
-          ry = y1;
-        } else {
-          rx = p.starX || 0;
-          ry = p.starY || 0;
-          rz = p.starZ || 0;
-        }
-
-        const perspective = 500;
-        const scale = perspective / (perspective + rz);
-        let projX = width / 2 + rx * scale;
-        let projY = height / 2 - 35 + ry * scale;
-
-        // Mouse gravity pull warp effect
-        if (mouse.active) {
-          const dx = mouse.x - projX;
-          const dy = mouse.y - projY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 220) {
-            const pull = (1 - dist / 220) * 15 * scale;
-            projX += (dx / dist) * pull;
-            projY += (dy / dist) * pull;
-          }
-        }
-
-        screenCoords[idx] = { x: projX, y: projY, scale };
-      });
-
-      // Draw Connections (Neural Pathways)
-      const connectionDistance = 45;
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < points.length; i += 4) {
-        const p1 = points[i];
-        if (p1.type === "star") continue;
-        const screenP1 = screenCoords[i];
-        if (!screenP1) continue;
-
-        for (let j = i + 1; j < i + 15; j++) {
-          if (j >= points.length) break;
-          const p2 = points[j];
-          if (p2.type !== p1.type) continue;
-          const screenP2 = screenCoords[j];
-          if (!screenP2) continue;
-
-          const dx = screenP1.x - screenP2.x;
-          const dy = screenP1.y - screenP2.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < connectionDistance) {
-            const alpha = (1 - dist / connectionDistance) * 0.15;
-            ctx.strokeStyle = p1.type === "torus" 
-              ? `rgba(99, 102, 241, ${alpha})` // Indigo
-              : `rgba(249, 115, 22, ${alpha})`; // Orange
-            ctx.beginPath();
-            ctx.moveTo(screenP1.x, screenP1.y);
-            ctx.lineTo(screenP2.x, screenP2.y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // Draw Traveling Data Pulses
-      ctx.fillStyle = "rgba(249, 115, 22, 0.8)";
-      for (let i = 0; i < points.length; i += 28) {
-        const p = points[i];
-        const screenP = screenCoords[i];
-        if (!screenP) continue;
-        
-        const pulseOffset = (time * 2 + p.sizeOffset) % 1;
-        const nextIdx = (i + 5) % points.length;
-        const screenNext = screenCoords[nextIdx];
-        if (!screenNext) continue;
-
-        const pulseX = screenP.x + (screenNext.x - screenP.x) * pulseOffset;
-        const pulseY = screenP.y + (screenNext.y - screenP.y) * pulseOffset;
-
-        ctx.beginPath();
-        ctx.arc(pulseX, pulseY, 2 * screenP.scale, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Draw Nodes
-      points.forEach((p, idx) => {
-        const screenP = screenCoords[idx];
-        if (!screenP) return;
-
-        if (screenP.x >= 0 && screenP.x <= width && screenP.y >= 0 && screenP.y <= height) {
-          const pulse = 1.0 + 0.4 * Math.sin(time + p.sizeOffset);
-          const baseSize = p.type === "torus" ? 1.6 : p.type === "sphere" ? 1.3 : 0.8;
-          const size = baseSize * screenP.scale * pulse;
-
-          ctx.beginPath();
-          ctx.arc(screenP.x, screenP.y, size, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.fill();
-        }
-      });
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("mouseleave", handleMouseLeave);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-
   const categories = [
     { 
       name: "PEOPLE AND ORGANISATION CONSULTING", 
@@ -327,39 +48,12 @@ export default function Hero({ persona, setPersona }: HeroProps) {
 
   return (
     <section className="relative min-h-[90vh] lg:min-h-screen w-full bg-[#f8fafd] flex flex-col justify-between overflow-hidden font-sans border-b border-slate-100">
-      {/* 3D Double Geometry Canvas HUD */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-auto cursor-crosshair opacity-95 z-0"
-      />
-
-      {/* Modern backdrop colors */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-100/40 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-orange-100/30 rounded-full blur-[120px] pointer-events-none z-0" />
       
-      {/* HUD circular radar lines for tech appeal */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[215px] w-[340px] h-[340px] border border-slate-200/20 rounded-full pointer-events-none z-0 border-dashed" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[215px] w-[460px] h-[460px] border border-slate-200/10 rounded-full pointer-events-none z-0" />
-
       {/* Top Left Peach Soft Blurred Gradient Background Overlay */}
-      <div className="absolute top-0 left-0 w-full sm:w-[60%] h-full sm:h-[60%] bg-[radial-gradient(ellipse_at_top_left,rgba(255,176,122,0.18),rgba(255,142,91,0.15),rgba(255,168,199,0.1),rgba(255,214,231,0.06),rgba(255,242,245,0.02),transparent_70%)] pointer-events-none z-0 filter blur-xs" />
+      <div className="absolute top-0 left-0 w-full sm:w-[65%] h-full sm:h-[65%] bg-[radial-gradient(ellipse_at_top_left,rgba(255,176,122,0.22),rgba(255,142,91,0.18),rgba(255,168,199,0.12),rgba(255,214,231,0.08),rgba(255,242,245,0.03),transparent_75%)] pointer-events-none z-0 filter blur-xs" />
       
       {/* Top Right / Behind Girl Gradient Background Overlay */}
-      <div className="absolute top-0 right-0 w-full sm:w-[65%] h-full sm:h-[65%] bg-[radial-gradient(circle_at_top_right,rgba(255,154,0,0.13),rgba(255,122,122,0.13),rgba(255,110,199,0.11),rgba(181,110,255,0.09),rgba(233,213,255,0.05),transparent_70%)] pointer-events-none z-0" />
-
-      {/* Edge abstract dotted grids */}
-      <div className="absolute left-6 top-1/4 w-24 h-48 bg-[radial-gradient(#ff8e5b_1.5px,transparent_1.5px)] [background-size:14px_14px] opacity-[0.12] pointer-events-none z-0 hidden lg:block" />
-      <div className="absolute right-6 top-1/3 w-24 h-48 bg-[radial-gradient(#ff6ec7_1.5px,transparent_1.5px)] [background-size:14px_14px] opacity-[0.12] pointer-events-none z-0 hidden lg:block" />
-
-      {/* Abstract Curved Shapes */}
-      <svg className="absolute left-0 bottom-1/4 w-[30%] h-[30%] opacity-[0.08] pointer-events-none z-0 text-orange-200" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M-10,100 C30,80 40,40 10,0" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 3" />
-        <path d="M-5,100 C35,85 45,45 15,0" fill="none" stroke="currentColor" strokeWidth="0.25" />
-      </svg>
-      <svg className="absolute right-0 top-1/4 w-[25%] h-[35%] opacity-[0.08] pointer-events-none z-0 text-indigo-200" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M110,0 C70,20 60,60 90,100" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 3" />
-        <path d="M105,0 C65,25 55,65 85,100" fill="none" stroke="currentColor" strokeWidth="0.25" />
-      </svg>
+      <div className="absolute top-0 right-0 w-full sm:w-[70%] h-full sm:h-[70%] bg-[radial-gradient(circle_at_top_right,rgba(255,154,0,0.15),rgba(255,122,122,0.15),rgba(255,110,199,0.12),rgba(181,110,255,0.10),rgba(233,213,255,0.06),transparent_75%)] pointer-events-none z-0" />
 
       {/* Main Content Layout Wrapper */}
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 relative z-10 pt-28 md:pt-32 lg:pt-20 pb-8">
@@ -476,27 +170,28 @@ export default function Hero({ persona, setPersona }: HeroProps) {
           </motion.div>
         </div>
 
-        {/* Right Side Image Column */}
-        <div className="hidden md:block md:w-[44%] lg:w-[46%] xl:w-[48%] relative flex-shrink-0 z-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,122,122,0.1),rgba(181,110,255,0.05),transparent_65%)] pointer-events-none scale-125 z-0" />
+        {/* Right Side Image Column (Circular Mask Graphic Layout) */}
+        <div className="hidden md:flex md:w-[46%] xl:w-[48%] relative flex-shrink-0 z-10 items-center justify-center">
           
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, x: 20 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative z-10 w-full flex justify-center items-center"
-          >
-            <div className="relative w-full max-w-[420px] aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 bg-white/40 backdrop-blur-xs">
-              <Image
-                src="/images/professional_woman_laptop.jpg"
-                alt="Young professional working on a laptop"
-                fill
-                className="object-cover object-center"
-                sizes="(max-w-1024px) 100vw, 420px"
-                priority
-              />
-            </div>
-          </motion.div>
+          {/* Concentric subtle rings around the gradient for depth */}
+          <div className="absolute w-[114%] h-[114%] border border-orange-300/20 rounded-full pointer-events-none animate-[spin_40s_linear_infinite]" />
+          <div className="absolute w-[126%] h-[126%] border border-purple-300/15 rounded-full pointer-events-none animate-[spin_55s_linear_infinite_reverse]" />
+          <div className="absolute w-[138%] h-[138%] border border-pink-300/10 rounded-full pointer-events-none border-dashed" />
+
+          {/* Large circular background gradient matching references */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#FF9A00] via-[#FF7A7A] via-[#FF6EC7] via-[#B56EFF] to-[#E9D5FF] rounded-full shadow-lg opacity-[0.95] pointer-events-none aspect-square" />
+          
+          {/* The Girl image inside the circular mask */}
+          <div className="relative w-[96%] h-[96%] rounded-full overflow-hidden border-[6px] border-white bg-white/20 z-10 aspect-square shadow-xl">
+            <Image
+              src="/images/professional_woman_laptop.jpg"
+              alt="Young professional working on a laptop"
+              fill
+              className="object-cover object-center scale-[1.02] -translate-y-1"
+              sizes="(max-w-1024px) 100vw, 450px"
+              priority
+            />
+          </div>
         </div>
       </div>
 

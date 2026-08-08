@@ -95,16 +95,12 @@ function LoginForm() {
         throw new Error(data.error || "Login failed");
       }
 
-<<<<<<< HEAD
       if (data.requireMFA) {
         setMfaToken(data.mfaToken);
         setMfaStep(true);
         setLoading(false);
         return;
       }
-
-=======
->>>>>>> 40397b2 (feat(auth): standardize demo credentials across website and mobile app (Admin, Employee, Intern, Student))
       const role = data.user.role;
       if (role === "Student") {
         router.push("/student/dashboard");
