@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import ATSResumeTemplate from "@/components/resume/ATSResumeTemplate";
 import AIEnhancementModal, { AISuggestionItem } from "@/components/resume/AIEnhancementModal";
 import { downloadResumePDF, downloadResumeDOCX } from "@/lib/resumeExport";
+import { calculateATSScoreDetails, ATSScoreResult } from "@/lib/atsScorer";
 
 type TabId = "choice" | "dashboard" | "studio" | "versions" | "interview";
 
@@ -42,6 +43,7 @@ export default function AIResumeStudioPage() {
   const [zoomScale, setZoomScale] = useState(0.9);
   const [editorSection, setEditorSection] = useState<string>("personal");
   const [showEnhancementModal, setShowEnhancementModal] = useState(false);
+  const [showAtsAuditModal, setShowAtsAuditModal] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState("");
 
   // Multiple Resumes Management (Stored in local state / database profile)
@@ -139,31 +141,14 @@ export default function AIResumeStudioPage() {
     resumeVersions: []
   }) as ParsedResume;
 
-  // Compute ATS Health Scores (0-100)
-  const calculateATSScore = () => {
-    let score = 40; // Base baseline
-    if (activeResumeData.fullName && activeResumeData.email && activeResumeData.phone) score += 15;
-    if (activeResumeData.bio && activeResumeData.bio.length > 50) score += 15;
-    if (activeResumeData.technicalSkills && activeResumeData.technicalSkills.length >= 5) score += 10;
-    if (activeResumeData.experience && activeResumeData.experience.length > 0) score += 10;
-    if (activeResumeData.education && activeResumeData.education.length > 0) score += 10;
-    return Math.min(100, score);
-  };
-
-  const atsScoreVal = calculateATSScore();
-  const formattingScoreVal = 95; // Fixed Master Template guarantees high formatting score
-  const grammarScoreVal = 90;
-  const readabilityScoreVal = 92;
-  const keywordMatchScoreVal = Math.min(100, Math.round(atsScoreVal * 0.95));
-
-  const getStrengthBadge = (score: number) => {
-    if (score >= 90) return { label: "Excellent", color: "bg-emerald-500 text-white" };
-    if (score >= 75) return { label: "Strong", color: "bg-indigo-500 text-white" };
-    if (score >= 60) return { label: "Good", color: "bg-amber-500 text-white" };
-    return { label: "Needs Work", color: "bg-rose-500 text-white" };
-  };
-
-  const strengthBadge = getStrengthBadge(atsScoreVal);
+  // Compute Weighted ATS Health Scores (0-100) dynamically using atsScorer
+  const atsDetails: ATSScoreResult = calculateATSScoreDetails(activeResumeData);
+  const atsScoreVal = atsDetails.totalScore;
+  const formattingScoreVal = atsDetails.breakdown.qualityAndFormatting.score * 10;
+  const grammarScoreVal = Math.min(100, Math.round(atsScoreVal * 0.9 + 10));
+  const readabilityScoreVal = Math.min(100, atsDetails.breakdown.summary.score * 10);
+  const keywordMatchScoreVal = Math.min(100, Math.round(atsDetails.breakdown.technicalSkills.score * 6.66));
+  const strengthBadge = atsDetails.badge;
 
   // File Upload Handler (PDF, DOC, DOCX up to 25MB)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -498,15 +483,23 @@ export default function AIResumeStudioPage() {
                 <span className="text-[11px] text-emerald-600 font-medium">All using ATS Master Template</span>
               </div>
 
-              <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <span className="text-xs font-semibold text-slate-500 uppercase">Best ATS Score</span>
+              <div 
+                onClick={() => setShowAtsAuditModal(true)}
+                className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-indigo-200 dark:border-indigo-900/50 shadow-sm cursor-pointer hover:border-indigo-500 hover:shadow-md transition-all group relative overflow-hidden"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500 uppercase">Weighted ATS Score</span>
+                  <Info className="w-3.5 h-3.5 text-indigo-500 group-hover:scale-110 transition-transform" />
+                </div>
                 <div className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1 flex items-center gap-2">
                   {atsScoreVal}/100
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${strengthBadge.color}`}>
                     {strengthBadge.label}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-500">Calculated in real-time</span>
+                <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold group-hover:underline mt-1 block">
+                  Click to View Full Section Audit →
+                </span>
               </div>
 
               <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -1083,9 +1076,15 @@ export default function AIResumeStudioPage() {
                     <FileCheck className="w-4 h-4 text-emerald-500" />
                     Live ATS Master Preview
                   </span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${strengthBadge.color}`}>
-                    ATS Score: {atsScoreVal}/100
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAtsAuditModal(true)}
+                    className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold transition-transform hover:scale-105 shadow-sm flex items-center gap-1 ${strengthBadge.color}`}
+                    title="Click for full ATS Audit Breakdown"
+                  >
+                    <span>ATS Score: {atsScoreVal}/100</span>
+                    <Info className="w-3 h-3 opacity-90" />
+                  </button>
                 </div>
 
                 {/* Zoom & Export Controls */}
@@ -1197,6 +1196,180 @@ export default function AIResumeStudioPage() {
         onAcceptSuggestion={handleAcceptAISuggestion}
         onRejectSuggestion={handleRejectAISuggestion}
       />
+
+      {/* ATS HEALTH & SCORE AUDIT MODAL */}
+      <AnimatePresence>
+        {showAtsAuditModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
+            >
+              {/* Modal Header */}
+              <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/60">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                      ATS Score Audit & Breakdown Report
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      Evaluated dynamically based on content depth, keywords, metrics, and ATS rules
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAtsAuditModal(false)}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Scrollable Content */}
+              <div className="p-6 overflow-y-auto space-y-6">
+
+                {/* Score Banner */}
+                <div className="p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative flex items-center justify-center w-20 h-20 bg-white/10 rounded-full border-4 border-indigo-500">
+                      <span className="text-2xl font-black font-mono">{atsScoreVal}</span>
+                      <span className="text-[10px] absolute bottom-2 font-bold text-indigo-300">/100</span>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${strengthBadge.color}`}>
+                          {strengthBadge.label}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1.5 max-w-sm">
+                        {strengthBadge.description}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowAtsAuditModal(false);
+                      setActiveTab("studio");
+                    }}
+                    className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold rounded-xl shadow transition-all shrink-0"
+                  >
+                    Edit Resume Content →
+                  </button>
+                </div>
+
+                {/* Missing Sections Warning */}
+                {atsDetails.missingSections.length > 0 && (
+                  <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-2xl flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-rose-900 dark:text-rose-200">
+                        Incomplete / Missing Resume Sections
+                      </h4>
+                      <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">
+                        The following required sections are empty or incomplete: <strong>{atsDetails.missingSections.join(", ")}</strong>. Adding content to these sections will significantly boost your score.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Section Breakdown Grid */}
+                <div>
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                    Section Score Breakdown (100 Points Total)
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {Object.values(atsDetails.breakdown).map((b) => (
+                      <div key={b.category} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-800 dark:text-slate-200">{b.category}</span>
+                          <span className="font-mono font-extrabold text-indigo-600 dark:text-indigo-400">
+                            {b.score} / {b.maxScore} pts
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-500 ${
+                              b.score / b.maxScore >= 0.8
+                                ? "bg-emerald-500"
+                                : b.score / b.maxScore >= 0.5
+                                ? "bg-amber-500"
+                                : "bg-rose-500"
+                            }`}
+                            style={{ width: `${(b.score / b.maxScore) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-tight">
+                          {b.details}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Deductions Log */}
+                {atsDetails.deductions.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <ShieldAlert className="w-4 h-4 text-amber-500" />
+                      Point Deductions &amp; Reasons ({atsDetails.deductions.length} items)
+                    </h3>
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {atsDetails.deductions.map((d) => (
+                        <div key={d.id} className="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 rounded-xl flex items-start justify-between gap-3 text-xs">
+                          <div>
+                            <span className="font-bold text-amber-900 dark:text-amber-200">{d.category}: </span>
+                            <span className="text-slate-700 dark:text-slate-300">{d.reason}</span>
+                            <p className="text-[11px] text-amber-800 dark:text-amber-400 font-medium mt-1">
+                              💡 <strong>Fix:</strong> {d.recommendation}
+                            </p>
+                          </div>
+                          <span className="font-mono font-bold text-rose-600 dark:text-rose-400 shrink-0">
+                            -{d.pointsDeducted} pts
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Suggestions Checklist */}
+                {atsDetails.suggestions.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <Lightbulb className="w-4 h-4 text-indigo-500" />
+                      Recommended Next Steps
+                    </h3>
+                    <div className="space-y-2">
+                      {atsDetails.suggestions.map((sug, idx) => (
+                        <div key={idx} className="p-2.5 bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 rounded-xl flex items-center gap-2.5 text-xs text-indigo-950 dark:text-indigo-200 font-medium">
+                          <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                          <span>{sug}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-end">
+                <button
+                  onClick={() => setShowAtsAuditModal(false)}
+                  className="px-5 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl shadow hover:opacity-90 transition-all"
+                >
+                  Close Audit Report
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

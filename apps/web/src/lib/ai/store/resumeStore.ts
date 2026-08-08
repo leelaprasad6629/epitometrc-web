@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { calculateATSScoreDetails } from "@/lib/atsScorer";
 
 export interface EducationEntry {
   degree: string;
@@ -555,12 +556,17 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       const values = Object.values(metrics);
       const overall = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
 
+      const atsDetails = calculateATSScoreDetails(mergedDetails);
+
       mergedDetails.completenessMetrics = metrics;
       mergedDetails.overallCompleteness = overall;
 
       syncProfileToClientStorage(mergedDetails, get().confidenceScores);
 
-      return { parsedResumeDetails: mergedDetails };
+      return { 
+        parsedResumeDetails: mergedDetails,
+        atsScore: atsDetails.totalScore
+      };
     }),
 
   setSelectedJobRole: (role) => set({ selectedJobRole: role }),
