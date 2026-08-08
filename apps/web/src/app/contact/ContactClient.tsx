@@ -139,70 +139,53 @@ export default function ContactClient() {
                 </div>
 
                 {/* Rich Information Panel */}
-                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-md space-y-5 text-xs font-semibold text-slate-600">
-                  <h4 className="font-display text-sm font-bold text-slate-900 border-b border-slate-50 pb-2">Office Information</h4>
+                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-md space-y-5 text-xs font-semibold">
+                  <h4 className="font-display text-sm font-bold text-slate-900 border-b border-slate-50 pb-2">Get In Touch</h4>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <span className="p-2.5 rounded-xl bg-violet-50 text-violet-600 border border-violet-100 shrink-0">
+                      <span className="text-orange-500 shrink-0">
                         <Mail className="h-4.5 w-4.5" />
                       </span>
-                      <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Email Address</p>
-                        <a href="mailto:careers@epitometrc.com" className="text-slate-800 hover:text-orange-500 text-[11.5px] font-bold transition-colors">careers@epitometrc.com</a>
-                      </div>
+                      <a href="mailto:careers@epitometrc.com" className="text-orange-500 hover:text-orange-600 text-[11.5px] font-bold transition-colors">careers@epitometrc.com</a>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="p-2.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 shrink-0">
+                      <span className="text-orange-500 shrink-0">
                         <Phone className="h-4.5 w-4.5" />
                       </span>
-                      <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Contact Number</p>
-                        <p className="text-slate-800 text-[11.5px] font-bold">+91-626-596-6705</p>
-                      </div>
+                      <a href="tel:+916265966705" className="text-orange-500 hover:text-orange-600 text-[11.5px] font-bold transition-colors">+91-626-596-6705</a>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="p-2.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 shrink-0">
+                      <span className="text-orange-500 shrink-0">
                         <MapPin className="h-4.5 w-4.5" />
                       </span>
-                      <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Office Location</p>
-                        <p className="text-orange-600 text-[11.5px] font-bold">PAN - INDIA</p>
-                      </div>
+                      <span className="text-orange-500 text-[11.5px] font-bold">PAN - INDIA</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0">
-                        <Clock className="h-4.5 w-4.5" />
-                      </span>
-                      <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Response Speed</p>
-                        <p className="text-slate-800 text-[11.5px] font-bold">Average response within 24 hours</p>
-                      </div>
-                    </div>
-                    <div className="pt-4 border-t border-slate-100 space-y-2">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Connect With Us</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {[
-                          { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn", bgColor: "bg-[#0077B5]" },
-                          { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook", bgColor: "bg-[#1877F2]" },
-                          { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram", bgColor: "bg-[#E1306C]" },
-                          { Icon: FaTelegram, href: "https://t.me/epitometrc", label: "Telegram", bgColor: "bg-[#229ED9]" },
-                          { Icon: FaYoutube, href: "https://youtube.com/@epitometrc", label: "YouTube", bgColor: "bg-[#FF0000]" },
-                          { Icon: FaWhatsapp, href: "https://wa.me/916265966705", label: "WhatsApp", bgColor: "bg-[#25D366]" },
-                          { Icon: FaThreads, href: "https://threads.net/@epitometrc007", label: "Threads", bgColor: "bg-[#000000]" },
-                          { Icon: FaXTwitter, href: "https://x.com/epitometrc", label: "X", bgColor: "bg-[#000000]" }
-                        ].map(({ Icon, href, label, bgColor }) => (
-                          <a
-                            key={label}
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={label}
-                            className={`h-9 w-9 flex items-center justify-center text-white transition-all hover:-translate-y-1 hover:shadow-lg ${bgColor}`}
-                          >
-                            <Icon className="h-4 w-4" />
-                          </a>
-                        ))}
-                      </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 space-y-2">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Connect With Us</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn", bgColor: "bg-[#0077B5]" },
+                        { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook", bgColor: "bg-[#1877F2]" },
+                        { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram", bgColor: "bg-[#E1306C]" },
+                        { Icon: FaTelegram, href: "https://t.me/epitometrc", label: "Telegram", bgColor: "bg-[#229ED9]" },
+                        { Icon: FaYoutube, href: "https://youtube.com/@epitometrc", label: "YouTube", bgColor: "bg-[#FF0000]" },
+                        { Icon: FaWhatsapp, href: "https://wa.me/916265966705", label: "WhatsApp", bgColor: "bg-[#25D366]" },
+                        { Icon: FaThreads, href: "https://threads.net/@epitometrc007", label: "Threads", bgColor: "bg-[#000000]" },
+                        { Icon: FaXTwitter, href: "https://x.com/epitometrc", label: "X", bgColor: "bg-[#000000]" }
+                      ].map(({ Icon, href, label, bgColor }) => (
+                        <a
+                          key={label}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={label}
+                          className={`h-9 w-9 flex items-center justify-center text-white transition-all hover:-translate-y-1 hover:shadow-lg ${bgColor}`}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </a>
+                      ))}
                     </div>
                   </div>
                 </div>
