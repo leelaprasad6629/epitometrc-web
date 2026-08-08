@@ -1,10 +1,56 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { ShieldCheck, CheckCircle2, Building2, GraduationCap, ArrowRight } from "lucide-react";
 import Container from "@/components/common/Container";
 import Link from "next/link";
 
+interface TrustStat {
+  label: string;
+  value: string;
+  desc: string;
+  iconType: string;
+}
+
 export default function Testimonials() {
+  const [stats, setStats] = useState<TrustStat[]>([
+    { label: "Careers Upskilled", value: "7,000+", desc: "Since inception, we have facilitated virtual internships, training bootcamps, and core skill assessments for over 7,000 graduates across India.", iconType: "education" },
+    { label: "Corporate Partners", value: "340+", desc: "Servicing global enterprises and tech startups. We handle contract staffing, payroll models, executive search, and technology consulting plans.", iconType: "corporate" },
+    { label: "ISO 9001:2015 Quality", value: "Process Certified", desc: "Operating out of Indore, MP (Swadesh Bhawan LIG complex). ISO quality certified processes governing our training systems and recruitment modules.", iconType: "quality" }
+  ]);
+
+  useEffect(() => {
+    fetch("/api/company/info")
+      .then(res => res.json())
+      .then(payload => {
+        if (payload.success && payload.collaborations) {
+          // Map collaborations/stats list from API response
+          const newStats: TrustStat[] = [
+            {
+              label: "Careers Upskilled",
+              value: payload.stats?.trainingsInternships ? `${payload.stats.trainingsInternships}+` : "7,000+",
+              desc: "Since inception, we have facilitated virtual internships, training bootcamps, and core skill assessments for over 7,000 graduates across India.",
+              iconType: "education"
+            },
+            {
+              label: "Corporate Partners",
+              value: payload.stats?.clients ? `${payload.stats.clients}+` : "340+",
+              desc: "Servicing global enterprises and tech startups. We handle contract staffing, payroll models, executive search, and technology consulting plans.",
+              iconType: "corporate"
+            },
+            {
+              label: "ISO 9001:2015 Quality",
+              value: "Process Certified",
+              desc: `Operating out of Indore, MP (${payload.contact?.address ? "Swadesh Bhawan complex" : "LIG Colony"}). ISO quality certified processes governing our training systems and recruitment modules.`,
+              iconType: "quality"
+            }
+          ];
+          setStats(newStats);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section className="bg-[#faf5f0] py-16 md:py-24 border-y border-[#ede0d4] relative overflow-hidden">
       {/* Background glow effects */}
@@ -26,52 +72,30 @@ export default function Testimonials() {
 
         {/* Dynamic Trust Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          
-          <div className="bg-white border border-[#e8dcd0] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100">
-                <GraduationCap className="h-5 w-5" />
+          {stats.map((stat, idx) => (
+            <div key={idx} className="bg-white border border-[#e8dcd0] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`p-2.5 rounded-xl border ${
+                  stat.iconType === "education" ? "bg-orange-50 text-orange-600 border-orange-100" :
+                  stat.iconType === "corporate" ? "bg-blue-50 text-blue-600 border-blue-100" :
+                  "bg-emerald-50 text-emerald-600 border-emerald-100"
+                }`}>
+                  {stat.iconType === "education" && <GraduationCap className="h-5 w-5" />}
+                  {stat.iconType === "corporate" && <Building2 className="h-5 w-5" />}
+                  {stat.iconType === "quality" && <ShieldCheck className="h-5 w-5" />}
+                </div>
+                <h4 className="font-display font-bold text-[#0b172a] text-sm">
+                  {stat.value} {stat.label}
+                </h4>
               </div>
-              <h4 className="font-display font-bold text-[#0b172a] text-sm">7,000+ Careers Upskilled</h4>
-            </div>
-            <p className="text-slate-500 text-xs leading-relaxed font-sans">
-              Since inception, we have facilitated virtual internships, training bootcamps, and core skill assessments for over 7,000 graduates across India.
-            </p>
-            <div className="mt-4 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full">
-              <CheckCircle2 className="h-3 w-3" /> Track Record Verified
-            </div>
-          </div>
-
-          <div className="bg-white border border-[#e8dcd0] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
-                <Building2 className="h-5 w-5" />
+              <p className="text-slate-500 text-xs leading-relaxed font-sans">
+                {stat.desc}
+              </p>
+              <div className="mt-4 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full">
+                <CheckCircle2 className="h-3 w-3" /> Track Record Verified
               </div>
-              <h4 className="font-display font-bold text-[#0b172a] text-sm">340+ Corporate Partners</h4>
             </div>
-            <p className="text-slate-500 text-xs leading-relaxed font-sans">
-              Servicing global enterprises and tech startups. We handle contract staffing, payroll models, executive search, and technology consulting plans.
-            </p>
-            <div className="mt-4 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full">
-              <CheckCircle2 className="h-3 w-3" /> Active SLA Structures
-            </div>
-          </div>
-
-          <div className="bg-white border border-[#e8dcd0] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <h4 className="font-display font-bold text-[#0b172a] text-sm">ISO 9001:2015 Quality</h4>
-            </div>
-            <p className="text-slate-500 text-xs leading-relaxed font-sans">
-              Operating out of Indore, MP (Swadesh Bhawan LIG complex). ISO quality certified processes governing our training systems and recruitment modules.
-            </p>
-            <div className="mt-4 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full">
-              <CheckCircle2 className="h-3 w-3" /> Process Certified
-            </div>
-          </div>
-
+          ))}
         </div>
 
         {/* Action Call */}

@@ -14,18 +14,25 @@ import {
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  const [stats, setStats] = useState<any>(null);
+  const [companyInfo, setCompanyInfo] = useState<any>(null);
 
   useEffect(() => {
     fetch("/api/company/info")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.stats) {
-          setStats(data.stats);
+        if (data.success) {
+          setCompanyInfo(data);
         }
       })
       .catch(() => {});
   }, []);
+
+  const stats = companyInfo?.stats;
+  const contact = companyInfo?.contact || {
+    phone: "+91-626-596-6705",
+    email: "careers@epitometrc.com",
+    address: "208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore, Madhya Pradesh",
+  };
 
   return (
     <footer className="bg-[#050e1e] pt-20 text-white">
@@ -166,26 +173,24 @@ export default function Footer() {
               <li className="flex items-start space-x-3 text-sm text-slate-400">
                 <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
                 <a 
-                  href="https://maps.google.com/?q=Epitome+Training+%26+Recruitment+Consultants,+208,+Swadesh+Bhawan,+Behind+Press+Complex,+LIG+Colony,+Indore,+Madhya+Pradesh+-+452001" 
+                  href={`https://maps.google.com/?q=${encodeURIComponent(contact.address)}`}
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="font-sans leading-relaxed hover:text-white transition-colors"
                 >
-                  208, Swadesh Bhawan, Behind Press Complex,
-                  <br />
-                  LIG Colony, Indore - 452001, MP, India
+                  {contact.address}
                 </a>
               </li>
               <li className="flex items-center space-x-3 text-sm text-slate-400">
                 <Mail className="h-5 w-5 shrink-0 text-orange-500" />
-                <a href="mailto:careers@epitometrc.com" className="font-sans transition-colors hover:text-white">
-                  careers@epitometrc.com
+                <a href={`mailto:${contact.email}`} className="font-sans transition-colors hover:text-white">
+                  {contact.email}
                 </a>
               </li>
               <li className="flex items-center space-x-3 text-sm text-slate-400">
                 <Phone className="h-5 w-5 shrink-0 text-orange-500" />
-                <a href="tel:+916265966705" className="font-sans transition-colors hover:text-white">
-                  +91-626-596-6705
+                <a href={`tel:${contact.phone.replace(/[^0-9+]/g, "")}`} className="font-sans transition-colors hover:text-white">
+                  {contact.phone}
                 </a>
               </li>
             </ul>
