@@ -86,6 +86,38 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Notify recruitment team
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: payload.id },
+        select: { name: true, email: true }
+      });
+      const job = await prisma.job.findUnique({
+        where: { id: jobId },
+        select: { title: true }
+      });
+
+      if (user && job) {
+        const { sendEmail } = await import("@/lib/email");
+        await sendEmail({
+          to: "careers@epitometrc.com",
+          subject: `[Job Application] New candidate for ${job.title}`,
+          text: `Candidate ${user.name} (${user.email}) has applied for the job: ${job.title}.\n\nPlease review their application on the recruitment dashboard.`,
+          html: `
+            <h3>New Job Application Received</h3>
+            <p><strong>Job Title:</strong> ${job.title}</p>
+            <p><strong>Candidate Name:</strong> ${user.name}</p>
+            <p><strong>Candidate Email:</strong> ${user.email}</p>
+            <p>Please log in to the employee dashboard to review their details.</p>
+            <hr/>
+            <p style="color: #64748b; font-size: 12px;">Epitome Recruitment Portal</p>
+          `
+        });
+      }
+    } catch (notifyErr) {
+      console.warn("Application notification failed:", notifyErr);
+    }
+
     return NextResponse.json({ success: true, application });
   } catch (error: any) {
     console.error("Application error:", error);

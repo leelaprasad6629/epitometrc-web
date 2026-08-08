@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       // 1. Fetch user data (Verified email, contactNumber, status)
       const user = await prisma.user.findUnique({
         where: { id: payload.id },
-        select: { id: true, email: true, status: true, contactNumber: true }
+        select: { id: true, name: true, email: true, status: true, contactNumber: true }
       });
 
       if (!user) {
@@ -150,6 +150,32 @@ export async function POST(req: NextRequest) {
         { planName: planSpecs.name, validUntil: validUntilDate },
         req.headers.get("x-forwarded-for")
       );
+
+      // E. Send Membership Activation Email
+      try {
+        const { sendEmail } = await import("@/lib/email");
+        await sendEmail({
+          to: user.email,
+          subject: `Membership Activated: Welcome to ${planSpecs.name}!`,
+          text: `Hello ${user.name || "Student"},\n\nYour upgrade to ${planSpecs.name} was successful! You now have access to all premium platform features.\n\nBest Regards,\nEpitomeTRC Team`,
+          html: `
+            <h3>EpitomeTRC Premium Membership Activated</h3>
+            <p>Hello ${user.name || "Student"},</p>
+            <p>Your upgrade to <strong>${planSpecs.name}</strong> was successful! You now have access to all premium features of the Epitome career suites.</p>
+            <p><strong>Plan Details:</strong></p>
+            <ul>
+              <li><strong>Plan Name:</strong> ${planSpecs.name}</li>
+              <li><strong>Status:</strong> Active</li>
+              <li><strong>Validity:</strong> ${validUntilDate.toLocaleDateString()}</li>
+            </ul>
+            <p>Go to your Career Suite dashboard to start mock interviews and resume optimization!</p>
+            <hr/>
+            <p style="color: #64748b; font-size: 12px;">Epitome Training & Recruitment Consultants</p>
+          `
+        });
+      } catch (emailErr) {
+        console.warn("Membership activation email failed to dispatch:", emailErr);
+      }
 
       return NextResponse.json({ success: true, membership });
     } catch (dbError) {
