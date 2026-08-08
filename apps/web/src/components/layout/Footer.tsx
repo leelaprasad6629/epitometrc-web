@@ -194,37 +194,37 @@ export default function Footer() {
             </p>
           </div>
           
-          <div className="flex flex-wrap justify-center items-center gap-x-3.5 gap-y-2 text-slate-400 font-semibold text-[11px]">
-            <a href="https://www.linkedin.com/in/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
-              <FaLinkedin className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> LinkedIn
+          <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-slate-400 font-semibold text-xs">
+            <a href="https://www.linkedin.com/in/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-all hover:scale-110" aria-label="LinkedIn">
+              <FaLinkedin className="h-4.5 w-4.5" />
             </a>
             <span>|</span>
-            <a href="https://www.facebook.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
-              <FaFacebook className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> Facebook
+            <a href="https://www.facebook.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-all hover:scale-110" aria-label="Facebook">
+              <FaFacebook className="h-4.5 w-4.5" />
             </a>
             <span>|</span>
-            <a href="https://www.instagram.com/epitometrc007/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
-              <FaInstagram className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> Instagram
+            <a href="https://www.instagram.com/epitometrc007/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-all hover:scale-110" aria-label="Instagram">
+              <FaInstagram className="h-4.5 w-4.5" />
             </a>
             <span>|</span>
-            <a href="https://t.me/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
-              <FaTelegram className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> Telegram
+            <a href="https://t.me/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-all hover:scale-110" aria-label="Telegram">
+              <FaTelegram className="h-4.5 w-4.5" />
             </a>
             <span>|</span>
-            <a href="https://youtube.com/@epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
-              <FaYoutube className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> YouTube
+            <a href="https://youtube.com/@epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-all hover:scale-110" aria-label="YouTube">
+              <FaYoutube className="h-4.5 w-4.5" />
             </a>
             <span>|</span>
-            <a href="https://wa.me/916265966705" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
-              <FaWhatsapp className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> WhatsApp
+            <a href="https://wa.me/916265966705" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-all hover:scale-110" aria-label="WhatsApp">
+              <FaWhatsapp className="h-4.5 w-4.5" />
             </a>
             <span>|</span>
-            <a href="https://threads.net/@epitometrc007" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
-              <FaThreads className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> Threads
+            <a href="https://threads.net/@epitometrc007" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-all hover:scale-110" aria-label="Threads">
+              <FaThreads className="h-4.5 w-4.5" />
             </a>
             <span>|</span>
-            <a href="https://x.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
-              <FaXTwitter className="h-3.5 w-3.5 text-slate-400 hover:text-orange-500" /> X
+            <a href="https://x.com/epitometrc" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-all hover:scale-110" aria-label="X">
+              <FaXTwitter className="h-4.5 w-4.5" />
             </a>
           </div>
 
