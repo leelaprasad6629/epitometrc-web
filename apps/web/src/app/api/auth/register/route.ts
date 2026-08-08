@@ -87,29 +87,45 @@ export async function POST(req: NextRequest) {
     const verificationToken = signToken({ id: user.id, email: user.email, purpose: "email-verification" });
     const verificationLink = `${req.nextUrl.origin}/api/auth/verify-email?token=${verificationToken}`;
 
-    const { sendEmail } = await import("@/lib/email");
-    await sendEmail({
-      to: user.email,
-      subject: "Verify your EpitomeTRC Account",
-      text: `Hello ${user.name},\n\nPlease verify your EpitomeTRC account by clicking the following link:\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nBest regards,\nEpitomeTRC Registration Team`,
-      html: `
-        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;border:1px solid #e2e8f0;border-radius:12px;">
-          <h2 style="color:#0b172a;">Welcome to EpitomeTRC!</h2>
-          <p>Hello ${user.name},</p>
-          <p>Thank you for registering on our platform. Please verify your account by clicking the link below:</p>
-          <div style="margin:24px 0;">
-            <a href="${verificationLink}" style="background-color:#f97316;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;display:inline-block;font-weight:bold;font-size:14px;">Verify Account</a>
+    let emailSent = true;
+    try {
+      const { sendEmail } = await import("@/lib/email");
+      await sendEmail({
+        to: user.email,
+        subject: "Verify your EpitomeTRC Account",
+        text: `Hello ${user.name},\n\nPlease verify your EpitomeTRC account by clicking the following link:\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nBest regards,\nEpitomeTRC Registration Team`,
+        html: `
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;border:1px solid #e2e8f0;border-radius:12px;">
+            <h2 style="color:#0b172a;">Welcome to EpitomeTRC!</h2>
+            <p>Hello ${user.name},</p>
+            <p>Thank you for registering on our platform. Please verify your account by clicking the link below:</p>
+            <div style="margin:24px 0;">
+              <a href="${verificationLink}" style="background-color:#f97316;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;display:inline-block;font-weight:bold;font-size:14px;">Verify Account</a>
+            </div>
+            <p style="color:#64748b;font-size:12px;">Or copy this link into your browser:<br/><a href="${verificationLink}" style="color:#f97316;">${verificationLink}</a></p>
+            <p style="color:#64748b;font-size:12px;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:20px;">This link will expire in 24 hours. If you did not sign up for an account, please ignore this email.</p>
           </div>
-          <p style="color:#64748b;font-size:12px;">Or copy this link into your browser:<br/><a href="${verificationLink}" style="color:#f97316;">${verificationLink}</a></p>
-          <p style="color:#64748b;font-size:12px;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:20px;">This link will expire in 24 hours. If you did not sign up for an account, please ignore this email.</p>
-        </div>
-      `
-    });
+        `
+      });
+    } catch (emailError) {
+      console.error("Failed to send verification email, auto-activating user fallback:", emailError);
+      emailSent = false;
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { status: "Active" }
+        });
+      } catch (dbError) {
+        console.error("Failed to auto-activate user after email failure:", dbError);
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      requiresVerification: true,
-      message: "Verification link sent to your email. Please verify your account before logging in.",
+      requiresVerification: emailSent,
+      message: emailSent 
+        ? "Verification link sent to your email. Please verify your account before logging in."
+        : "Registration successful! You can now log in immediately.",
       user: {
         id: user.id,
         name: user.name,
