@@ -24,20 +24,8 @@ export default function CoursesPage() {
   const courseSchema1 = {
     "@context": "https://schema.org",
     "@type": "Course",
-    "name": "Strategic Business Analyst",
+    "name": "Strategic Business Analyst (TESTING / SAMPLE COURSE)",
     "description": "Learn modern enterprise analysis models, UML diagrams, and fintech strategy formulation.",
-    "provider": {
-      "@type": "Organization",
-      "name": "EpitomeTRC",
-      "sameAs": "https://epitometrc.com"
-    }
-  };
-
-  const courseSchema2 = {
-    "@context": "https://schema.org",
-    "@type": "Course",
-    "name": "Advanced Execution & Strategy",
-    "description": "Assemble operational roadmaps, run agile sprint plans, and implement KPIs for scaling startups.",
     "provider": {
       "@type": "Organization",
       "name": "EpitomeTRC",
@@ -54,10 +42,6 @@ export default function CoursesPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema1) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema2) }}
       />
       <main id="main-content">
         <CoursesClient />

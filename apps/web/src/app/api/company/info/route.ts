@@ -23,26 +23,7 @@ const DEFAULT_COMPANY_INFO = {
     email: "careers@epitometrc.com",
     address: "208, Swadesh Bhawan, Behind Press Complex, LIG Colony, Indore, Madhya Pradesh",
   },
-  testimonials: [
-    {
-      quote: "Practical training modules and direct advisor support helped me prepare for Next.js development and secure a placement.",
-      author: "A. K., Junior Software Fellow",
-      role: "Digital Engineering Cohort",
-      stars: 5,
-    },
-    {
-      quote: "EpitomeTRC's recruitment consulting aligned our tech requirements perfectly. We quickly onboarded senior developers.",
-      author: "D. S., Lead Technical Officer",
-      role: "Strategic Partner Integration",
-      stars: 5,
-    },
-    {
-      quote: "The HR virtual internship provided intensive, hands-on experience in corporate staffing policies and candidate scanning.",
-      author: "N. R., HR Operations Associate",
-      role: "Virtual Internship Track",
-      stars: 5,
-    },
-  ],
+  testimonials: [],
   collaborations: [
     { name: "Public Cohorts", count: "7000+ Placed" },
     { name: "Academic Partners", count: "200+ Colleges" },

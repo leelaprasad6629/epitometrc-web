@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
     const mockCourses = [
       {
         id: "strategic-business-analyst-enterprise-architecture",
-        title: "Strategic Business Analyst & Enterprise Architecture",
+        title: "Strategic Business Analyst & Enterprise Architecture (TESTING / SAMPLE COURSE)",
         subtitle: "Master essential industry competencies through hands-on learning.",
         slug: "strategic-business-analyst-enterprise-architecture",
         category: "Technical Courses",

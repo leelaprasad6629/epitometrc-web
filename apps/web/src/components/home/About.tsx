@@ -10,8 +10,6 @@ interface AboutProps {
 }
 
 export default function About({ persona }: AboutProps) {
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
-
   const studentTrustPoints = [
     {
       title: "AI Resume Optimization",
@@ -62,46 +60,6 @@ export default function About({ persona }: AboutProps) {
 
   const trustPoints = persona === "student" ? studentTrustPoints : corporateTrustPoints;
 
-  const studentTestimonials = [
-    {
-      quote: "The AI Mock Interview simulator was a game changer for me. It gave me real recruiter-style feedback that helped me identify weak concepts. I secured a senior Next.js role after practicing!",
-      author: "Alex Mercer",
-      role: "Graduate Frontend Engineer",
-      stars: 5,
-    },
-    {
-      quote: "Thanks to the resume parser and completeness scorer, I managed to restructure my engineering stack highlights, increasing my response rate by over 60%.",
-      author: "Jessica Chen",
-      role: "Full-Stack Software Fellow",
-      stars: 5,
-    },
-  ];
-
-  const corporateTestimonials = [
-    {
-      quote: "EpitomeTRC transformed our complete cloud ecosystem and automated our delivery pipelines. Their IT advisory team was cost-effective, extremely responsive, and highly professional. Our infrastructure is now faster, more resilient, and perfectly secure.",
-      author: "Daniel Rose",
-      role: "CTO, Nexa Industries",
-      stars: 5,
-    },
-    {
-      quote: "The strategic recruitment consultants placed key engineering managers who immediately accelerated our core platform timeline. They understood our technological requirements perfectly, reducing our time-to-hire by over 45%.",
-      author: "Sarah Williams",
-      role: "HR Director, Horizon Global",
-      stars: 5,
-    },
-  ];
-
-  const testimonials = persona === "student" ? studentTestimonials : corporateTestimonials;
-
-  const handleNext = () => {
-    setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-  };
-
-  const handlePrev = () => {
-    setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  };
-
   return (
     <div id="about-parent-wrapper">
       
@@ -110,61 +68,28 @@ export default function About({ persona }: AboutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
-            {/* Left Column - Executive Image */}
-            <div className="lg:col-span-5 relative flex justify-center">
-              <div className="absolute -top-6 -left-6 w-32 h-32 bg-orange-100 rounded-2xl -z-10" />
-              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-blue-50 rounded-2xl -z-10" />
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-                className="rounded-2xl overflow-hidden shadow-xl max-w-sm lg:max-w-none w-full relative"
-              >
-                {/* Note: Store your executive portrait image at /public/images/executive_trust.jpg */}
-                <Image
-                  src="/images/executive_trust.jpg"
-                  alt="EpitomeTRC Lead Consultant"
-                  width={450}
-                  height={520}
-                  className="w-full h-[450px] lg:h-[520px] object-cover hover:scale-102 transition-transform duration-500"
-                  style={{ width: 'auto' }}
-                />
-
-                {/* Floating 7000+ Internships Milestone Card */}
-                <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-[#0b172a]/95 text-white p-4 rounded-2xl shadow-2xl border border-slate-700/80 backdrop-blur-md max-w-[230px] z-10 space-y-1">
-                  <div className="flex items-center gap-1.5 text-orange-400 text-[10px] font-bold uppercase tracking-wider">
-                    <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
-                    Trust Indicator
-                  </div>
-                  <div className="font-display text-2xl font-extrabold text-white leading-tight">
-                    🚀 7000+
-                  </div>
-                  <div className="text-[11px] font-semibold text-slate-300 leading-snug">
-                    Internships &amp; Placements Facilitated
-                  </div>
+            {/* Left Content Column */}
+            <div className="lg:col-span-5 space-y-6">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#1d4c35]/10 text-[#1d4c35] border border-[#1d4c35]/25">
+                <ShieldCheck className="h-3.5 w-3.5" /> Established Corporate Vetting
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-display font-bold text-[#0b172a] tracking-tight leading-tight">
+                Aligning Engineering Competence with Industry Standards
+              </h2>
+              <p className="text-slate-655 text-sm sm:text-base leading-relaxed font-sans font-normal">
+                EpitomeTRC bridges the gap between academic foundations and enterprise engineering workloads. We build interactive training systems, support recruitment pipelines, and provide strategic advisory.
+              </p>
+              
+              <div className="pt-2">
+                <div className="flex items-center space-x-3 text-[#1d4c35] font-bold text-xs uppercase tracking-wider font-sans">
+                  <span>ISO 9001:2015 CERTIFIED PARTNER</span>
                 </div>
-              </motion.div>
+              </div>
             </div>
 
-            {/* Right Column - Trust Content */}
-            <div className="lg:col-span-7 flex flex-col space-y-6 md:space-y-8">
-              <div>
-                <span className="text-orange-500 font-semibold text-xs uppercase tracking-wider block mb-2 font-sans">
-                  WHY CHOOSE US
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-display font-bold text-[#0b172a] tracking-tight leading-tight">
-                  {persona === "student" ? "Why Candidates Choose EpitomeTRC." : "Why Industry Leaders Trust EpitomeTRC."}
-                </h2>
-                <p className="text-slate-600 mt-4 font-sans leading-relaxed text-base md:text-lg">
-                  {persona === "student"
-                    ? "Our platform provides job seekers with elite AI interview prep and resume scanning tools to fast-track matching into leading software engineering roles."
-                    : "With over a decade of hands-on expertise delivering strategic consultation and custom technology solutions, our team remains laser-focused on keeping you ahead of the digital curve."}
-                </p>
-              </div>
-
-              {/* Trust Points List */}
-              <div className="flex flex-col space-y-6">
+            {/* Right List Column */}
+            <div className="lg:col-span-7">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white/70 border border-[#d4eae0]/70 p-6 sm:p-8 rounded-3xl backdrop-blur-xs">
                 {trustPoints.map((point, idx) => {
                   const Icon = point.icon;
                   return (
@@ -174,9 +99,9 @@ export default function About({ persona }: AboutProps) {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.5, delay: idx * 0.1 }}
-                      className="flex items-start space-x-4 p-4 rounded-xl hover:bg-slate-50 transition-colors duration-200"
+                      className="flex flex-col space-y-3"
                     >
-                      <div className={`p-2.5 rounded-xl ${point.bgColor} ${point.color} flex-shrink-0 shadow-sm`}>
+                      <div className={`p-2.5 rounded-xl ${point.bgColor} ${point.color} w-fit shadow-sm`}>
                         <Icon className="h-5 w-5" />
                       </div>
                       <div>
@@ -194,88 +119,6 @@ export default function About({ persona }: AboutProps) {
             </div>
 
           </div>
-        </div>
-      </section>
-
-      {/* 2. Executive Voices Section */}
-      <section className="bg-[#faf5f0] py-20 md:py-24 text-slate-800 border-b border-[#ede0d4] relative overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-80 h-80 bg-orange-500/3 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-blue-500/3 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          
-          {/* Header with Nav Arrows */}
-          <div className="flex items-end justify-between mb-12 md:mb-16">
-            <div>
-              <span className="text-orange-600 font-semibold text-xs uppercase tracking-wider block mb-2 font-sans">
-                TESTIMONIALS
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-display font-bold text-[#0b172a] tracking-tight">
-                Executive Voices
-              </h2>
-              <p className="text-slate-650 text-sm md:text-base mt-2 font-sans max-w-md">
-                Hear what leading technology officers and operational directors say about collaborating with EpitomeTRC.
-              </p>
-            </div>
-            
-            {/* Custom Carousel Toggles */}
-            <div className="flex space-x-3">
-              <button
-                onClick={handlePrev}
-                className="p-2.5 rounded-lg bg-white border border-[#e8dcd0] text-slate-700 hover:bg-orange-50 hover:text-orange-650 hover:border-orange-200 transition-all focus:outline-none shadow-sm"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={handleNext}
-                className="p-2.5 rounded-lg bg-white border border-[#e8dcd0] text-slate-700 hover:bg-orange-50 hover:text-orange-650 hover:border-orange-200 transition-all focus:outline-none shadow-sm"
-              >
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Testimonial Cards Slider Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {testimonials.map((test, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                className={`bg-white border rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-md transition-all duration-300 ${
-                  activeTestimonial === idx
-                    ? "border-orange-500 bg-orange-50/10 shadow-orange-500/5"
-                    : "border-[#e8dcd0] hover:border-orange-350"
-                }`}
-              >
-                <div>
-                  <div className="flex space-x-1 mb-6 text-orange-550">
-                    {Array.from({ length: test.stars }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-orange-500" />
-                    ))}
-                  </div>
-                  <p className="text-slate-700 text-base sm:text-lg font-sans leading-relaxed italic mb-8">
-                    &ldquo;{test.quote}&rdquo;
-                  </p>
-                </div>
-
-                <div className="border-t border-[#f2e6db] pt-6 flex items-center justify-between">
-                  <div>
-                    <h4 className="font-display font-bold text-[#0b172a] text-base">
-                      {test.author}
-                    </h4>
-                    <p className="text-xs text-slate-500 font-medium font-sans mt-0.5">
-                      {test.role}
-                    </p>
-                  </div>
-                  <span className="text-3xl font-serif text-orange-500/20 leading-none">&rdquo;</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
         </div>
       </section>
 

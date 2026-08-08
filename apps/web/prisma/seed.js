@@ -48,23 +48,12 @@ async function main() {
   // Seed Courses
   const c1 = await prisma.course.create({
     data: {
-      title: "Strategic Business Analyst",
+      title: "Strategic Business Analyst (TESTING / SAMPLE COURSE)",
       category: "Technical Courses",
       description: "Learn modern enterprise analysis models, UML diagrams, and fintech strategy formulation.",
       duration: "3 Months",
       modules: 10,
       image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=250&fit=crop",
-    },
-  });
-
-  const c2 = await prisma.course.create({
-    data: {
-      title: "Advanced Execution & Strategy",
-      category: "Workshops",
-      description: "Assemble operational roadmaps, run agile sprint plans, and implement KPIs for scaling startups.",
-      duration: "6 Weeks",
-      modules: 6,
-      image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop",
     },
   });
 
@@ -76,14 +65,6 @@ async function main() {
       userId: student.id,
       courseId: c1.id,
       progress: 60,
-    },
-  });
-
-  await prisma.enrollment.create({
-    data: {
-      userId: student.id,
-      courseId: c2.id,
-      progress: 15,
     },
   });
 

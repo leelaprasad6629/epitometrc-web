@@ -63,8 +63,6 @@ const mobileNavItems = [
       { name: "Technology Solutions", href: "/it-services" },
     ],
   },
-  { name: "Training", href: "/training" },
-  { name: "Consulting", href: "/consulting" },
   {
     name: "Courses",
     href: "/courses",
@@ -75,8 +73,6 @@ const mobileNavItems = [
       { name: "Workshops", href: "/courses#workshops" },
     ],
   },
-  { name: "Jobs", href: "/jobs" },
-  { name: "Internships", href: "/internships" },
   {
     name: "Career",
     href: "/careers",

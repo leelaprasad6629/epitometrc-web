@@ -11,26 +11,7 @@ import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { Metadata, Viewport } from "next";
 import { generateSEOMetadata, generateBreadcrumbSchema, generateServiceSchema } from "@/lib/seo";
 
-const testimonials = [
-  {
-    id: "1",
-    name: "Steve Collins",
-    role: "Software Engineer at TECHNO",
-    quote: "The internship program gave me real project experience that directly led to my full-time offer.",
-  },
-  {
-    id: "2",
-    name: "Samuel Rice",
-    role: "DevOps Specialist at GLOBAL",
-    quote: "EpitomeTRC's DevOps course was the most practical training I've ever taken. Highly recommended.",
-  },
-  {
-    id: "3",
-    name: "Bella Rose",
-    role: "UX Designer at ZENITH",
-    quote: "The mentorship and capstone project were invaluable for building my portfolio and confidence.",
-  },
-];
+
 
 export const metadata: Metadata = generateSEOMetadata({
   title: "Training & Internships Programs",
@@ -77,12 +58,7 @@ export default function TrainingPage() {
         <CertificationBar />
         <ProgramGrid />
         <LearningPath />
-        <Testimonials
-          title="Placement Success"
-          description="Our graduates are working at innovative companies worldwide."
-          testimonials={testimonials}
-          dark
-        />
+
         <CTA
           title="Ready to start your journey?"
           description="Join our training ecosystem and take the next step in your professional development."
