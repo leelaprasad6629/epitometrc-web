@@ -1,0 +1,1553 @@
+{
+  "timestamp": "2026-08-08T05:37:39.294Z",
+  "users": [
+    {
+      "id": "3f5f1c5c-6c13-4ec5-b6dc-b24d939efee7",
+      "name": "Alex Thompson",
+      "email": "alex.t@epitome.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$hEcXDAdzTR4c7dXUvm8SFuaY5y9Qy1ECVp7AKgZzto95qnvaXoxyS",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-09T15:00:11.265Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "4eff3143-5011-4ad9-8d5d-68fb4d3dc120",
+      "name": "Marcus Thorne",
+      "email": "m.thorne@epitome.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$hEcXDAdzTR4c7dXUvm8SFuaY5y9Qy1ECVp7AKgZzto95qnvaXoxyS",
+      "role": "Employee",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-09T15:00:11.308Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "961ab80b-c927-41b3-b500-2046a99ab5df",
+      "name": "leela prasad reddy",
+      "email": "reprasad1995@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$WZ8O/P.7hOMNCqwqMAdzceF.MRLNCIIJkB6maACqnj88snV5lJ4z6",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-10T08:31:35.013Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "183f578a-5169-4f0d-8c71-afd66c9a1222",
+      "name": "abcd",
+      "email": "abcd@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$KpIr/yfQ8Uk2VvHSaW5wfedCAw.Bn4r7ObNY25XQ3id2aWvx4xefS",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-18T06:15:50.175Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "57f1316e-0001-4b7d-8986-6bc020f0f3ec",
+      "name": "abcd1",
+      "email": "abcd1@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$Ojm8BJk4DDM5ZEasxkChs.hJidBJAsgRaDodJIHtHa1vCvWy16Q.u",
+      "role": "Employer",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-18T06:17:23.152Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "f21a3522-eb6f-42ec-8f8d-3a3b5cadcf04",
+      "name": "abcd2",
+      "email": "abcd2@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$XfTiCn1fl08mi7Ja1zzmPu33nUl0RtsaGs5FyZfsUc15G2P1sFlqG",
+      "role": "Organization",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-18T06:18:21.378Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "53f5a259-1cf1-401a-8a1b-847d8c4db60c",
+      "name": "Mudigonda Lalitha Sreya",
+      "email": "lalitha.sreya@epitometrc.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$fCUyr1jzijw7u2iM3Fcef.NAFa6zjUjdrQPla6cJzAf8m7rYKkziu",
+      "role": "Employer",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-24T13:13:46.560Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "894d1eb2-d443-4626-8d17-5de19faba153",
+      "name": "leela prasad reddy",
+      "email": "nandelaleelaprasadreddy1508@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$MJ69N7ChZFWpJeX1tiSt8e79L9VVHcuqhlZbbaOn4TzoTn3t9G3S6",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-26T11:51:23.686Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "8b4778b0-4367-4912-b532-1ef01a9b8048",
+      "name": "Ishita Singh Thakur",
+      "email": "ishitasinghthakur4@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$4y2FjmnRvilKipPxP3Sc5u5NNEckSnV/cLWZPWHmP.4Y1OS7gDv2u",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-26T14:05:46.433Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "cc423c72-22cc-42a6-88ee-7aa6be984241",
+      "name": "raghav",
+      "email": "raghav123@gmaol.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$h2owz4BbGe0Q7FAkEJ8kb.l02OGhL7xg233x9/aCSuJ4AomysOE06",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-27T10:48:13.608Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "d681fb00-2ab5-4c28-aa06-d2965645edb0",
+      "name": "Sreya Mudigonda",
+      "email": "sreyam126@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$gnbdrzV0xDK.FY1myLF/ae47L4S1gQp0VNvoNjYCE.g2Jy7MzAHVi",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-27T14:59:52.035Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "285bb089-920d-4b67-98f0-1ebf5e6475a6",
+      "name": "Rishika M",
+      "email": "rishika238506@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$N3NFfOFwqJiIPx0R47/Cr.xhYqu5qEzsAmEuieiSIV2tbewrx9rTS",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-27T15:55:41.228Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "76776945-3db0-426a-9c03-146b43287902",
+      "name": "Annem Navya Reddy",
+      "email": "Navyareddy03@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$p07E8U7gvnu9EKHMzexyouqG/WUEPYCXCqFkVCRqwKd4jinVCO5N2",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-28T07:41:08.652Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "a2095f33-a339-4971-a10f-ffbf63d2fcfb",
+      "name": "Kilaru Kavya",
+      "email": "kavya225674@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$DVM5uFPMMvDFTjiKq0BGnuMsmYSu/24Zb.FIhzPMB68HPNTngaKaa",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-28T07:49:49.743Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "73a2009c-4de2-4dbf-bc1a-9cd7b79e9864",
+      "name": "Kilaru Kavya",
+      "email": "kilaru.kavya@epitometrc.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$j2MB1UhNLqsym/MxOGmMy.unwjJBbZZ8xK3a6wbOwLxfmVq.d7dQW",
+      "role": "Employer",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-28T08:06:18.106Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "a38bf07f-79c0-4b0a-8004-bf61cdaabbef",
+      "name": "Kolipaka Srija",
+      "email": "srija@epitometrc.com",
+      "contactNumber": "",
+      "passwordHash": "$2b$10$MSrYJsvD0R4yRHzfTnnOc.OJ2d27uNNFKdUuI4OWqqS8mGaNyLTr6",
+      "role": "Employer",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-28T08:06:02.642Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "4cd5307b-efcf-4a17-93ab-281a60484407",
+      "name": "24011CSEAI0079 (B) Rishika",
+      "email": "24011cseai0079@aiml.suh.edu.in",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$s/wgGfewkfBhlE3wBsfO6Ot8CCJf4ecNPQaMSJrhkPVpehrN/R.O.",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-28T13:32:34.794Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "51037ae7-ffca-4031-8ede-5df4a0995867",
+      "name": "Sreya M",
+      "email": "sreyamudigonda1205@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$AzQs0O688TPiY.inR.O98ekdsV2tRJpCd5HbIUvWVxXO4eO7gQtPC",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-28T13:49:25.328Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "0e32abcf-5d89-4e59-b41a-891faf3d4e7c",
+      "name": "24011CSEAI0144 (C) Shyam",
+      "email": "24011cseai0144@aiml.suh.edu.in",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$51BlQzzitZdDp9nkDJPGf.2HpXbODjO3L7IlEg72jLp9NFoNS4gZ6",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-28T19:24:22.386Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "a85509be-3810-4fff-b04d-0b63dac16164",
+      "name": "Corporate Admin",
+      "email": "admin@epitometrc.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$KKdPzfTufYlBvoq8.0aj6O6NENqO.Cdn3rCNQzQfg7tNJoY7lV9sW",
+      "role": "Admin",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-29T04:16:36.082Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "e890e144-9115-458a-a505-c8b88495e3de",
+      "name": "Senior Consultant",
+      "email": "employee@epitometrc.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$3BlCWrqcIBm0JTYUPQIsq.CVeypEgUEgsRSOPMY2so3WQE7Ac3Epu",
+      "role": "Employee",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-29T04:16:38.345Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "2bdf2d73-9bfa-401a-a93e-230334e4305f",
+      "name": "Strategy Intern",
+      "email": "intern@epitometrc.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$7G9D/5z5sk.yp/Bh6bhvQ.ZNqwy.VclAxBtuCdPDg/232SyP6Z/3u",
+      "role": "Intern",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-29T04:16:40.203Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "ea211943-1ecf-4ac2-ad77-32f15db5a29a",
+      "name": "Mudigonda Sreya",
+      "email": "2401100cse0264@cse.suh.edu.in",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$q5V8GVgupiUob.Hue46hXu25p3hAMXUP2Dyr5StwtNm7EsHW4Ucqq",
+      "role": "Employee",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-29T04:27:21.748Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "d4da9b95-c4c2-4b0b-bf9d-2311160e708c",
+      "name": "HARSHUL PUROHIT",
+      "email": "harshulpurohit@gmail.com",
+      "contactNumber": "+91 96808 54121",
+      "passwordHash": "$2b$10$2FzZ8ocn6bNxl99vzTFQde4KB1MmeigSuBAOugWyTI1WFxmeERqNK",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-24T12:52:21.764Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "2c2ab687-054d-4236-b799-ad19c8e19bf9",
+      "name": "Rohan Joshua Francis",
+      "email": "lalithasreya23@gmail.com",
+      "contactNumber": "7620902247",
+      "passwordHash": "$2b$10$zfC39jkbWY2qbMOhMsm13etZIGvliRzBALJrGHbgXuVZtEMnrjGpq",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-24T12:52:39.873Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "17d3b23a-0c24-46cd-a591-495ff4d21225",
+      "name": "Harshul Purohit",
+      "email": "purohit@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$uebBj70UyhAp6BmEJSnNge8q0tdWoxVvy6gZKO3Y9qx1IbtArfvVe",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-31T13:37:41.310Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "1b469a5b-bd07-4a7f-b3fb-d3345cdcb02e",
+      "name": "2401100CSE0289 (E) Rajesh",
+      "email": "2401100cse0289@cse.suh.edu.in",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$zCiv9Rsok/2n8/0l2me7jep1cB9WkJqhsdRFAEpQ8bzQACp6AxZa2",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-31T13:52:59.881Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "fd577785-11ec-439e-ba8c-6a1c1f861b03",
+      "name": "Rajesh Rajesh",
+      "email": "rrajesh6869@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$wBrhkGtRTxGbBM0xMY75JeBWXOqjVEbaBdPej2qvB7CDfz6bDTQNC",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-31T13:53:49.780Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "b5e53ad5-f97a-4c84-bd84-f54dd192a860",
+      "name": "Harshul ",
+      "email": "harshul@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$RrR7D36KLkrPoc7Cu3oeAOmj.JZNyQHlvtgfEev.RDfHCC6mJEfsi",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-29T09:42:09.836Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "c04c7183-fc2b-4e53-b3ef-4ed46f17fffe",
+      "name": "Narra Nanditha Reddy",
+      "email": "mvarshini0323@gmail.com",
+      "contactNumber": "",
+      "passwordHash": "$2b$10$yJ5M6Juq7Ds6L6U36CBsKenMSKXPCcZs7ynmx8rDNe49Ch5hu82Wm",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-27T15:41:01.149Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "ed71f34d-cfa5-4d99-8a1d-5b27c3c7118b",
+      "name": "rhfunvj",
+      "email": "jnsdkfn123@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$h7xtSZjKn5mFeVJDZ0lnBukfXmkxOq4EoURkwcHZ7lw0UjP09eEAS",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-31T09:26:54.726Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    },
+    {
+      "id": "93d9efed-2022-4c28-ba2e-f188052b783e",
+      "name": "sujal mohanty",
+      "email": "sujalmohanty099@gmail.com",
+      "contactNumber": null,
+      "passwordHash": "$2b$10$oP0sqXOEfC2HGK/3Evuci.sCC7L9pKXelltOYwYUtgV6EApN0DWmW",
+      "role": "Student",
+      "status": "Active",
+      "requirePasswordChange": false,
+      "createdAt": "2026-07-31T09:47:12.143Z",
+      "policyAccepted": false,
+      "policyAcceptedAt": null,
+      "policyVersion": "v1.0",
+      "tokenVersion": 0
+    }
+  ],
+  "profiles": [
+    {
+      "id": "90be71cd-a5a1-41d3-862e-04207981f68a",
+      "userId": "a2095f33-a339-4971-a10f-ffbf63d2fcfb",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocK-fH6E8_lA2B52FUdeXlWK29DAS2AlY2RUoYpAFQSn6QzIKg=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": {
+        "email": 50,
+        "links": 100,
+        "phone": 50,
+        "skills": 100,
+        "fullName": 100,
+        "location": 0,
+        "projects": 100,
+        "education": 100,
+        "experience": 0,
+        "certifications": 100
+      },
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-28T08:27:42.327Z"
+    },
+    {
+      "id": "896a27dc-8a0b-4acc-97f1-f7cf096a3b6d",
+      "userId": "3f5f1c5c-6c13-4ec5-b6dc-b24d939efee7",
+      "profile": {
+        "bio": "Aspiring FinTech and Data Analytics professional with strong foundations in programming, financial analysis, and data-driven decision making. Seeking opportunities to apply technology and financial knowledge to build scalable analytical and financial solutions.",
+        "aiml": [],
+        "cloud": [],
+        "email": "rohanjoshua@hotmail.com",
+        "phone": "+91 9177765147",
+        "tools": [
+          "Linux",
+          "Terminal",
+          "Kali Linux",
+          "Excel",
+          "Financial Modeling",
+          "Financial Statement Analysis"
+        ],
+        "devops": [
+          "Git"
+        ],
+        "github": "https://github.com/rohanforgit",
+        "kaggle": "",
+        "medium": "",
+        "mobile": [],
+        "backend": [],
+        "behance": "",
+        "testing": [],
+        "codechef": "",
+        "dribbble": "",
+        "frontend": [
+          "HTML5",
+          "CSS3"
+        ],
+        "fullName": "Rohan Joshua Francis",
+        "headline": "Aspiring FinTech and Data Analytics professional",
+        "leetcode": "",
+        "linkedin": "https://www.linkedin.com/in/rohanjf",
+        "location": "",
+        "projects": [
+          {
+            "liveUrl": "",
+            "duration": "",
+            "githubLink": "",
+            "description": "Developed a Telegram-based expense tracking system to help users monitor spending habits and improve financial discipline.",
+            "projectTitle": "Expense-AI (Telegram Based Financial Journal)",
+            "technologiesUsed": [
+              "Python",
+              "TelegramBotAPI",
+              "Excel/DataLogging"
+            ]
+          },
+          {
+            "liveUrl": "",
+            "duration": "",
+            "githubLink": "",
+            "description": "Built Excel-based models to track portfolio performance and analyze investment metrics such as P/E ratio, P/B ratio, and risk-return trends.",
+            "projectTitle": "Personal Investment Analysis System",
+            "technologiesUsed": [
+              "Excel"
+            ]
+          }
+        ],
+        "databases": [],
+        "education": [
+          {
+            "cgpa": "9.32",
+            "branch": "Computer Science",
+            "degree": "B.Tech in Computer Science Engineering",
+            "endYear": "2028",
+            "startYear": "2024",
+            "university": "",
+            "institution": "Sreenidhi Institute of Science and Technology"
+          }
+        ],
+        "libraries": [],
+        "workshops": [],
+        "careerGoal": {
+          "createdAt": "2026-07-27T15:06:34.749Z",
+          "updatedAt": "2026-07-27T15:06:34.749Z",
+          "targetRole": "Senior Full Stack Developer",
+          "targetCompany": "Epitome Partner",
+          "targetJobDescription": "Lead the development of high-performance enterprise applications using React, Node.js, and AWS."
+        },
+        "codeforces": "",
+        "experience": [
+          {
+            "role": "Community Outreach and Educational Support",
+            "endDate": "",
+            "duration": "",
+            "startDate": "",
+            "companyName": "Social Internship - Sreenidhi University",
+            "employmentType": "Internship",
+            "responsibilities": "Taught mathematics to students from ZPHS schools as part of community outreach and educational support.",
+            "technologiesUsed": []
+          }
+        ],
+        "frameworks": [],
+        "hackathons": [],
+        "hackerrank": "",
+        "networking": [],
+        "softSkills": [],
+        "dataScience": [],
+        "internships": [],
+        "achievements": [
+          {
+            "title": "Regular participant in CodeChef contests",
+            "description": "Participated in CodeChef contests (2-3 problems weekly)."
+          }
+        ],
+        "careerDomain": "FinTech and Data Analytics",
+        "profileImage": null,
+        "publications": [],
+        "cyberSecurity": [],
+        "stackoverflow": "",
+        "suggestedTech": [],
+        "certifications": [],
+        "languagesKnown": [],
+        "resumeVersions": [],
+        "suggestedRoles": [],
+        "verifiedSkills": [
+          "Python",
+          "C++",
+          "Java",
+          "HTML5",
+          "CSS3",
+          "JavaScript",
+          "Git",
+          "Linux",
+          "Terminal",
+          "Kali Linux",
+          "Excel",
+          "Financial Modeling",
+          "Financial Statement Analysis"
+        ],
+        "versionControl": [],
+        "experienceLevel": "Fresher",
+        "leadershipRoles": [
+          {
+            "role": "Chairman - Finance Club, Sreenidhi University",
+            "description": "Organizing financial awareness sessions, investment discussions, and student engagement activities.",
+            "organization": "Finance Club, Sreenidhi University"
+          },
+          {
+            "role": "Vice Chair - ACM Student Chapter",
+            "description": "Supporting technical events, coding activities, and student community initiatives.",
+            "organization": "ACM Student Chapter"
+          },
+          {
+            "role": "Treasurer - SDG Impact X Club",
+            "description": "Managing finances, budgeting, and resource allocation for sustainability initiatives.",
+            "organization": "SDG Impact X Club"
+          }
+        ],
+        "personalWebsite": "",
+        "technicalSkills": [
+          "Python",
+          "C++",
+          "Java",
+          "HTML5",
+          "CSS3",
+          "JavaScript",
+          "Git",
+          "Linux",
+          "Terminal",
+          "Kali Linux",
+          "Excel",
+          "Financial Modeling",
+          "Financial Statement Analysis"
+        ],
+        "candidateProfile": "Aspiring FinTech and Data Analytics professional with strong foundations in programming, financial analysis, and data-driven decision making.",
+        "completedCourses": [],
+        "interviewHistory": [],
+        "operatingSystems": [],
+        "portfolioWebsite": "",
+        "completenessMetrics": {
+          "skills": 100,
+          "personal": 25,
+          "projects": 100,
+          "education": 100,
+          "experience": 100,
+          "achievements": 100,
+          "certifications": 0
+        },
+        "overallCompleteness": 75,
+        "rejectedSuggestions": [],
+        "volunteerExperience": [
+          {
+            "role": "Community Outreach and Educational Support",
+            "description": "Taught mathematics to students from ZPHS schools as part of community outreach and educational support.",
+            "organization": "Social Internship - Sreenidhi University"
+          }
+        ],
+        "programmingLanguages": [
+          "Python",
+          "C++",
+          "Java",
+          "JavaScript"
+        ],
+        "professionalInterests": []
+      },
+      "confidenceScores": {
+        "email": 50,
+        "links": 100,
+        "phone": 50,
+        "skills": 100,
+        "fullName": 100,
+        "location": 0,
+        "projects": 100,
+        "education": 100,
+        "experience": 100,
+        "certifications": 0
+      },
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-27T15:06:36.040Z"
+    },
+    {
+      "id": "7539eaf2-c437-4952-9785-aec718f050b2",
+      "userId": "285bb089-920d-4b67-98f0-1ebf5e6475a6",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocKuDX0LRdKmJpMCdQ8nT_KorgSLH0ihaRjss4k8Xk63W2TiqA=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": null,
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-27T15:55:42.169Z"
+    },
+    {
+      "id": "a391137c-ee57-4a82-a8dd-cf13d64cfa95",
+      "userId": "51037ae7-ffca-4031-8ede-5df4a0995867",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocKN3G6u_0m__AJxLXVygzBrbINaPGjsT27KugKMX83Ls4mZMw=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": null,
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-28T13:49:26.261Z"
+    },
+    {
+      "id": "4487400d-bb1a-4b51-b075-63aaa63686c6",
+      "userId": "53f5a259-1cf1-401a-8a1b-847d8c4db60c",
+      "profile": {
+        "bio": "",
+        "aiml": [],
+        "cloud": [],
+        "email": "",
+        "phone": "",
+        "tools": [],
+        "devops": [],
+        "github": "",
+        "kaggle": "",
+        "medium": "",
+        "mobile": [],
+        "backend": [],
+        "behance": "",
+        "testing": [],
+        "codechef": "",
+        "dribbble": "",
+        "frontend": [],
+        "fullName": "Lalitha Sreya ",
+        "headline": "",
+        "leetcode": "",
+        "linkedin": "",
+        "location": "",
+        "projects": [],
+        "databases": [],
+        "education": [],
+        "libraries": [],
+        "workshops": [],
+        "careerGoal": null,
+        "codeforces": "",
+        "experience": [],
+        "frameworks": [],
+        "hackathons": [],
+        "hackerrank": "",
+        "networking": [],
+        "softSkills": [],
+        "dataScience": [],
+        "internships": [],
+        "achievements": [],
+        "careerDomain": "",
+        "profileImage": null,
+        "publications": [],
+        "cyberSecurity": [],
+        "stackoverflow": "",
+        "suggestedTech": [],
+        "certifications": [],
+        "languagesKnown": [],
+        "resumeVersions": [],
+        "suggestedRoles": [],
+        "verifiedSkills": [],
+        "versionControl": [],
+        "experienceLevel": "Fresher",
+        "leadershipRoles": [],
+        "personalWebsite": "",
+        "technicalSkills": [],
+        "candidateProfile": "",
+        "completedCourses": [],
+        "interviewHistory": [],
+        "operatingSystems": [],
+        "portfolioWebsite": "",
+        "completenessMetrics": {
+          "Skills": 0,
+          "Projects": 0,
+          "Education": 0,
+          "Experience": 0,
+          "Achievements": 0,
+          "Publications": 0,
+          "Personal Info": 25,
+          "Certifications": 0,
+          "Professional Summary": 0,
+          "Leadership & Volunteer": 0,
+          "Workshops & Hackathons": 0
+        },
+        "overallCompleteness": 2,
+        "rejectedSuggestions": [],
+        "volunteerExperience": [],
+        "programmingLanguages": [],
+        "professionalInterests": []
+      },
+      "confidenceScores": {},
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-28T14:00:46.328Z"
+    },
+    {
+      "id": "ddbc60af-99aa-412e-ba99-b4c22754db1e",
+      "userId": "894d1eb2-d443-4626-8d17-5de19faba153",
+      "profile": {
+        "bio": "Full stack developer with experience in artificial intelligence and machine learning",
+        "aiml": [],
+        "cloud": [],
+        "email": "24011cseai0086@aiml.suh.edu.in",
+        "phone": "+91-7330924423",
+        "tools": [
+          "Artificial Intelligence",
+          "Machine Learning",
+          "Full Stack Development"
+        ],
+        "devops": [],
+        "github": "",
+        "kaggle": "",
+        "medium": "",
+        "mobile": [],
+        "backend": [],
+        "behance": "",
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocJYqS4rjtmczLyVu3KpZuv98-WROKmasIeZ45SPWryRj82sIQ8=s96-c",
+        "testing": [],
+        "codechef": "",
+        "dribbble": "",
+        "frontend": [],
+        "fullName": "Nandela Leela Prasad Reddy",
+        "headline": "Full Stack Developer",
+        "leetcode": "",
+        "linkedin": "",
+        "location": "Suryapet, Telangana, India - 508206",
+        "projects": [
+          {
+            "liveUrl": "https://fieldforce-khaki.vercel.app/analytics",
+            "duration": "04 Jun, 2026 - 10 Jun, 2026",
+            "githubLink": "",
+            "description": "A service-based web application with features like GPS tracking, task management, and analytics dashboard",
+            "projectTitle": "Fieldforce 360",
+            "technologiesUsed": []
+          },
+          {
+            "liveUrl": "",
+            "duration": "01 Jan, 2026 - 02 May, 2026",
+            "githubLink": "",
+            "description": "",
+            "projectTitle": "Beyond the Shared Responsibility Model: A Reference Architecture for Continuous Verification in Cloud-Native Environments",
+            "technologiesUsed": []
+          },
+          {
+            "liveUrl": "https://legendary-naiad-4517f3.netlify.app/",
+            "duration": "27 Jan, 2025 - 28 Feb, 2025",
+            "githubLink": "",
+            "description": "",
+            "projectTitle": "Tic Tac Toe",
+            "technologiesUsed": []
+          }
+        ],
+        "provider": "google",
+        "databases": [],
+        "education": [
+          {
+            "cgpa": "8.60 / 10",
+            "branch": "Artificial Intelligence and Machine Learning",
+            "degree": "B.Tech. - Artificial Intelligence and Machine Learning",
+            "endYear": "2028",
+            "startYear": "2024",
+            "university": "Sreenidhi University",
+            "institution": "Sreenidhi University"
+          },
+          {
+            "cgpa": "9 / 10",
+            "branch": "",
+            "degree": "12 | BSET",
+            "endYear": "",
+            "startYear": "2022",
+            "university": "",
+            "institution": "Modulus Junior College"
+          },
+          {
+            "cgpa": "96.40 / 100",
+            "branch": "",
+            "degree": "10 | BSET",
+            "endYear": "",
+            "startYear": "",
+            "university": "",
+            "institution": "Tejavidyalaya"
+          }
+        ],
+        "libraries": [],
+        "workshops": [
+          {
+            "date": "02 May, 2026",
+            "title": "Workshop on Frontier of Intelligent Computing",
+            "description": ""
+          }
+        ],
+        "careerGoal": null,
+        "codeforces": "",
+        "experience": [
+          {
+            "role": "Full Stack Developer Intern",
+            "endDate": "Present",
+            "duration": "",
+            "startDate": "June 2026",
+            "companyName": "Epitome TRC",
+            "employmentType": "Internship",
+            "responsibilities": "Building web applications, including a service-based web application and a product-based web application",
+            "technologiesUsed": []
+          },
+          {
+            "role": "",
+            "endDate": "July 2025",
+            "duration": "",
+            "startDate": "July 2025",
+            "companyName": "ZPPS, Bahadurpally",
+            "employmentType": "",
+            "responsibilities": "Taught aptitude skills and professional skills",
+            "technologiesUsed": []
+          }
+        ],
+        "frameworks": [],
+        "hackathons": [],
+        "hackerrank": "",
+        "networking": [],
+        "softSkills": [],
+        "dataScience": [],
+        "internships": [],
+        "achievements": [],
+        "careerDomain": "Full Stack Development",
+        "profileImage": null,
+        "publications": [],
+        "cyberSecurity": [],
+        "stackoverflow": "",
+        "suggestedTech": [],
+        "certifications": [
+          {
+            "date": "",
+            "credentialId": "",
+            "organization": "IBM",
+            "certificationName": "IBM Artificial Intelligence Fundamentals"
+          },
+          {
+            "date": "",
+            "credentialId": "",
+            "organization": "Microsoft",
+            "certificationName": "Introduction to AI Concepts"
+          },
+          {
+            "date": "",
+            "credentialId": "",
+            "organization": "ISB",
+            "certificationName": "Climate Change"
+          },
+          {
+            "date": "",
+            "credentialId": "",
+            "organization": "Scaler",
+            "certificationName": "DSA through C++"
+          }
+        ],
+        "languagesKnown": [
+          "Telugu",
+          "Hindi",
+          "English"
+        ],
+        "resumeVersions": [],
+        "suggestedRoles": [],
+        "verifiedSkills": [
+          "Artificial Intelligence",
+          "Machine Learning",
+          "Full Stack Development"
+        ],
+        "versionControl": [],
+        "experienceLevel": "Intern",
+        "leadershipRoles": [],
+        "personalWebsite": "",
+        "technicalSkills": [
+          "Artificial Intelligence",
+          "Machine Learning",
+          "Full Stack Development"
+        ],
+        "candidateProfile": "Full stack developer with experience in artificial intelligence and machine learning",
+        "completedCourses": [],
+        "interviewHistory": [],
+        "operatingSystems": [],
+        "portfolioWebsite": "",
+        "completenessMetrics": {
+          "skills": 100,
+          "personal": 50,
+          "projects": 100,
+          "education": 100,
+          "experience": 100,
+          "achievements": 0,
+          "certifications": 100
+        },
+        "overallCompleteness": 79,
+        "rejectedSuggestions": [],
+        "volunteerExperience": [],
+        "programmingLanguages": [],
+        "professionalInterests": []
+      },
+      "confidenceScores": {
+        "email": 50,
+        "links": 0,
+        "phone": 50,
+        "skills": 100,
+        "fullName": 100,
+        "location": 100,
+        "projects": 100,
+        "education": 100,
+        "experience": 100,
+        "certifications": 100
+      },
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-26T11:51:53.431Z"
+    },
+    {
+      "id": "b632aae7-c83e-415c-b2f8-d9e75da0a6bb",
+      "userId": "8b4778b0-4367-4912-b532-1ef01a9b8048",
+      "profile": {
+        "bio": "",
+        "aiml": [],
+        "cloud": [],
+        "email": "ishitasinghthakur4@gmail.com",
+        "phone": "+91-8278734771",
+        "tools": [
+          "MS Excel",
+          "MS PowerPoint",
+          "MS Word",
+          "AI",
+          "Power BI",
+          "IBM SPSS",
+          "Canva"
+        ],
+        "devops": [],
+        "github": "",
+        "kaggle": "",
+        "medium": "",
+        "mobile": [],
+        "backend": [],
+        "behance": "",
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocJ088T5a4hqB9OyLvR7fRhue3ryzGqfm0NAP9QofadyvZIM5g=s96-c",
+        "testing": [],
+        "codechef": "",
+        "dribbble": "",
+        "frontend": [],
+        "fullName": "Ishita Thakur",
+        "headline": "",
+        "leetcode": "",
+        "linkedin": "https://www.linkedin.com/in/ishitathakur",
+        "location": "",
+        "projects": [
+          {
+            "liveUrl": "",
+            "duration": "",
+            "githubLink": "",
+            "description": "Built an integrated M&A model covering valuation, synergies, financing, and consolidated statements. Evaluated Cash, Stock, and Mixed deal structures across multiple operating scenarios. Developed a dashboard tracking revenue growth, profitability, leverage, and synergies.",
+            "projectTitle": "M&A Financial Modeling & Valuation Dashboard",
+            "technologiesUsed": []
+          },
+          {
+            "liveUrl": "",
+            "duration": "",
+            "githubLink": "",
+            "description": "Built a project finance model covering construction, operations, debt servicing, and investor returns. Evaluated project viability using NPV, IRR, DSCR, and sensitivity analysis. Integrated CAPEX, working capital, and financing schedules into three-statement forecasts.",
+            "projectTitle": "Project Finance Model – Infrastructure Investment Analysis",
+            "technologiesUsed": []
+          },
+          {
+            "liveUrl": "",
+            "duration": "",
+            "githubLink": "",
+            "description": "Built a 5-year financial model projecting revenue, EBITDA, net profit, and free cash flows. Performed DCF and comparable company valuation to estimate enterprise and equity value. Performed FCFF, relative valuation and sensitivity analysis to assess investment attractiveness.",
+            "projectTitle": "Financial Modeling and Valuation of Nava India Ltd",
+            "technologiesUsed": []
+          },
+          {
+            "liveUrl": "",
+            "duration": "",
+            "githubLink": "",
+            "description": "Built an integrated LBO model with sources & uses, debt financing, and financial projections. Modeled capital structure using senior debt, mezzanine financing, and cash sweep mechanisms. Assessed investment returns using IRR, MoM, and exit valuation sensitivity analysis.",
+            "projectTitle": "Leveraged Buyout (LBO) Model – Nava Limited",
+            "technologiesUsed": []
+          },
+          {
+            "liveUrl": "",
+            "duration": "",
+            "githubLink": "",
+            "description": "Designed an AI-powered wealth planning tool for SIP accumulation and SWP withdrawals. Analyzed corpus growth, inflation-adjusted withdrawals, and portfolio sustainability. Utilized AI tools to generate financial projections, scenario analysis, and decision-support insights for long-term investment planning.",
+            "projectTitle": "SIP – SWP Wealth Transition Planner",
+            "technologiesUsed": [
+              "AI"
+            ]
+          }
+        ],
+        "provider": "google",
+        "databases": [],
+        "education": [
+          {
+            "cgpa": "8.63",
+            "branch": "Financial Consulting and Marketing",
+            "degree": "Master of Business Administration",
+            "endYear": "2027",
+            "startYear": "2025",
+            "university": "Lovely Professional University",
+            "institution": "Lovely Professional University"
+          },
+          {
+            "cgpa": "68%",
+            "branch": "",
+            "degree": "Bachelor of Commerce",
+            "endYear": "2025",
+            "startYear": "2022",
+            "university": "",
+            "institution": "St. Bede’s College"
+          },
+          {
+            "cgpa": "83.3%",
+            "branch": "",
+            "degree": "Intermediate",
+            "endYear": "2022",
+            "startYear": "2017",
+            "university": "",
+            "institution": "New Public School"
+          }
+        ],
+        "libraries": [],
+        "workshops": [],
+        "careerGoal": {
+          "createdAt": "2026-07-26T14:12:42.936Z",
+          "updatedAt": "2026-07-26T14:12:42.936Z",
+          "targetRole": "Financial Consultant",
+          "targetCompany": "Epitome Partner",
+          "targetJobDescription": "Financial Consultant / Analyst – Fresher (Deloitte)\n\nRole Overview\nEntry-level position supporting Deloitte's Finance, Advisory, or Engagement Financial Management teams. You'll assist client-facing and internal engagement teams with financial analysis, reporting, budgeting, and compliance support, while building foundational consulting and finance skills.\n\nKey Responsibilities\n\nSupport engagement/project financial management — budgeting, forecasting, billing, and receivables tracking\nPrepare financial reports, dashboards, and MIS using Excel/PowerPoint (and tools like SAP, Power BI where applicable)\nAssist with account reconciliations, expense coding, and transaction review\nConduct basic financial analysis (income statements, balance sheets, cash flow trends, KPIs)\nSupport client engagement teams with data gathering, documentation, and presentation prep\nEnsure compliance with internal policies and quality standards\nCollaborate with cross-functional and global teams on ad hoc finance projects\n\nEligibility / Qualifications\n\nBachelor's degree in Commerce, Finance, Economics, Accounting, or Business Administration (B.Com/BBA/BA-Economics etc.); MBA/M.Com sometimes preferred for select roles\nFreshers or up to ~1 year of experience\nStrong proficiency in MS Excel, PowerPoint, and Word\nGood analytical, communication, and interpersonal skills\nBasic understanding of financial/accounting concepts\n\nWhat Deloitte Typically Offers\n\nStructured onboarding and training programs\nExposure to global clients and cross-border teams\nMentorship and defined career progression paths\nCompetitive compensation and benefits\n\nA couple of notes:\n\nDeloitte India (USI) often hires freshers under titles like Analyst – FP&A, Engagement Financial Advisor, or Associate Analyst – Finance, rather than literally \"Financial Consultant\" — worth checking the exact title on the live posting.\nActual JDs differ by business unit (Consulting, Advisory, Global Finance Support, etc.) and location"
+        },
+        "codeforces": "",
+        "experience": [
+          {
+            "role": "Intern",
+            "endDate": "Dec 2024",
+            "duration": "3 months",
+            "startDate": "Sep 2024",
+            "companyName": "i3Infosoft IT Services Provider",
+            "employmentType": "Internship",
+            "responsibilities": "Supported business projects across CRM, accounting, digital marketing, and data management functions. Utilized Excel and PowerPoint for data analysis, reporting, and process documentation. Coordinated with cross-functional teams to improve problem-solving, communication, and project execution.",
+            "technologiesUsed": [
+              "MS Excel",
+              "MS PowerPoint",
+              "MS Word"
+            ]
+          }
+        ],
+        "frameworks": [],
+        "hackathons": [],
+        "hackerrank": "",
+        "networking": [],
+        "softSkills": [
+          "Problem-Solving Skills",
+          "Team Player",
+          "Adaptability",
+          "Learning Agility",
+          "Leadership",
+          "Communication Skills"
+        ],
+        "dataScience": [],
+        "internships": [],
+        "achievements": [],
+        "careerDomain": "",
+        "profileImage": null,
+        "publications": [],
+        "cyberSecurity": [],
+        "stackoverflow": "",
+        "suggestedTech": [],
+        "certifications": [
+          {
+            "date": "Nov 2025",
+            "credentialId": "",
+            "organization": "NISM",
+            "certificationName": "NISM VA: Mutual Fund Distribution"
+          },
+          {
+            "date": "Mar 2026",
+            "credentialId": "",
+            "organization": "LPU",
+            "certificationName": "Financial Modelling through MS Excel and AI"
+          }
+        ],
+        "languagesKnown": [],
+        "resumeVersions": [],
+        "suggestedRoles": [],
+        "verifiedSkills": [
+          "MS Excel",
+          "MS PowerPoint",
+          "MS Word",
+          "AI",
+          "Power BI",
+          "IBM SPSS",
+          "Canva"
+        ],
+        "versionControl": [],
+        "experienceLevel": "",
+        "leadershipRoles": [
+          {
+            "title": "President, Career & Placement Cell",
+            "description": "Led career awareness and skill development initiatives"
+          }
+        ],
+        "personalWebsite": "",
+        "technicalSkills": [
+          "MS Excel",
+          "MS PowerPoint",
+          "MS Word",
+          "AI",
+          "Power BI",
+          "IBM SPSS",
+          "Canva"
+        ],
+        "candidateProfile": "",
+        "completedCourses": [],
+        "interviewHistory": [],
+        "operatingSystems": [],
+        "portfolioWebsite": "",
+        "completenessMetrics": {
+          "skills": 100,
+          "personal": 25,
+          "projects": 100,
+          "education": 100,
+          "experience": 100,
+          "achievements": 0,
+          "certifications": 100
+        },
+        "overallCompleteness": 75,
+        "rejectedSuggestions": [],
+        "volunteerExperience": [
+          {
+            "title": "Volunteer",
+            "description": "Led community initiatives focused on hygiene, environmental awareness, and public welfare. Organized drug awareness campaigns and sports events promoting healthy lifestyles with over 50 participants. Contributed to blood donation drives supporting community health and social responsibility where 200 people donated blood."
+          }
+        ],
+        "programmingLanguages": [],
+        "professionalInterests": []
+      },
+      "confidenceScores": {
+        "email": 50,
+        "links": 100,
+        "phone": 50,
+        "skills": 100,
+        "fullName": 100,
+        "location": 0,
+        "projects": 100,
+        "education": 100,
+        "experience": 100,
+        "certifications": 100
+      },
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-26T14:12:42.425Z"
+    },
+    {
+      "id": "06b9ad13-34b4-4ae6-8472-6e3ddf68c7f2",
+      "userId": "d4da9b95-c4c2-4b0b-bf9d-2311160e708c",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocIV4yMz1cAruGil9ZpoFTavusLAiLPWAvzQ0RSoXpbhZ_0ZBSgd=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": {
+        "email": 50,
+        "links": 100,
+        "phone": 50,
+        "skills": 100,
+        "fullName": 100,
+        "location": 0,
+        "projects": 100,
+        "education": 100,
+        "experience": 0,
+        "certifications": 100
+      },
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-31T14:14:48.409Z"
+    },
+    {
+      "id": "a4d60f3f-30bd-43e6-8c97-dbccb8f0087f",
+      "userId": "d681fb00-2ab5-4c28-aa06-d2965645edb0",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocI0eH3jwOfBWX_CG7tXbvoEz0gsMcGIsMEKN5V2NMIrk3l-DZfd=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": {
+        "email": 50,
+        "links": 0,
+        "phone": 50,
+        "skills": 100,
+        "fullName": 100,
+        "location": 100,
+        "projects": 100,
+        "education": 100,
+        "experience": 0,
+        "certifications": 0
+      },
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-08-04T04:42:01.976Z"
+    },
+    {
+      "id": "b4ac4006-4917-4a7e-a279-017b50518559",
+      "userId": "4cd5307b-efcf-4a17-93ab-281a60484407",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocJ6vxnC0YwdySlKc-uQi2NxU7IFClvpayqEowdvQUwJ8vUtiQ=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": {},
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-29T08:41:18.375Z"
+    },
+    {
+      "id": "cc8c20ba-24c1-4c78-833c-c5e63a8454e5",
+      "userId": "a38bf07f-79c0-4b0a-8004-bf61cdaabbef",
+      "profile": {
+        "office": "Indore HQ",
+        "availability": "95%",
+        "profileImage": null,
+        "specialization": "General Strategy & IT Placement Advisor",
+        "verifiedStatus": "Gold Certified Lead",
+        "availabilityStatus": "Fully Active"
+      },
+      "confidenceScores": null,
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-28T08:07:34.916Z"
+    },
+    {
+      "id": "9da6eb61-d710-428d-ab69-a1f8ca73b980",
+      "userId": "0e32abcf-5d89-4e59-b41a-891faf3d4e7c",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocLten5wJ013HjaslG6b3Uibm_XHijuMP4ayHtkPlv3cEzTMpg=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": null,
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-28T19:25:13.361Z"
+    },
+    {
+      "id": "224b7d82-fb3d-4c73-a0cd-c01ed353b543",
+      "userId": "2c2ab687-054d-4236-b799-ad19c8e19bf9",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocKDdROgm_urU4bNmMzY5yFO7DaPNBe71AKvcQTwg3MAtqQ0CQ=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": {
+        "email": 50,
+        "links": 100,
+        "phone": 50,
+        "skills": 100,
+        "fullName": 100,
+        "location": 100,
+        "projects": 100,
+        "education": 100,
+        "experience": 100,
+        "certifications": 100
+      },
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-08-07T14:01:40.871Z"
+    },
+    {
+      "id": "c510a866-1384-4e00-ace9-4a782dcbd915",
+      "userId": "c04c7183-fc2b-4e53-b3ef-4ed46f17fffe",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocJrjho_s8wrgoqpqO_NFbYeJxcJGHlahPNiIHXUhL2ewS36SFs=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": {
+        "email": 0,
+        "links": 0,
+        "phone": 0,
+        "skills": 100,
+        "fullName": 100,
+        "location": 0,
+        "projects": 100,
+        "education": 0,
+        "experience": 0,
+        "certifications": 0
+      },
+      "resumeFile": {
+        "userId": "c04c7183-fc2b-4e53-b3ef-4ed46f17fffe",
+        "fileUrl": "/uploads/c04c7183-fc2b-4e53-b3ef-4ed46f17fffe_1785335225437_varshini.M-resume.docx",
+        "fileName": "varshini.M-resume.docx",
+        "fileSize": 27347,
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "uploadedAt": "2026-07-29T14:27:06.199Z"
+      },
+      "videoResumeFile": null,
+      "updatedAt": "2026-08-07T14:03:33.498Z"
+    },
+    {
+      "id": "89fc5349-39f9-422c-8214-3e44d8da8532",
+      "userId": "b5e53ad5-f97a-4c84-bd84-f54dd192a860",
+      "profile": {
+        "name": "Harshul ",
+        "email": "harshul@gmail.com",
+        "skills": [],
+        "projects": [],
+        "education": [],
+        "experience": [],
+        "contactNumber": "0000000000"
+      },
+      "confidenceScores": {},
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-29T09:42:10.216Z"
+    },
+    {
+      "id": "43b9a498-2d53-4546-b1a7-43adac9fafd7",
+      "userId": "ed71f34d-cfa5-4d99-8a1d-5b27c3c7118b",
+      "profile": {
+        "name": "rhfunvj",
+        "email": "jnsdkfn123@gmail.com",
+        "skills": [],
+        "projects": [],
+        "education": [],
+        "experience": [],
+        "contactNumber": "9988998899"
+      },
+      "confidenceScores": {},
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-31T09:26:55.141Z"
+    },
+    {
+      "id": "e1533f5c-a768-4345-abf7-02ab07485d5c",
+      "userId": "93d9efed-2022-4c28-ba2e-f188052b783e",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocI_4B5-awL2oFhmY-Ila_CS05sofcEjkpMYmNZq8r42yFt_n-0O=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": null,
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-31T09:47:13.078Z"
+    },
+    {
+      "id": "e402abfd-f6cf-4cf8-b663-1271b9395c66",
+      "userId": "17d3b23a-0c24-46cd-a591-495ff4d21225",
+      "profile": {
+        "name": "Harshul Purohit",
+        "email": "purohit@gmail.com",
+        "skills": [],
+        "projects": [],
+        "education": [],
+        "experience": [],
+        "contactNumber": "00000000000"
+      },
+      "confidenceScores": {},
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-31T13:37:41.691Z"
+    },
+    {
+      "id": "568458b0-e79f-4139-b170-79faeb7f9bef",
+      "userId": "1b469a5b-bd07-4a7f-b3fb-d3345cdcb02e",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocJso_fX_XO59FxOOf8iLZOCk_IsuyXoCa9RBexwOgJMqTx49A=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": null,
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-31T13:53:00.819Z"
+    },
+    {
+      "id": "8efc37e0-d45a-4aff-92de-6a0668773804",
+      "userId": "fd577785-11ec-439e-ba8c-6a1c1f861b03",
+      "profile": {
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocLbUkueNdfNJ4UIrRg5FVHU3uM1r_7i8x0hVCH5hkahMv1fXYIC=s96-c",
+        "provider": "google"
+      },
+      "confidenceScores": null,
+      "resumeFile": null,
+      "videoResumeFile": null,
+      "updatedAt": "2026-07-31T13:53:50.711Z"
+    }
+  ],
+  "memberships": [],
+  "auditLogs": [
+    {
+      "id": "f00627f3-ff49-4ee3-91d7-ff1b8e5c7cc7",
+      "userId": "c5dfad88-af7d-4850-81c0-0091e1fc161f",
+      "userEmail": "test_abuse_1786166820439@example.com",
+      "action": "LOGIN",
+      "details": "{\"ipAddress\":\"192.168.1.1\",\"userAgent\":\"Chrome-Win\",\"tokenSnippet\":\"1111111111\"}",
+      "ipAddress": "192.168.1.1",
+      "createdAt": "2026-08-08T05:27:01.931Z"
+    },
+    {
+      "id": "cfd59570-3da9-4a5c-a8b7-37410e93453e",
+      "userId": "c5dfad88-af7d-4850-81c0-0091e1fc161f",
+      "userEmail": "test_abuse_1786166820439@example.com",
+      "action": "LOGIN",
+      "details": "{\"ipAddress\":\"192.168.1.2\",\"userAgent\":\"Safari-iOS\",\"tokenSnippet\":\"2222222222\"}",
+      "ipAddress": "192.168.1.2",
+      "createdAt": "2026-08-08T05:27:02.185Z"
+    },
+    {
+      "id": "13f583ed-366f-435b-9bd8-fa5a1178cccc",
+      "userId": "c5dfad88-af7d-4850-81c0-0091e1fc161f",
+      "userEmail": "test_abuse_1786166820439@example.com",
+      "action": "LOGIN",
+      "details": "{\"ipAddress\":\"192.168.1.3\",\"userAgent\":\"Firefox-Linux\",\"tokenSnippet\":\"3333333333\"}",
+      "ipAddress": "192.168.1.3",
+      "createdAt": "2026-08-08T05:27:02.553Z"
+    }
+  ],
+  "suggestions": []
+}
