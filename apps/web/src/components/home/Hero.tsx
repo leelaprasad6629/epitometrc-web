@@ -171,23 +171,23 @@ export default function Hero({ persona, setPersona }: HeroProps) {
         </div>
 
         {/* Right Side Image Column (Circular Mask Graphic Layout) */}
-        <div className="hidden md:flex md:w-[46%] xl:w-[48%] relative flex-shrink-0 z-10 items-center justify-center">
+        <div className="hidden md:flex md:w-[44%] lg:w-[46%] xl:w-[48%] relative flex-shrink-0 z-10 items-center justify-center aspect-square max-w-[460px]">
           
           {/* Concentric subtle rings around the gradient for depth */}
-          <div className="absolute w-[114%] h-[114%] border border-orange-300/20 rounded-full pointer-events-none animate-[spin_40s_linear_infinite]" />
-          <div className="absolute w-[126%] h-[126%] border border-purple-300/15 rounded-full pointer-events-none animate-[spin_55s_linear_infinite_reverse]" />
-          <div className="absolute w-[138%] h-[138%] border border-pink-300/10 rounded-full pointer-events-none border-dashed" />
+          <div className="absolute w-[114%] h-[114%] border border-orange-300/10 rounded-full pointer-events-none" />
+          <div className="absolute w-[126%] h-[126%] border border-purple-300/10 rounded-full pointer-events-none" />
+          <div className="absolute w-[138%] h-[138%] border border-pink-300/5 rounded-full pointer-events-none border-dashed" />
 
-          {/* Large circular background gradient matching references */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#FF9A00] via-[#FF7A7A] via-[#FF6EC7] via-[#B56EFF] to-[#E9D5FF] rounded-full shadow-lg opacity-[0.95] pointer-events-none aspect-square" />
+          {/* Large circular background gradient matching reference colors exactly */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle,#FFB56B_20%,#FF8A8A_45%,#FF6EC7_70%,#B56EFF_95%,transparent)] rounded-full opacity-[0.95] pointer-events-none aspect-square" />
           
-          {/* The Girl image inside the circular mask */}
-          <div className="relative w-[96%] h-[96%] rounded-full overflow-hidden border-[6px] border-white bg-white/20 z-10 aspect-square shadow-xl">
+          {/* The Girl image inside the circular mask with blend mode to remove background card effect */}
+          <div className="relative w-[96%] h-[96%] rounded-full overflow-hidden z-10 aspect-square">
             <Image
               src="/images/professional_woman_laptop.jpg"
               alt="Young professional working on a laptop"
               fill
-              className="object-cover object-center scale-[1.02] -translate-y-1"
+              className="object-cover object-center scale-[1.02] -translate-y-1 mix-blend-multiply"
               sizes="(max-w-1024px) 100vw, 450px"
               priority
             />
