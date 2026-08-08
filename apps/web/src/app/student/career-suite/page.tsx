@@ -13,10 +13,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/common/Button";
 import { useResumeStore, CareerGoal, ResumeVersion } from "@/lib/ai/store/resumeStore";
 import { Input } from "@/components/ui/input";
-import ResumeMediaManager from "@/components/ResumeMediaManager";
-import AIAvatarInterviewer from "@/components/ai/AIAvatarInterviewer";
-import InterviewLayout from "@/components/AvatarInterviewer/InterviewLayout";
-import UpgradeModal from "@/components/membership/UpgradeModal";
+import dynamic from "next/dynamic";
+
+const ResumeMediaManager = dynamic(() => import("@/components/ResumeMediaManager"), { ssr: false });
+const AIAvatarInterviewer = dynamic(() => import("@/components/ai/AIAvatarInterviewer"), { ssr: false });
+const InterviewLayout = dynamic(() => import("@/components/AvatarInterviewer/InterviewLayout"), { ssr: false });
+const UpgradeModal = dynamic(() => import("@/components/membership/UpgradeModal"), { ssr: false });
 
 type TabId = "dashboard" | "resume" | "learning" | "interview" | "career" | "jobs";
 

@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAICompletion } from "@/lib/ai/services/aiService";
 import { verifyToken } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
+import { startPerformanceMeasure } from "@/lib/performance";
 
 export const maxDuration = 60; // 60s Vercel serverless function timeout extension
 
 export async function POST(req: NextRequest) {
+  const perf = startPerformanceMeasure("POST /api/ai/mock-interview");
   try {
     const { 
       role, 
@@ -249,5 +251,7 @@ Response format required:
       { success: false, error: "Failed to generate structured mock interview response: " + error.message },
       { status: 500 }
     );
+  } finally {
+    perf.end();
   }
 }

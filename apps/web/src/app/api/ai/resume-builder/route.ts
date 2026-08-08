@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { startPerformanceMeasure } from "@/lib/performance";
 
 export const maxDuration = 60; // 60s Vercel serverless function timeout
 
@@ -7,6 +8,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export async function POST(req: NextRequest) {
+  const perf = startPerformanceMeasure("POST /api/ai/resume-builder");
   try {
     const token = req.cookies.get("token")?.value;
     if (!token) {
@@ -201,5 +203,7 @@ Respond STRICTLY with a valid JSON object matching:
       { success: false, error: "Failed to process AI Resume request: " + errorMsg },
       { status: 500 }
     );
+  } finally {
+    perf.end();
   }
 }

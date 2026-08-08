@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
 import { getPlanByName } from "@/lib/membershipConfig";
+import { startPerformanceMeasure } from "@/lib/performance";
 
 // Stateless fallback for development if database is unreached
 const getMockMembership = (userId: string, planName = "Free Plan") => {
@@ -63,6 +64,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const perf = startPerformanceMeasure("POST /api/student/membership");
   try {
     const token = req.cookies.get("token")?.value;
     if (!token) {
@@ -164,5 +166,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Membership upgrade error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } finally {
+    perf.end();
   }
 }

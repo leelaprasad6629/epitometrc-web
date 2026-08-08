@@ -5,6 +5,7 @@ import mammoth from "mammoth";
 import { verifyToken } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
 import { validateFileContent } from "@/lib/fileValidation";
+import { startPerformanceMeasure } from "@/lib/performance";
 
 export const maxDuration = 60; // 60s Vercel serverless function timeout
 
@@ -137,6 +138,7 @@ const SKILL_ALIASES: Record<string, { name: string; category: string }> = {
 };
 
 export async function POST(req: NextRequest) {
+  const perf = startPerformanceMeasure("POST /api/ai/parse-resume");
   try {
     const { fileName, fileBase64, fileMimeType, purpose } = await req.json();
 
@@ -532,5 +534,7 @@ Output ONLY a valid JSON object matching this exact structure:
   } catch (error: any) {
     console.error("Resume Parser error:", error);
     return NextResponse.json({ success: false, error: "Failed to parse: " + error.message }, { status: 500 });
+  } finally {
+    perf.end();
   }
 }

@@ -326,6 +326,10 @@ model AuditLog {
   details   String   // JSON string of details
   ipAddress String?
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userEmail])
+  @@index([action])
 }
 
 model UserMembership {

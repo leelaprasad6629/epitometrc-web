@@ -399,7 +399,7 @@ export default function EmployeeRecruitmentPage() {
                   >
                     <div className="flex gap-3 items-center min-w-0">
                       <div className="h-9 w-9 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center shrink-0 border border-slate-100">
-                        <img src={getAvatarUrl(c.name, c.avatar)} className="h-full w-full object-cover" />
+                        <img src={getAvatarUrl(c.name, c.avatar)} className="h-full w-full object-cover" loading="lazy" />
                       </div>
                       <div className="text-left min-w-0 space-y-0.5">
                         <h3 className="font-display text-xs font-bold text-[#0b172a] truncate">
