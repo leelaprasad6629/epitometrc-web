@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/jwt";
+import { validateFileContent } from "@/lib/fileValidation";
 import fs from "fs/promises";
 import path from "path";
+
+const ALLOWED_EXTENSIONS = [".pdf", ".png", ".jpg", ".jpeg", ".gif", ".doc", ".docx", ".mp4", ".mov", ".webm"];
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,12 +26,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (file.size > 25 * 1024 * 1024) { // allow up to 25MB to support resumes & media
-      return NextResponse.json({ error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB." }, { status: 400 });
-    }
-
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    // Enforce Magic Byte Content Signatures
+    const validation = validateFileContent(
+      buffer,
+      file.name,
+      file.type,
+      ALLOWED_EXTENSIONS,
+      MAX_FILE_SIZE
+    );
+
+    if (!validation.isValid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
 
     const uploadDir = path.join(process.cwd(), "public", "uploads");
     await fs.mkdir(uploadDir, { recursive: true });

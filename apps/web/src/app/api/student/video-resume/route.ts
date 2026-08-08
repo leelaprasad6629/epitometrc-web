@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
+import { validateFileContent } from "@/lib/fileValidation";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -21,16 +22,8 @@ function getUserIdFromRequest(req: NextRequest): string | null {
   return null;
 }
 
-const ALLOWED_MIME_TYPES = new Set([
-  "video/mp4",
-  "video/quicktime",
-  "video/webm",
-  "video/x-matroska",
-  "application/octet-stream",
-]);
-
-const ALLOWED_EXTENSIONS = new Set([".mp4", ".mov", ".webm"]);
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+const ALLOWED_EXTENSIONS = [".mp4", ".mov", ".webm"];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
 export async function GET(req: NextRequest) {
   try {
@@ -69,30 +62,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "No video file uploaded." }, { status: 400 });
     }
 
-    const ext = path.extname(file.name).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.has(ext)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid video format. Only MP4, MOV, and WEBM video files are allowed." },
-        { status: 400 }
-      );
-    }
+    const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    if (file.type && !ALLOWED_MIME_TYPES.has(file.type)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid video MIME type. Only MP4, MOV, and WEBM video files are allowed." },
-        { status: 400 }
-      );
-    }
+    // Secure Data Protection Validation
+    const validation = validateFileContent(
+      fileBuffer,
+      file.name,
+      file.type,
+      ALLOWED_EXTENSIONS,
+      MAX_FILE_SIZE
+    );
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (!validation.isValid) {
       return NextResponse.json(
-        { success: false, error: `Video size exceeds the 100 MB limit (${(file.size / (1024 * 1024)).toFixed(2)} MB uploaded).` },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
 
     const safeFileName = `${userId}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
 
     // 1. Guaranteed Local Server Storage (public/uploads)
     let fileUrl = `/uploads/${safeFileName}`;

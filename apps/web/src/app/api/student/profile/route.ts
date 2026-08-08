@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken, getToken } from "@/lib/jwt";
 import { logDebug } from "@/lib/debugLog";
+import { validateFileContent } from "@/lib/fileValidation";
 
 function getUserIdFromRequest(req: NextRequest): string | null {
   const token = getToken(req);
@@ -110,7 +111,22 @@ export async function POST(req: NextRequest) {
         const mimeType = match[1];
         const base64Data = match[2];
         const fileBuffer = Buffer.from(base64Data, "base64");
-        const extension = mimeType.split("/")[1] || "png";
+        let extension = mimeType.split("/")[1] || "png";
+        if (extension === "jpeg") extension = "jpg";
+        const dummyFileName = `avatar.${extension}`;
+
+        const validation = validateFileContent(
+          fileBuffer,
+          dummyFileName,
+          mimeType,
+          [".png", ".jpg", ".jpeg", ".gif"],
+          5 * 1024 * 1024 // 5 MB
+        );
+
+        if (!validation.isValid) {
+          return NextResponse.json({ success: false, error: validation.error }, { status: 400 });
+        }
+
         const safeFileName = `avatar_${userId}_${Date.now()}.${extension}`;
 
         try {

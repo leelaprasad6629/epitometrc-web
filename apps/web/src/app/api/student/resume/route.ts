@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
+import { validateFileContent } from "@/lib/fileValidation";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -21,15 +22,8 @@ function getUserIdFromRequest(req: NextRequest): string | null {
   return null;
 }
 
-const ALLOWED_MIME_TYPES = new Set([
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/octet-stream",
-]);
-
-const ALLOWED_EXTENSIONS = new Set([".pdf", ".doc", ".docx"]);
-const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+const ALLOWED_EXTENSIONS = [".pdf", ".doc", ".docx"];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 export async function GET(req: NextRequest) {
   try {
@@ -67,30 +61,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "No file uploaded." }, { status: 400 });
     }
 
-    const ext = path.extname(file.name).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.has(ext)) {
-      return NextResponse.json(
-        { success: false, error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB." },
-        { status: 400 }
-      );
-    }
+    const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    if (file.type && !ALLOWED_MIME_TYPES.has(file.type)) {
-      return NextResponse.json(
-        { success: false, error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB." },
-        { status: 400 }
-      );
-    }
+    // Secure Data Protection Validation
+    const validation = validateFileContent(
+      fileBuffer,
+      file.name,
+      file.type,
+      ALLOWED_EXTENSIONS,
+      MAX_FILE_SIZE
+    );
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (!validation.isValid) {
       return NextResponse.json(
-        { success: false, error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB." },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
 
     const safeFileName = `${userId}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
 
     // 1. Guaranteed Local Server Storage (public/uploads)
     let fileUrl = `/uploads/${safeFileName}`;

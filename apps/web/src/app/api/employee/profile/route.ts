@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
+import { validateFileContent } from "@/lib/fileValidation";
 
 export async function GET(req: NextRequest) {
   try {
@@ -85,7 +86,22 @@ export async function PATCH(req: NextRequest) {
         const mimeType = match[1];
         const base64Data = match[2];
         const fileBuffer = Buffer.from(base64Data, "base64");
-        const extension = mimeType.split("/")[1] || "png";
+        let extension = mimeType.split("/")[1] || "png";
+        if (extension === "jpeg") extension = "jpg";
+        const dummyFileName = `avatar.${extension}`;
+
+        const validation = validateFileContent(
+          fileBuffer,
+          dummyFileName,
+          mimeType,
+          [".png", ".jpg", ".jpeg", ".gif"],
+          5 * 1024 * 1024 // 5 MB
+        );
+
+        if (!validation.isValid) {
+          return NextResponse.json({ error: validation.error }, { status: 400 });
+        }
+
         const safeFileName = `avatar_${payload.id}_${Date.now()}.${extension}`;
 
         try {
