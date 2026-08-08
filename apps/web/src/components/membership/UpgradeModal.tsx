@@ -18,6 +18,7 @@ export default function UpgradeModal({ isOpen, onClose, limitType = "general", o
   const [checkoutStep, setCheckoutStep] = useState<"plans" | "checkout" | "success">("plans");
   const [loading, setLoading] = useState(false);
   const [acceptedRefundPolicy, setAcceptedRefundPolicy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -25,12 +26,14 @@ export default function UpgradeModal({ isOpen, onClose, limitType = "general", o
     if (planName === "Free Plan") return; // Already on Free Plan
     setSelectedPlan(planName);
     setAcceptedRefundPolicy(false);
+    setError(null);
     setCheckoutStep("checkout");
   };
 
   const handleSimulatePayment = async () => {
     if (!selectedPlan) return;
     setLoading(true);
+    setError(null);
     
     try {
       const response = await fetch("/api/student/membership", {
@@ -42,9 +45,13 @@ export default function UpgradeModal({ isOpen, onClose, limitType = "general", o
       if (response.ok) {
         setCheckoutStep("success");
         if (onUpgradeSuccess) onUpgradeSuccess();
+      } else {
+        const errData = await response.json();
+        setError(errData.error || "Failed to complete purchase upgrade.");
       }
     } catch (err) {
       console.error("Mock checkout failed:", err);
+      setError("A connection error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -225,6 +232,13 @@ export default function UpgradeModal({ isOpen, onClose, limitType = "general", o
                   </div>
                 </div>
               </div>
+
+              {error && (
+                <div className="p-3 rounded-lg bg-rose-50 text-[11.5px] text-rose-700 flex items-start gap-1.5 border border-rose-100">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 animate-pulse" />
+                  <span>{error}</span>
+                </div>
+              )}
 
               <div className="p-3 rounded-lg bg-orange-50 text-[11px] text-orange-700 flex items-start gap-1.5">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />

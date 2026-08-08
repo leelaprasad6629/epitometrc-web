@@ -8,6 +8,26 @@ const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export async function POST(req: NextRequest) {
   try {
+    const token = req.cookies.get("token")?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { verifyToken } = await import("@/lib/jwt");
+    const payload = verifyToken(token) as { id: string } | null;
+    if (!payload?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { id: true, email: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const {
       mode, // "optimize-jd" | "improve-section" | "generate-cover-letter" | "generate-full-resume"
@@ -23,6 +43,16 @@ export async function POST(req: NextRequest) {
       certifications,
       education,
     } = body;
+
+    // Log RESUME_GENERATION Audit Trail
+    const { logAuditAction } = await import("@/lib/audit");
+    await logAuditAction(
+      user.id,
+      user.email,
+      "RESUME_GENERATION",
+      { mode, action, targetRole, companyName },
+      req.headers.get("x-forwarded-for")
+    );
 
     if (!GROQ_API_KEY) {
       // Graceful fallback response when key is unconfigured locally

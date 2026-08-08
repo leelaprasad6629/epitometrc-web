@@ -4,6 +4,7 @@ import { PdfReader } from "pdfreader";
 import mammoth from "mammoth";
 import { verifyToken } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
+import { validateFileContent } from "@/lib/fileValidation";
 
 export const maxDuration = 60; // 60s Vercel serverless function timeout
 
@@ -173,6 +174,25 @@ export async function POST(req: NextRequest) {
             );
           }
 
+          // Write RESUME_GENERATION audit trail
+          let userEmail = "unknown";
+          try {
+            const user = await prisma.user.findUnique({
+              where: { id: payload.id },
+              select: { email: true }
+            });
+            if (user) userEmail = user.email;
+          } catch {}
+
+          const { logAuditAction } = await import("@/lib/audit");
+          await logAuditAction(
+            payload.id,
+            userEmail,
+            "RESUME_GENERATION",
+            { fileName, purpose },
+            req.headers.get("x-forwarded-for")
+          );
+
           // Increment usage
           if (!isOffline) {
             try {
@@ -194,19 +214,22 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(fileBase64, "base64");
 
-    // 1. File Size Validation (Max 25 MB)
-    const MAX_SIZE_BYTES = 25 * 1024 * 1024; // 25MB
-    if (buffer.length > MAX_SIZE_BYTES) {
-      return NextResponse.json({
-        success: false,
-        error: "Resume must be a PDF, DOC, or DOCX file and cannot exceed 25 MB."
-      }, { status: 400 });
+    // Secure Data Protection Validation
+    const validation = validateFileContent(
+      buffer,
+      fileName,
+      fileMimeType,
+      [".pdf", ".doc", ".docx"],
+      5 * 1024 * 1024 // 5 MB for resumes
+    );
+
+    if (!validation.isValid) {
+      return NextResponse.json({ success: false, error: validation.error }, { status: 400 });
     }
 
-    // 2. Extension & MIME Validation
     const lowerName = fileName.toLowerCase();
-    const isValidExtension = lowerName.endsWith(".pdf") || lowerName.endsWith(".doc") || lowerName.endsWith(".docx");
-    const isValidMime = !fileMimeType || fileMimeType.includes("pdf") || fileMimeType.includes("msword") || fileMimeType.includes("officedocument") || fileMimeType.includes("text");
+    const isValidExtension = true;
+    const isValidMime = true;
     
     if (!isValidExtension && !isValidMime) {
       return NextResponse.json({

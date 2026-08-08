@@ -82,6 +82,41 @@ export async function POST(req: NextRequest) {
     const planSpecs = getPlanByName(planName);
 
     try {
+      // 1. Fetch user data (Verified email, contactNumber, status)
+      const user = await prisma.user.findUnique({
+        where: { id: payload.id },
+        select: { id: true, email: true, status: true, contactNumber: true }
+      });
+
+      if (!user) {
+        return NextResponse.json({ error: "User not found." }, { status: 404 });
+      }
+
+      // A. Verified Email check
+      if (user.status !== "Active") {
+        return NextResponse.json({ error: "Email verification is required before acquiring or upgrading membership plans." }, { status: 400 });
+      }
+
+      // B. Verified Mobile check
+      if (!user.contactNumber || user.contactNumber.trim() === "") {
+        return NextResponse.json({ error: "A verified contact mobile number is required to claim/upgrade your membership." }, { status: 400 });
+      }
+
+      // C. Verified Mobile unique check across premium plans
+      const duplicateMobileUser = await prisma.user.findFirst({
+        where: {
+          contactNumber: user.contactNumber,
+          id: { not: payload.id },
+          membership: {
+            planName: { not: "Free Plan" }
+          }
+        }
+      });
+
+      if (duplicateMobileUser) {
+        return NextResponse.json({ error: "This contact mobile number is already linked to another active premium membership." }, { status: 400 });
+      }
+
       const validUntilDate = new Date();
       validUntilDate.setMonth(validUntilDate.getMonth() + 1); // 1 month validity
 
@@ -103,6 +138,16 @@ export async function POST(req: NextRequest) {
           resumesOptimizedUsed: 0
         }
       });
+
+      // D. Audit Log membership purchase
+      const { logAuditAction } = await import("@/lib/audit");
+      await logAuditAction(
+        payload.id,
+        user.email,
+        "MEMBERSHIP_PURCHASE",
+        { planName: planSpecs.name, validUntil: validUntilDate },
+        req.headers.get("x-forwarded-for")
+      );
 
       return NextResponse.json({ success: true, membership });
     } catch (dbError) {

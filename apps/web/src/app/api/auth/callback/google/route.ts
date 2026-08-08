@@ -119,6 +119,10 @@ export async function GET(req: NextRequest) {
     // Sign session token
     const token = signToken({ id: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
 
+    // Register active user session and enforce concurrency limits
+    const { registerUserSession } = await import("@/lib/jwt");
+    await registerUserSession(user.id, token, user.email, req);
+
     const state = searchParams.get("state");
     if (state === "mobile") {
       return new Response(null, {

@@ -32,6 +32,7 @@ model User {
   courseCertificates    CourseCertificate[]
   lessonProgresses      LessonProgress[]
   suggestions           IdeaSuggestion[]
+  sessions              UserSession[]
 }
 
 model UserProfile {
@@ -529,6 +530,17 @@ model SuggestionStatusHistory {
   remarks        String?
   timestamp      DateTime       @default(now())
   suggestion     IdeaSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+}
+
+model UserSession {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 

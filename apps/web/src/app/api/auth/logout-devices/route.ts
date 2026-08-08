@@ -18,6 +18,11 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    // Delete all active sessions in the database for this user
+    await prisma.userSession.deleteMany({
+      where: { userId: user.id }
+    }).catch(() => {});
+
     // Write audit log
     await logAuditAction(
       user.id,

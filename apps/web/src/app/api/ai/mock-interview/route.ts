@@ -57,9 +57,28 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        // Increment count when a new interview session starts
         const isNewSession = !history || history.length === 0;
         if (isNewSession) {
+          // Fetch user details for audit logging
+          let userEmail = "unknown";
+          try {
+            const user = await prisma.user.findUnique({
+              where: { id: payload.id },
+              select: { email: true }
+            });
+            if (user) userEmail = user.email;
+          } catch {}
+
+          // Log Audit Action
+          const { logAuditAction } = await import("@/lib/audit");
+          await logAuditAction(
+            payload.id,
+            userEmail,
+            "MOCK_INTERVIEW",
+            { role, interviewType, difficulty, company },
+            req.headers.get("x-forwarded-for")
+          );
+
           if (!isOffline) {
             try {
               await prisma.userMembership.update({
