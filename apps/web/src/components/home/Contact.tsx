@@ -99,6 +99,33 @@ export default function Contact() {
                   </a>
                 </div>
               </div>
+
+              <div className="pt-6 border-t border-slate-100 space-y-3">
+                <h4 className="font-display font-bold text-slate-800 text-xs tracking-wider uppercase">Social Media</h4>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { Icon: FaLinkedin, href: "https://www.linkedin.com/in/epitometrc", label: "LinkedIn", bgColor: "bg-[#0077B5]" },
+                    { Icon: FaFacebook, href: "https://www.facebook.com/epitometrc", label: "Facebook", bgColor: "bg-[#1877F2]" },
+                    { Icon: FaInstagram, href: "https://www.instagram.com/epitometrc007/", label: "Instagram", bgColor: "bg-[#E1306C]" },
+                    { Icon: FaTelegram, href: "https://t.me/epitometrc", label: "Telegram", bgColor: "bg-[#229ED9]" },
+                    { Icon: FaYoutube, href: "https://youtube.com/@epitometrc", label: "YouTube", bgColor: "bg-[#FF0000]" },
+                    { Icon: FaWhatsapp, href: "https://wa.me/916265966705", label: "WhatsApp", bgColor: "bg-[#25D366]" },
+                    { Icon: FaThreads, href: "https://threads.net/@epitometrc007", label: "Threads", bgColor: "bg-[#000000]" },
+                    { Icon: FaXTwitter, href: "https://x.com/epitometrc", label: "X", bgColor: "bg-[#000000]" }
+                  ].map(({ Icon, href, label, bgColor }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      className={`h-9 w-9 flex items-center justify-center text-white transition-all hover:-translate-y-1 hover:shadow-lg ${bgColor}`}
+                    >
+                      <Icon className="h-4.5 w-4.5" />
+                    </a>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
